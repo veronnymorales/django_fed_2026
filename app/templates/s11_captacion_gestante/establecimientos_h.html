@@ -1,0 +1,178 @@
+<form method="GET" action="#" id="filter-form">
+  <div class="row align-items-end">
+    <!-- Año -->
+    <div class="col-md-1">
+      <div class="form-group">
+        <label class="text-primary">AÑO:</label>
+        <select
+          class="form-control form-control-sm select2"
+          id="anio"
+          name="anio"
+          style="width: 100%"
+        >
+          <option value="2025" selected>2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Mes inicio -->
+    <div class="col-md-2">
+      <div class="form-group">
+        <label class="text-primary">MES INICIO:</label>
+        <select
+          class="form-control form-control-sm select2"
+          id="mes_inicio"
+          name="mes_inicio"
+          style="width: 50%"
+        >
+          <option value="1">ENERO</option>
+          <option value="2">FEBRERO</option>
+          <option value="3">MARZO</option>
+          <option value="4">ABRIL</option>
+          <option value="5">MAYO</option>
+          <option value="6">JUNIO</option>
+          <option value="7">JULIO</option>
+          <option value="8">AGOSTO</option>
+          <option value="9">SETIEMBRE</option>
+          <option value="10">OCTUBRE</option>
+          <option value="11" selected>NOVIEMBRE</option>
+          <option value="12">DICIEMBRE</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Mes final -->
+    <div class="col-md-2">
+      <div class="form-group">
+        <label class="text-primary">MES FINAL:</label>
+        <select
+          class="form-control form-control-sm select2"
+          id="mes_fin"
+          name="mes_fin"
+          style="width: 100%"
+        >
+          <option value="1">ENERO</option>
+          <option value="2">FEBRERO</option>
+          <option value="3">MARZO</option>
+          <option value="4">ABRIL</option>
+          <option value="5">MAYO</option>
+          <option value="6">JUNIO</option>
+          <option value="7">JULIO</option>
+          <option value="8">AGOSTO</option>
+          <option value="9">SETIEMBRE</option>
+          <option value="10">OCTUBRE</option>
+          <option value="11" selected>NOVIEMBRE</option>
+          <option value="12">DICIEMBRE</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- RED -->
+    <div class="col-md-2">
+      <div class="form-group">
+        <label class="text-primary" for="red_h">REDES:</label>
+        <select
+          class="form-control form-control-sm select2"
+          id="red_h"
+          name="red_h"
+          hx-get="{% url 'p_microredes_establec_s11_captacion_gestante_h' %}"
+          hx-trigger="change"
+          hx-target="#container_microredes_establec_h"
+          hx-swap="innerHTML"
+        >
+          <option value="">--- SELECCIONAR ---</option>
+          {% for p in redes_h %}
+          <option value="{{ p.codigo_red_filtrado }}">{{ p.Red }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- MICRORED -->
+    <div class="col-md-2">
+      <div class="form-group">
+        <label class="text-primary" for="microred_h">MICROREDES:</label>
+        <div id="container_microredes_establec_h">
+          <select
+            class="form-control form-control-sm select2"
+            id="microred_h"
+            name="microred_h"
+            style="width: 100%"
+          >
+            <option value="">--- SELECCIONAR ---</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESTABLECIMIENTO -->
+    <div class="col-md-2">
+      <div class="form-group">
+        <label class="text-primary" for="establecimiento_h"
+          >ESTABLECIMIENTOS:</label
+        >
+        <div id="container_establecimientos_h">
+          <select
+            class="form-control form-control-sm select2"
+            id="establecimiento_h"
+            name="establecimiento_h"
+            style="width: 100%"
+          >
+            <option value="">--- SELECCIONAR ---</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="col-md-1">
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-sm" id="filter-btn">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Inicializar Select2
+    $(".select2").select2({
+      theme: "bootstrap4",
+      width: "100%",
+    });
+
+    // Manejar eventos Select2 con HTMX para el select de red
+    $("#red_h").on("select2:select", function (e) {
+      // Disparar manualmente el evento HTMX
+      htmx.trigger(this, "change");
+    });
+
+    // Reinicializar Select2 y eventos después de actualizaciones HTMX
+    document.body.addEventListener("htmx:afterSwap", function (event) {
+      // Reinicializar todos los select2
+      $(".select2").select2({
+        theme: "bootstrap4",
+        width: "100%",
+        minimumResultsForSearch: -1, // Oculta la búsqueda si no la necesitas
+        containerCssClass: "select2-sm", // Aplica clase para tamaño pequeño
+      });
+
+      // Re-aplicar eventos HTMX en select de microred cuando se cargue dinámicamente
+      const microredSelect = document.getElementById("p_microredes_establec_h");
+      if (microredSelect) {
+        $("#p_microredes_establec_h").on("select2:select", function (e) {
+          htmx.trigger(this, "change");
+        });
+      }
+    });
+
+    // Limpiar formulario
+    document.getElementById("clear-btn").addEventListener("click", function () {
+      document.getElementById("filter-form").reset();
+      $(".select2").val("").trigger("change");
+    });
+  });
+</script>

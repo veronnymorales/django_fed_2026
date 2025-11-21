@@ -1,0 +1,85 @@
+<script>
+window.renderChartRed = function(data, params) {
+    const container = document.getElementById('chart_red_ranking');
+    if (!container) {
+        console.error('El contenedor para el ranking de redes no fue encontrado.');
+        return;
+    }
+    if (typeof echarts === "undefined") {
+        console.error("ECharts no está cargado.");
+        return;
+    }
+
+    let myChart = echarts.getInstanceByDom(container);
+    if (myChart) {
+        myChart.dispose();
+    }
+    myChart = echarts.init(container);
+
+    try {
+        if (!data.r_red || !Array.isArray(data.r_red) || data.r_red.length === 0) {
+            container.innerHTML = '<p class="text-center text-info">No hay datos de redes para mostrar.</p>';
+            return;
+        }
+
+        const datosCompletos = data.r_red.map((red, index) => ({
+            red: red,
+            denominador: data.r_denominador[index] || 0,
+            numerador: data.r_numerador[index] || 0,
+            cobertura: data.r_cobertura[index] || 0
+        }));
+
+        datosCompletos.sort((a, b) => b.cobertura - a.cobertura);
+
+        const redes = datosCompletos.map(d => d.red);
+        const denominadores = datosCompletos.map(d => d.denominador);
+        const numeradores = datosCompletos.map(d => d.numerador);
+        const coberturas = datosCompletos.map(d => d.cobertura);
+
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                formatter: function(params) {
+                    let result = params[0].name + '<br/>';
+                    params.forEach(function(item) {
+                        if (item.seriesName === 'Cob') {
+                            result += `${item.marker} ${item.seriesName}: ${parseFloat(item.value).toFixed(2)}%<br/>`;
+                        } else {
+                            result += `${item.marker} ${item.seriesName}: ${item.value}<br/>`;
+                        }
+                    });
+                    return result;
+                }
+            },
+            legend: { data: ['Poblacion', 'PN', 'Cob'] },
+            xAxis: [{
+                type: 'category',
+                data: redes,
+                axisPointer: { type: 'shadow' },
+                axisLabel: { rotate: 45, interval: 0, fontSize: 9 }
+            }],
+            yAxis: [
+                { type: 'value', name: 'Cantidad', min: 0, axisLabel: { formatter: '{value}' } },
+                { type: 'value', name: 'Cobertura (%)', min: 0, max: 100, interval: 20, axisLabel: { formatter: '{value}%' } }
+            ],
+            series: [
+                { name: 'Poblacion', type: 'bar', data: denominadores, label: { show: true, position: 'top', formatter: '{c}', fontSize: 10 }, itemStyle: { color: '#91cc75' } },
+                { name: 'PN', type: 'bar', data: numeradores, label: { show: true, position: 'top', formatter: '{c}', fontSize: 10 }, itemStyle: { color: '#fac858' } },
+                { name: 'Cob', type: 'line', yAxisIndex: 1, data: coberturas, itemStyle: { color: '#5470c6' }, label: { show: true, position: 'top', formatter: (p) => `${parseFloat(p.value).toFixed(2)}%`, fontSize: 10, fontWeight: 'bold' },
+                    markLine: {
+                        symbol: 'none',
+                        lineStyle: { type: 'dashed', color: 'red' },
+                        data: [{ yAxis: 85, name: 'Meta' }],
+                        label: { show: true, formatter: 'Meta: 85%', position: 'end' }
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+    } catch (error) {
+        console.error("Error al renderizar el ranking de redes:", error);
+        container.innerHTML = '<p class="text-center text-danger">Ocurrió un error al cargar el gráfico.</p>';
+    }
+};
+</script>

@@ -1,0 +1,177 @@
+<!-- Modal para Filtros de Seguimiento Nominal -->
+<div class="modal fade" id="modalFiltrosSeguimiento" tabindex="-1" role="dialog" aria-labelledby="modalFiltrosSeguimientoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalFiltrosSeguimientoLabel">
+                    <i class="fas fa-filter"></i> Filtros de Seguimiento Nominal
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formFiltrosSeguimiento" method="GET" action="{% url 'rpt_pn_poblacion_establecimiento_xls' %}">
+                <div class="modal-body">
+                    <!-- Fila 1: Año, Mes, Edades -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="text-danger" for="modal_anio">AÑO:</label>
+                                <input type="text" class="form-control" id="modal_anio" name="anio" value="2025" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="text-danger" for="modal_mes">MES DE EVALUACION:</label>
+                                <input type="text" class="form-control" id="modal_mes" name="mes" value="JUNIO" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label class="text-danger" for="modal_edades">POR EDADES:</label>
+                                <select class="form-control" id="modal_edades" name="edades">
+                                    <option value="" selected>Todos</option>
+                                    <option value="N28_dias">28 dias</option>
+                                    <option value="N0a5meses">0 a 5meses</option>
+                                    <option value="N6a11meses">6 a 11meses</option>
+                                    <option value="cero_anios">0 a 12 meses</option>
+                                    <option value="un_anios">1 año</option>
+                                    <option value="dos_anios">2 años</option>
+                                    <option value="tres_anios">3 años</option>
+                                    <option value="cuatro_anio">4 años</option>
+                                    <option value="cinco_anios">5 años</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 2: Estado Actualización -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="text-danger" for="modal_cumple">ESTADO ACTUALIZACION:</label>
+                                <select class="form-control" id="modal_cumple" name="cumple">
+                                    <option value="">Todos</option>
+                                    <option value="1">Cumplen</option>
+                                    <option value="0">NO Cumplen</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Fila 3: Red -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="text-primary" for="modal_red">REDES:</label>
+                                <select class="form-control" id="modal_red" name="red">
+                                    <option value="">--- SELECCIONAR ---</option>
+                                    {% for p in redes %}
+                                    <option value="{{ p.codigo_red_filtrado }}">{{ p.Red }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 4: Microred -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="text-primary" for="modal_microred">MICRORED:</label>
+                                <select class="form-control" id="modal_microred" name="p_microredes_establec" disabled>
+                                    <option value="">--- SELECCIONAR RED PRIMERO ---</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 5: Establecimiento -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="text-primary" for="modal_establecimiento">ESTABLECIMIENTO:</label>
+                                <select class="form-control" id="modal_establecimiento" name="p_establecimiento" disabled>
+                                    <option value="">--- SELECCIONAR MICRORED PRIMERO ---</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Procesar Reporte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script para manejar los filtros en cascada -->
+<script>
+$(document).ready(function() {
+    // Evento para cargar microredes cuando se selecciona una red
+    $('#modal_red').change(function() {
+        var redId = $(this).val();
+        var microredSelect = $('#modal_microred');
+        var establecimientoSelect = $('#modal_establecimiento');
+        
+        // Limpiar y deshabilitar selects dependientes
+        microredSelect.html('<option value="">--- CARGANDO ---</option>').prop('disabled', true);
+        establecimientoSelect.html('<option value="">--- SELECCIONAR MICRORED PRIMERO ---</option>').prop('disabled', true);
+        
+        if (redId) {
+            $.ajax({
+                url: '{% url "p_microredes_pn_poblacion" %}',
+                data: { 'red': redId },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(data) {
+                    var options = '<option value="">--- SELECCIONAR ---</option>' + data;
+                    microredSelect.html(options).prop('disabled', false);
+                },
+                error: function() {
+                    microredSelect.html('<option value="">--- ERROR AL CARGAR ---</option>');
+                }
+            });
+        } else {
+            microredSelect.html('<option value="">--- SELECCIONAR RED PRIMERO ---</option>');
+        }
+    });
+    
+    // Evento para cargar establecimientos cuando se selecciona una microred
+    $('#modal_microred').change(function() {
+        var microredId = $(this).val();
+        var redId = $('#modal_red').val();
+        var establecimientoSelect = $('#modal_establecimiento');
+        
+        establecimientoSelect.html('<option value="">--- CARGANDO ---</option>').prop('disabled', true);
+        
+        if (microredId && redId) {
+            $.ajax({
+                url: '{% url "p_establecimientos_pn_poblacion" %}',
+                data: { 
+                    'p_microredes_establec': microredId,
+                    'red': redId 
+                },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(data) {
+                    var options = '<option value="">--- SELECCIONAR ---</option>' + data;
+                    establecimientoSelect.html(options).prop('disabled', false);
+                },
+                error: function() {
+                    establecimientoSelect.html('<option value="">--- ERROR AL CARGAR ---</option>');
+                }
+            });
+        } else {
+            establecimientoSelect.html('<option value="">--- SELECCIONAR MICRORED PRIMERO ---</option>');
+        }
+    });
+});
+</script>

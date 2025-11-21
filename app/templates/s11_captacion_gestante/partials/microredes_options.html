@@ -1,0 +1,5 @@
+<!-- microred_options.html -->
+<option value="">Seleccionar Microred</option>
+{% for microred in microredes %}
+    <option value="{{ microred.Codigo_MicroRed }}">{{ microred.MicroRed }}</option>
+{% endfor %}

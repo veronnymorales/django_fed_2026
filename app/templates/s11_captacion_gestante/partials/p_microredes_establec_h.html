@@ -1,0 +1,14 @@
+<select
+  class="form-control form-control-sm select2"
+  id="p_microredes_establec_h"
+  name="p_microredes_establec_h"
+  hx-get="{% url 'p_establecimientos_s11_captacion_gestante_h' %}"
+  hx-trigger="change"
+  hx-target="#container_establecimientos_h"
+  hx-include="[name='red_h'], [name='p_microredes_establec_h']"
+>
+  <option value="">--- SELECCIONAR ---</option>
+  {% for m in microredes %}
+  <option value="{{ m.Codigo_MicroRed }}">{{ m.MicroRed }}</option>
+  {% endfor %}
+</select>

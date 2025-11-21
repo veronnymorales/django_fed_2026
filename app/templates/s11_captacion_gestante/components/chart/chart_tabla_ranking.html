@@ -1,0 +1,275 @@
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const datosTable = document.getElementById("ranking-pn-poblacion-body");
+    const filtroForm = document.querySelector("form");
+    let dataTable = null;
+
+    // Función para verificar si jQuery está disponible
+    function waitForJQuery(callback) {
+      if (
+        typeof jQuery !== "undefined" &&
+        typeof $.fn.DataTable !== "undefined"
+      ) {
+        callback();
+      } else {
+        setTimeout(function () {
+          waitForJQuery(callback);
+        }, 100);
+      }
+    }
+
+    // Cache para estilos de colores
+    const colorCache = new Map();
+
+    // Función optimizada para colorear porcentaje de cobertura
+    function getColorForPercentage(value) {
+      if (value === "N/A" || value === null || value === undefined) return "";
+
+      const cacheKey = `perc_${value}`;
+      if (colorCache.has(cacheKey)) return colorCache.get(cacheKey);
+
+      const percentage = parseFloat(String(value).replace("%", ""));
+      if (isNaN(percentage)) return "";
+
+      let style = "";
+      if (percentage >= 85) {
+        style = "background-color: #d4edda; color: #155724;";
+      } else if (percentage >= 75) {
+        style = "background-color: #fff3cd; color: #856404;";
+      } else {
+        style = "background-color: #f8d7da; color: #721c24;";
+      }
+
+      colorCache.set(cacheKey, style);
+      return style;
+    }
+
+    // Función optimizada para colorear población
+    function getColorForPopulation(value) {
+      if (
+        value === "N/A" ||
+        value === null ||
+        value === undefined ||
+        value === 0
+      )
+        return "";
+      return "color: #004085;";
+    }
+
+    // Función optimizada para colorear brecha
+    function getColorForGap(value) {
+      if (value === "N/A" || value === null || value === undefined) return "";
+
+      const cacheKey = `gap_${value}`;
+      if (colorCache.has(cacheKey)) return colorCache.get(cacheKey);
+
+      const gap = parseInt(value);
+      if (isNaN(gap)) return "";
+
+      const style = gap <= 10 ? "color: #155724;" : "color: #721c24;";
+      colorCache.set(cacheKey, style);
+      return style;
+    }
+
+    // Función optimizada para colorear edad
+    function getColorForAge(value) {
+      if (value === "N/A" || value === null || value === undefined) return "";
+
+      const cacheKey = `age_${value}`;
+      if (colorCache.has(cacheKey)) return colorCache.get(cacheKey);
+
+      const ageStr = String(value).toLowerCase();
+      let style = "";
+
+      if (ageStr.includes("0") || ageStr.includes("cero")) {
+        style = "background-color: #e6f7ff; color: #0c5460;";
+      } else if (ageStr.includes("1") || ageStr.includes("uno")) {
+        style = "background-color: #fff3cd; color: #856404;";
+      } else if (ageStr.includes("2") || ageStr.includes("dos")) {
+        style = "background-color: #f0e6ff; color: #4b0082;";
+      } else if (ageStr.includes("3") || ageStr.includes("tres")) {
+        style = "background-color: #e6ffe6; color: #155724;";
+      }
+
+      colorCache.set(cacheKey, style);
+      return style;
+    }
+
+    function loadRankingData(params = {}) {
+      const queryString = new URLSearchParams(params).toString();
+
+      // Mostrar indicador de carga
+      datosTable.innerHTML =
+        '<tr><td colspan="16" class="text-center">Cargando datos...</td></tr>';
+
+      fetch(`{% url "index_paquete_compromiso" %}?${queryString}`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Error en la respuesta");
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Datos recibidos:", data);
+
+          // Verificar si los datos vienen en formato de lista de diccionarios
+          if (data && Array.isArray(data) && data.length > 0) {
+            renderTableData(data);
+          } else if (
+            data &&
+            !data.error &&
+            Array.isArray(data.anio) &&
+            data.anio.length > 0
+          ) {
+            // Convertir formato de arrays a objetos para usar la misma función
+            const convertedData = [];
+            for (let index = 0; index < data.anio.length; index++) {
+              convertedData.push({
+                anio: data.anio[index],
+                mes: data.mes[index],
+                Ubigueo_Establecimiento: data.Ubigueo_Establecimiento[index],
+                Distrito: data.Distrito[index],
+                Provincia: data.Provincia[index],
+                Codigo_Red: data.Codigo_Red[index],
+                red: data.red[index],
+                Codigo_MicroRed: data.Codigo_MicroRed[index],
+                microred: data.microred[index],
+                Codigo_Unico: data.Codigo_Unico[index],
+                Nombre_Establecimiento: data.Nombre_Establecimiento[index],
+                grupo_edad: data.grupo_edad[index],
+                total_denominador: data.total_denominador[index],
+                total_numerador: data.total_numerador[index],
+                total_brecha: data.total_brecha[index],
+                cobertura_porcentaje: data.cobertura_porcentaje[index],
+              });
+            }
+            renderTableData(convertedData);
+          } else {
+            console.error(
+              "No se encontraron datos o estructura incorrecta:",
+              data
+            );
+            datosTable.innerHTML =
+              '<tr><td colspan="16">No hay datos disponibles</td></tr>';
+          }
+        })
+        .catch((error) => {
+          console.error("Error al cargar el ranking:", error.message);
+          datosTable.innerHTML =
+            '<tr><td colspan="16">Error al cargar el ranking</td></tr>';
+        });
+    }
+
+    // Función optimizada para renderizar datos de la tabla
+    function renderTableData(data) {
+      const fragment = document.createDocumentFragment();
+
+      data.forEach((item) => {
+        const row = document.createElement("tr");
+
+        const anio = item.anio || "N/A";
+        const mes = item.mes || "N/A";
+        const ubigueo = item.Ubigueo_Establecimiento || "N/A";
+        const distrito = item.Distrito || "N/A";
+        const provincia = item.Provincia || "N/A";
+        const codigoRed = item.Codigo_Red || "N/A";
+        const red = item.red || "N/A";
+        const codigoMicroRed = item.Codigo_MicroRed || "N/A";
+        const microred = item.microred || "N/A";
+        const codigoUnico = item.Codigo_Unico || "N/A";
+        const nombreEstablecimiento = item.Nombre_Establecimiento || "N/A";
+        const grupoEdad = item.grupo_edad || "N/A";
+        const totalDenominador = item.total_denominador || 0;
+        const totalNumerador = item.total_numerador || 0;
+        const totalBrecha = item.total_brecha || 0;
+        const coberturaPorcentaje = item.cobertura_porcentaje || "N/A";
+
+        // Aplicar colores a las columnas correspondientes
+        const colorStylePercentage = getColorForPercentage(coberturaPorcentaje);
+        const colorStylePopulation = getColorForPopulation(totalDenominador);
+        const colorStyleGap = getColorForGap(totalBrecha);
+        const colorStyleAge = getColorForAge(grupoEdad);
+
+        row.innerHTML = `
+                <td style="font-size: 14px;">${anio}</td>
+                <td style="font-size: 14px;">${mes}</td>
+                <td style="font-size: 14px;">${ubigueo}</td>
+                <td class="text-center" style="font-size: 14px;">${distrito}</td>
+                <td class="text-center" style="font-size: 14px;">${provincia}</td>
+                <td class="text-center" style="font-size: 14px;">${codigoRed}</td>
+                <td class="text-center" style="font-size: 14px;">${red}</td>
+                <td class="text-center" style="font-size: 14px;">${codigoMicroRed}</td>
+                <td class="text-center" style="font-size: 14px;">${microred}</td>
+                <td class="text-center" style="font-size: 14px;">${codigoUnico}</td>
+                <td class="text-center" style="font-size: 14px;">${nombreEstablecimiento}</td>
+                <td class="text-center" style="font-size: 14px; ${colorStyleAge}">${grupoEdad}</td>
+                <td class="text-center" style="font-size: 14px; ${colorStylePopulation}">${totalDenominador}</td>
+                <td class="text-center" style="font-size: 14px;">${totalNumerador}</td>
+                <td class="text-center" style="font-size: 14px; ${colorStyleGap}">${totalBrecha}</td>
+                <td class="text-center" style="font-size: 14px; ${colorStylePercentage}">${coberturaPorcentaje}</td>
+            `;
+
+        fragment.appendChild(row);
+      });
+
+      // Limpiar tabla y agregar nuevos datos de una vez
+      datosTable.innerHTML = "";
+      datosTable.appendChild(fragment);
+
+      // Inicializar DataTable
+      initializeDataTable();
+    }
+
+    // Función para inicializar DataTable
+    function initializeDataTable() {
+      waitForJQuery(function () {
+        if (dataTable) {
+          dataTable.destroy();
+        }
+
+        dataTable = $("#ranking-pn-poblacion").DataTable({
+          pageLength: 10,
+          lengthChange: true,
+          lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, "Todos"],
+          ],
+          searching: true,
+          ordering: true,
+          order: [[6, "asc"]],
+          paging: true,
+          info: false,
+          autoWidth: false,
+          deferRender: true,
+          language: {
+            url: "https://cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json",
+          },
+        });
+      });
+    }
+
+    // Manejar evento de filtros
+    if (filtroForm) {
+      filtroForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(filtroForm);
+        const params = {};
+        for (const [key, value] of formData.entries()) {
+          params[key] = value;
+        }
+        loadRankingData(params);
+      });
+
+      // Cargar datos iniciales con filtros actuales
+      const initialFormData = new FormData(filtroForm);
+      const initialParams = {};
+      for (const [key, value] of initialFormData.entries()) {
+        initialParams[key] = value;
+      }
+      loadRankingData(initialParams);
+    } else {
+      // Cargar datos sin filtros si no hay formulario
+      loadRankingData();
+    }
+  });
+</script>

@@ -1,0 +1,90 @@
+<script>
+window.renderChartEstablecimiento = function(data, params) {
+    const container = document.getElementById("chart_establecimiento_ranking");
+    if (!container) {
+        console.error('El contenedor para el ranking de establecimientos no fue encontrado.');
+        return;
+    }
+    if (typeof echarts === "undefined") {
+        console.error("ECharts no está cargado.");
+        return;
+    }
+
+    let myChart = echarts.getInstanceByDom(container);
+    if (myChart) {
+        myChart.dispose();
+    }
+    myChart = echarts.init(container);
+
+    try {
+        if (!data.e_establecimiento || !Array.isArray(data.e_establecimiento) || data.e_establecimiento.length === 0) {
+            container.innerHTML = '<p class="text-center text-info">No hay datos de establecimientos para mostrar.</p>';
+            return;
+        }
+
+        const datosCompletos = data.e_establecimiento.map((nombre, index) => ({
+            establecimiento: nombre,
+            denominador: data.e_denominador[index] || 0,
+            numerador: data.e_numerador[index] || 0,
+            cobertura: data.e_cobertura[index] || 0,
+        }));
+
+        datosCompletos.sort((a, b) => a.cobertura - b.cobertura);
+
+        const establecimientos = datosCompletos.map((d) => d.establecimiento);
+        const coberturas = datosCompletos.map((d) => d.cobertura);
+        const numeradores = datosCompletos.map((d) => d.numerador);
+        const denominadores = datosCompletos.map((d) => d.denominador);
+
+        const totalEstablecimientos = establecimientos.length;
+        const startValue = totalEstablecimientos > 10 ? 100 - (10 / totalEstablecimientos * 100) : 0;
+
+        const option = {
+            tooltip: {
+                trigger: "axis",
+                axisPointer: { type: "shadow" },
+                formatter: function (params) {
+                    if (!params || params.length === 0) return "";
+                    const dataIndex = params[0].dataIndex;
+                    return `${establecimientos[dataIndex]}<br/>
+                            Población: ${denominadores[dataIndex]}<br/>
+                            Atendidos: ${numeradores[dataIndex]}<br/>
+                            Cobertura: ${parseFloat(coberturas[dataIndex]).toFixed(2)}%`;
+                },
+            },
+            xAxis: {
+                type: "value",
+                max: 100,
+                axisLabel: { formatter: "{value}%" },
+            },
+            yAxis: {
+                type: "category",
+                data: establecimientos,
+                axisPointer: { type: "shadow" },
+                axisLabel: { interval: 0, fontSize: 8, fontWeight: "normal" },
+            },
+            dataZoom: [
+                { type: "slider", yAxisIndex: 0, width: 10, right: 10, start: startValue, end: 100 },
+                { type: "inside", yAxisIndex: 0 },
+            ],
+            series: [{
+                name: "Cobertura",
+                type: "bar",
+                data: coberturas,
+                label: {
+                    show: true,
+                    position: "right",
+                    formatter: (params) => `${parseFloat(params.value).toFixed(1)}%`,
+                    fontSize: 10,
+                    color: "#000",
+                },
+                itemStyle: { color: "#91cc75" },
+            }],
+        };
+        myChart.setOption(option);
+    } catch (error) {
+        console.error("Error al renderizar el ranking de establecimientos:", error);
+        container.innerHTML = '<p class="text-center text-danger">Ocurrió un error al cargar el gráfico.</p>';
+    }
+};
+</script>

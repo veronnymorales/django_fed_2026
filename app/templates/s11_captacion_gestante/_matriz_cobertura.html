@@ -1,0 +1,36 @@
+<!-- Matriz regional -->
+<div class="row">
+    <!-- MATRIZ REGIONAL: Matriz regional -->
+    <div class="col-md-12">
+        <div class="chart-container">                                                       <!-- Contenido para la nueva tabla -->
+            <div id="detalle-tabla-container">
+                <table class="table table-bordered table-striped ranking-pn-poblacion" id="ranking-pn-poblacion">
+                    <thead style="font-size: 12px;">
+                        <tr>
+                            <th class="text-center">AÑO</th>
+                            <th class="text-center">MES</th>
+                            <th class="text-center">UBIGUEO</th>
+                            <th class="text-center">DISTRITO</th>
+                            <th class="text-center">PROVINCIA</th>
+                            <th class="text-center">C RED</th>
+                            <th class="text-center">RED</th>
+                            <th class="text-center">C MICRORED</th>
+                            <th class="text-center">MICRORED</th>
+                            <th class="text-center">C EESS</th>
+                            <th class="text-center">ESTABLECIMIENTO</th>
+                            <th class="text-center">EDAD</th>
+                            <th class="text-center">POB</th>
+                            <th class="text-center">PN</th>
+                            <th class="text-center">BRECHA</th>
+                            <th class="text-center">COB</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-pn-poblacion-body">
+                        {% include "paquete_compromiso/components/chart/chart_tabla_ranking.html" %}
+                        <!-- Contenido de la nueva tabla -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

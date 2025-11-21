@@ -1,0 +1,121 @@
+<!-- Card para mostrar gráficos por edades -->
+<script>
+  window.renderChartVelocimetro = function (data, params) {
+    if (typeof echarts === "undefined") {
+      console.error("ECharts no está cargado.");
+      return;
+    }
+
+    const container = document.getElementById("componente-velocimetro");
+    if (!container) {
+      console.error("El contenedor para el velocímetro no fue encontrado.");
+      return;
+    }
+
+    try {
+      if (
+        data &&
+        data.avance &&
+        Array.isArray(data.avance) &&
+        data.avance.length > 0
+      ) {
+        const avance = data.avance[0] ? parseFloat(data.avance[0]) : 0;
+        const valorGauge = avance / 100;
+
+        const cardHTML = `
+                <div class="card">
+                    <div class="card-body text-center p-2">
+                        <div id="gauge-chart-div" style="height: 178px;"></div>
+                    </div>
+                </div>
+            `;
+        container.innerHTML = cardHTML;
+        const chartDiv = document.getElementById("gauge-chart-div");
+
+        let myChart = echarts.getInstanceByDom(chartDiv);
+        if (myChart) {
+          myChart.dispose();
+        }
+        myChart = echarts.init(chartDiv);
+
+        const option = {
+          series: [
+            {
+              type: "gauge",
+              startAngle: 180,
+              endAngle: 0,
+              center: ["50%", "75%"],
+              radius: "90%",
+              min: 0,
+              max: 1,
+              splitNumber: 6,
+              axisLine: {
+                lineStyle: {
+                  width: 2,
+                  color: [
+                    [0.7, "#FF6B6B"],
+                    [0.82, "#FFD93D"],
+                    [1, "#6BCF7F"],
+                  ],
+                },
+              },
+              pointer: {
+                icon: "path://M12.8,0.7l12,40.1H0.7L12.8,0.7z",
+                length: "12%",
+                width: 10,
+                offsetCenter: [0, "-60%"],
+                itemStyle: { color: "auto" },
+              },
+              axisTick: { length: 6, lineStyle: { color: "auto", width: 2 } },
+              splitLine: { length: 10, lineStyle: { color: "auto", width: 5 } },
+              axisLabel: {
+                color: "#464646",
+                fontSize: 10,
+                distance: -40,
+                rotate: "tangential",
+                formatter: function (value) {
+                  if (Math.abs(value - 0.17) < 0.01) return "Riesgo";
+                  if (Math.abs(value - 0.5) < 0.01) return "Progreso";
+                  if (Math.abs(value - 0.83) < 0.01) return "Cumple";
+                  return "";
+                },
+              },
+              detail: {
+                fontSize: 20,
+                offsetCenter: [0, "-35%"],
+                valueAnimation: true,
+                formatter: function (value) {
+                  return Math.round(value * 100) + "%";
+                },
+                color: "inherit",
+              },
+              data: [{ value: valorGauge, name: "" }],
+            },
+          ],
+        };
+        myChart.setOption(option);
+      } else {
+        container.innerHTML = `
+                <div class="card">
+                    <div class="card-body d-flex align-items-center justify-content-center" style="height: 210px;">
+                        <div class="alert alert-info text-center m-0">
+                            <i class="fas fa-info-circle"></i>&nbsp;No hay datos.
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+    } catch (error) {
+      console.error("Error al renderizar el velocímetro:", error);
+      container.innerHTML = `
+            <div class="card">
+                <div class="card-body d-flex align-items-center justify-content-center" style="height: 210px;">
+                    <div class="alert alert-danger text-center m-0">
+                        <i class="fas fa-exclamation-triangle"></i>&nbsp;Error al cargar.
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+  };
+</script>

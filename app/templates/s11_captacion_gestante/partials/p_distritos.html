@@ -1,0 +1,7 @@
+<label class="text-primary">DISTRITO :</label>
+<select class="form-control form-control-sm" name="distrito_h">
+    <option value="">--- SELECCIONAR ---</option>
+    {% for d in distritos %}
+    <option value="{{ d.Ubigueo_Establecimiento }}">{{ d.Distrito }}</option>
+    {% endfor %}
+</select>

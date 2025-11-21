@@ -1,0 +1,118 @@
+<script>
+window.renderChartDistrito = function(data, params) {
+    const container = document.getElementById("chart_distrito_ranking");
+    if (!container) {
+        console.error('El contenedor para el ranking de distritos no fue encontrado.');
+        return;
+    }
+    if (typeof echarts === "undefined") {
+        console.error("ECharts no está cargado.");
+        return;
+    }
+
+    let myChart = echarts.getInstanceByDom(container);
+    if (myChart) {
+        myChart.dispose();
+    }
+    myChart = echarts.init(container);
+
+    try {
+        if (!data.d_distrito || !Array.isArray(data.d_distrito) || data.d_distrito.length === 0) {
+            container.innerHTML = '<p class="text-center text-info">No hay datos de distritos para mostrar.</p>';
+            return;
+        }
+
+        const datosCompletos = data.d_distrito.map((distrito, index) => ({
+            d_distrito: distrito,
+            d_den: data.d_den[index] || 0,
+            d_num: data.d_num[index] || 0,
+            d_cob: data.d_cob[index] || 0,
+            d_brecha: data.d_brecha[index] || 0,
+        }));
+
+        datosCompletos.sort((a, b) => a.d_cob - b.d_cob);
+
+        const d_distrito = datosCompletos.map((d) => d.d_distrito);
+        const d_cob = datosCompletos.map((d) => d.d_cob);
+        const d_num = datosCompletos.map((d) => d.d_num);
+        const d_den = datosCompletos.map((d) => d.d_den);
+        const d_brecha = datosCompletos.map((d) => d.d_brecha);
+
+        const totalDistritos = d_distrito.length;
+        const startValue = totalDistritos > 10 ? 100 - (10 / totalDistritos * 100) : 0;
+
+        const option = {
+            tooltip: {
+                trigger: "axis",
+                axisPointer: { type: "shadow" },
+                formatter: function (params) {
+                    if (!params || params.length === 0) return "";
+                    const dataIndex = params[0].dataIndex;
+                    let result = `${d_distrito[dataIndex]}<br/>
+                            Meta: ${d_den[dataIndex]}<br/>
+                            Alcanzado: ${d_num[dataIndex]}<br/>
+                            Cobertura: ${parseFloat(d_cob[dataIndex]).toFixed(2)}%<br/>`;
+
+                    if (d_brecha[dataIndex] !== undefined) {
+                        const brechaMarker = '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#ff6a00;"></span>';
+                        result += `${brechaMarker} Brecha: ${d_brecha[dataIndex]}<br/>`;
+                    }
+                    return result;
+                }
+            },
+            toolbox: { feature: { saveAsImage: {} } },
+            xAxis: {
+                type: "value",
+                max: 100,
+                axisLabel: { formatter: "{value}%" },
+            },
+            yAxis: {
+                type: "category",
+                data: d_distrito,
+                axisPointer: { type: "shadow" },
+                axisLabel: { interval: 0, fontSize: 8, fontWeight: "normal" },
+            },
+            dataZoom: [
+                { type: "slider", yAxisIndex: 0, width: 10, right: 10, start: startValue, end: 100 },
+                { type: "inside", yAxisIndex: 0 },
+            ],
+            series: [{
+                name: "Cobertura",
+                type: "bar",
+                data: d_cob.map(value => {
+                    let color;
+                    if (value >= 75) {
+                        color = '#28a745';
+                    } else if (value >= 65) {
+                        color = '#fd7e14';
+                    } else {
+                        color = '#dc3545';
+                    }
+                    return { value: value, itemStyle: { color: color } };
+                }),
+                label: {
+                    show: true,
+                    position: "right",
+                    formatter: (params) => `${parseFloat(params.value).toFixed(1)}%`,
+                    fontSize: 10,
+                    color: "#000",
+                },
+                markLine: {
+                    symbol: 'none',
+                    lineStyle: { type: 'dashed', color: 'red' },
+                    data: [{ xAxis: 75, name: 'Meta' }],
+                    label: {
+                        show: true,
+                        formatter: 'Meta: 75%',
+                        position: 'insideStartTop'
+                    }
+                }
+            }],
+        };
+        myChart.setOption(option);
+    } catch (error) {
+        console.error("Error al renderizar el ranking de distrito:", error);
+        container.innerHTML = '<p class="text-center text-danger">Ocurrió un error al cargar el gráfico.</p>';
+    }
+};
+</script>

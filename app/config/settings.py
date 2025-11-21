@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'import_export',
     # app locales
     'base',
+    's11_captacion_gestante',
     # 'discapacidad',
     'whitenoise.runserver_nostatic',
 

@@ -1,0 +1,7 @@
+    <label class="text-primary" for="p_microredes" name="p_microredes">MICROREDES : </label>
+    <select class="form-control custom-select" name="p_microredes" id="p_microredes" hx-trigger="change" hx-target="{% url 'rpt_compromiso_indicador_microred_xls' %}>
+        <option value="">--- SELECCIONAR ---</option>
+        {% for m in microredes %}
+        <option value="{{ m.Codigo_MicroRed }}">{{ m.MicroRed }}</option>
+        {% endfor %}
+    </select>
