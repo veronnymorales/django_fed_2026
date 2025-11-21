@@ -1,0 +1,12 @@
+# Carpetas que pediste ignorar
+venv/    
+scripts/    
+nginx/
+gunicorn/
+
+# Archivos de sistema y Python que siempre se deben ignorar
+__pycache__/
+*.pyc
+db.sqlite3
+.vscode/
+.DS_Store

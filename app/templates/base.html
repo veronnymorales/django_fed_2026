@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INDICADORES FED 2025-2026 | REGION JUNIN</title>
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome-free/css/all.min.css' %}">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Tempusdominus Bootstrap 4 -->
+  <link rel="stylesheet" href="{% static 'assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css' %}">
+  <!-- iCheck -->
+  <link rel="stylesheet" href="{% static 'assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+  <!-- JQVMap -->
+  <link rel="stylesheet" href="{% static 'assets/plugins/jqvmap/jqvmap.min.css' %}">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{% static 'assets/dist/css/adminlte.min.css' %}">
+  <!-- overlayScrollbars -->
+  <link rel="stylesheet" href="{% static 'assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
+  <!-- Daterange picker -->
+  <link rel="stylesheet" href="{% static 'assets/plugins/daterangepicker/daterangepicker.css' %}">
+  <!-- summernote -->
+  <link rel="stylesheet" href="{% static 'assets/plugins/summernote/summernote-bs4.min.css' %}">
+  <style>
+    /* Estilo adicional para el marquee #cff4fc;*/
+    marquee {
+        background-color: #007BFF;
+        padding: 2px;
+        border-radius: 5px;
+    }
+
+    .texto-mas-grande {
+      font-size: 13px; /* Ajusta el valor a tu preferencia */
+    }
+
+    .texto-titulo {
+      font-size: 15px;
+      color: red; /* Ajusta el valor a tu preferencia */
+    }
+  </style>
+
+  <!-- Cargar Select2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+  {% if user.is_authenticated %}
+  <div class="wrapper">
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+      <!-- Left navbar links -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+        </li>
+      </ul>
+      <!-- Right navbar links -->
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+            <i class="fas fa-expand-arrows-alt"></i>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-widget="control-sidebar" data-controlsidebar-slide="true" href="#" role="button">
+            <i class="fas fa-th-large"></i>
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+        
+        <!-- Messages Dropdown Menu -->
+        <li class="nav-item dropdown">
+          <a class="nav-link" data-toggle="dropdown" href="#">
+            <i class="fa fa-user-circle"></i> 
+            {{ user.username }}
+          </a>
+          <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+            <a href="/logout" class="dropdown-item dropdown-footer">Salir</a>
+              <!-- Message Start -->
+              <!-- Message End -->
+          </div>
+        </li>   
+        {% else %}
+        <li class="nav-item">
+          <a href="/signin" class="nav-link" >Ingresar</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+      <a href="/inicio/" class="brand-link">
+        <img src="{% static 'assets/dist/img/logo_2.png' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+        <span class="brand-text font-weight-light">INDICADORES FED</span>
+      </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar user panel (optional) -->
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+              <!-- SI-01 GESTANTE SUP, TX y HB -->
+              <li class="nav-header text-primary"> COMPROMISOS DE GESTION</li>  
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fa fa-female"></i>
+                  <p>
+                    SI-01 GESTANTE
+                    <i class="fas fa-angle-left right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-id-card nav-icon"></i>
+                        <p>CAPTACIÓN TEMPRANA</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-hospital nav-icon"></i>
+                        <p>GESTANTES CON ANEMIA</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-book nav-icon"></i>
+                        <p>GESTANTES SIN ANEMIA</p>
+                      </a>
+                    </li>
+                </ul>
+              </li>
+              <!-- SI-02 NIÑOS SUP, TX y HB -->
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fa fa-address-book"></i>
+                  <p>
+                    SI-02 NIÑOS SUP/TX
+                    <i class="fas fa-angle-left right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-id-card nav-icon"></i>
+                        <p>NIÑOS DE 4M</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-hospital nav-icon"></i>
+                        <p>PREMATUROS Y/O BPN</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-address-card nav-icon"></i>
+                        <p>12M CON ANEMIA</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-upload nav-icon"></i>
+                        <p>12M SIN ANEMIA</p>
+                      </a>
+                    </li>
+                </ul>
+              </li>
+              <!-- SI-03:  ADOLESCENTE HB y PAQUETE  -->
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fa fa-tint"></i>
+                  <p>
+                    SI-03 ADOLESCENTE 
+                    <i class="fas fa-angle-left right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                      <a href="#"  class="nav-link">
+                        <i class="fa fa-id-card nav-icon"></i>
+                        <p>DOSAJE HB</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        <i class="fa fa-archive nav-icon"></i>
+                        <p>PAQUETE MINIMO</p>
+                      </a>
+                    </li>
+                </ul>
+              </li>
+              <!-- VI-01 VIOLENCIA GESTANTE -->
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fa fa-bullseye"></i>
+                  <p>
+                   VI-01 VIOLENCIA GEST
+                    <i class="fas fa-angle-left right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      <i class="fa fa-id-card nav-icon"></i>
+                      <p>TAMIZAJE POSITIVO</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      <i class="fa fa-id-card nav-icon"></i>
+                      <p>PAQUETE TERAPEUTICO</p>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+
+              <!-- METAS DE COBERTURA -->
+              <li class="nav-header text-warning"> METAS DE COBERTURA</li> 
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fas fa-th"></i>
+                  <p>
+                    PAQUETE INTEGRADO
+                    <i class="fas fa-angle-left right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      <i class="fa fa-id-card nav-icon"></i>
+                      <p>MC-01 PAQ GESTANTE</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      <i class="fa fa-id-card nav-icon"></i>
+                      <p>MC-02 PAQ NIÑO</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      <i class="fa fa-id-card nav-icon"></i>
+                      <p>MC-03 PAQ NEONATO</p>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              <!-- Consulta HIS MINSA -->
+              <li class="nav-header text-info">HISTORIAL HISMINSA</li>
+              <li class="nav-item">
+                <a href="https://90rc22nz-8000.brs.devtunnels.ms/" class="nav-link" target= "_blank">
+                  <i class="nav-icon fas fa-copy"></i>
+                  <p>
+                      HIS REGIONAL
+                  </p>
+                </a>
+              </li>
+              <!-- Mesa de ayuda HIS MINSA -->
+              <li class="nav-header text-info">MESA DE AYUDA</li>
+              <li class="nav-item">
+                <a href="https://inrkk7iewuox.share.zrok.io/CategoriaTicket.aspx" class="nav-link" target= "_blank">
+                  <i class="nav-icon fas fa-copy"></i>
+                  <p>
+                    DAR DE BAJA
+                  </p>
+                </a>
+              </li>
+              <!-- Video Tutorial -->
+              <li class="nav-header text-info">GUIAS Y MANUALES </li>
+              <li class="nav-item">
+                <a href="https://www.notion.so/MINI-VIDEO-TUTORIALES-DEL-PADRON-NOMINAL-2307ac61adad8014b614d822e8223564" class="nav-link" target= "_blank">
+                  <i class="nav-icon fas fa-copy"></i>
+                  <p>
+                    VIDEO TUTORIALES
+                  </p>
+                </a>
+              </li>
+          </ul>
+      </nav>
+      <!-- Actualizacion del Sistema -->
+      <div class="card bg-gradient-info mt-3">
+        <div class="card-body">
+          <h6 class="text-center text-white">ULTIMA ACTUALIZACION</h6>
+          <p class="text-center text-white mb-0">
+            <h6 class="text-center text-white">19 de noviembre de 2025 - 11:56 am</h6>
+          </p>
+        </div>
+      </div>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            
+            {% block header %}
+            {% endblock %}
+          
+          </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+      </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+      <section class="content">
+          <div class="container-fluid">
+          
+              {% block body %}
+              {% endblock %}
+          
+          </div><!-- /.container-fluid -->
+      </section>
+    <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+    <footer class="main-footer">
+        <div class="row">
+            <div class="col-md-6 float-right d-none d-sm-inline-block">
+              <b>Desarrollado por :</b> Dirección Regional de Salud Junín | Ing. Veronny Morales | Copyright &copy; 2025
+            </div>
+        </div>
+    </footer>
+
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+    </aside>
+  <!-- /.control-sidebar -->
+  </div>
+<!-- ./wrapper -->
+  <!-- ./wrapper -->
+  {% block modal_inicio %}
+  <div class="modal fade" id="modal-lg" tabindex="-1" role="dialog" aria-labelledby="modal-lgLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document"> 
+        <div class="modal-content texto-mas-grande">
+          <div class="modal-header">
+            <h5 class="modal-title texto-titulo" id="modal-lgLabel" >CUMPLIMIENTO A LA LEY DE PROTECCION DE DATOS PERSONALES</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- Primera tabla: Horario de Procesamiento -->
+            <p>En cumplimiento con la Ley N° 29733 de Protección de Datos Personales, le informamos que acceso a la aplicacion estarán protegidas con usuarios y contraseña.</p>
+            <p>Para obtener la contraseña, debe enviar un correo a <span class="text-blue">vmorales@diresajunin.gob.pe</span> solicitándola y adjuntar el acta de confidencialidad debidamente llenada.<p>
+            <p>Agradecemos su comprensión y compromiso con la protección de datos. Recuerde que la seguridad de los datos es una prioridad y agradecemos su colaboración para mantener el cumplimiento de esta normativa.</p>
+
+            <div class="row">
+              <div class="col">
+                <table class="table table-bordered">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th colspan="3" class="text-center">HORARIO DE DESCARGA Y PROCESAMIENTO DE SCRIPTS PADRON NOMINAL</th>
+                    </tr>
+                    <tr>
+                      <th>DIAS</th>
+                      <th>HORA INICIO</th>
+                      <th>HORA FIN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Lunes y Jueves</td>
+                      <td>08:00 am</td>
+                      <td>11:30 am</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          
+            <!-- Segunda tabla: Fuentes de Información -->
+            <div class="row mt-4">
+              <div class="col">
+                <div class="d-flex align-items-center mb-2 ">
+                  <i class="fas fa-hospital" style="font-size: 1em; color: red; margin-right: 10px;" aria-hidden="true"></i>
+                  <h5 class="m-0 texto-titulo"><strong>CORTES DE INFORMACION</strong></h5>
+                </div>
+              
+                <table class="table table-bordered">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>SISTEMA</th>
+                      <th>ARCHIVOS</th>
+                      <th>FECHA ACTUALIZACION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for a in actualizacion %}
+                      <tr>
+                        <td>{{ a.Sistema }}</td>
+                        <td>{{ a.Descripcion }}</td>
+                        <td>{{ a.fecha }} {{ a.hora }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Fin segunda tabla -->
+            <p>Recordar que los archivos de la BD HISMINSA, presentan cortes de informacion Nacional</p>
+
+            <!-- Modal interno para detalles -->
+            <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="infoModalLabel">Información Detallada</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    {% for a in actualizacion %}
+                      <p><strong>Sistema:</strong> {{ a.Sistema }}</p>
+                      <p><strong>Descripción:</strong> {{ a.Descripcion }}</p>
+                      <p><strong>Fecha y Hora:</strong> {{ a.fecha }} {{ a.hora }}</p>
+                      <hr>
+                    {% endfor %}
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Fin Modal interno -->
+          </div>
+        </div>
+      </div>
+  </div>
+  {% endblock %}
+
+
+  {% else %}
+  
+  {% block content_inicio %} 
+  {% endblock %}
+  
+  {% endif %}
+
+  <!-- jQuery -->
+<script src="{% static 'assets/plugins/jquery/jquery.min.js' %}"></script>
+<!-- Cargar Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="{% static 'assets/plugins/jquery-ui/jquery-ui.min.js' %}"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+  $.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- Bootstrap 4 -->
+<script src="{% static 'assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+<!-- Sparkline -->
+<script src="{% static 'assets/plugins/sparklines/sparkline.js' %}"></script>
+<!-- JQVMap -->
+<script src="{% static 'assets/plugins/jqvmap/jquery.vmap.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jqvmap/maps/jquery.vmap.usa.js' %}"></script>
+<!-- jQuery Knob Chart -->
+<script src="{% static 'assets/plugins/jquery-knob/jquery.knob.min.js' %}"></script>
+<!-- daterangepicker -->
+<script src="{% static 'assets/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="{% static 'assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js' %}"></script>
+<!-- Summernote -->
+<script src="{% static 'assets/plugins/summernote/summernote-bs4.min.js' %}"></script>
+<!-- overlayScrollbars -->
+<script src="{% static 'assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'assets/dist/js/adminlte.js' %}"></script>
+<!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+<script src="{% static 'assets/dist/js/pages/dashboard.js' %}"></script>
+<!-- HTMX -->
+<script src="https://unpkg.com/htmx.org@1.9.2/dist/htmx.js"></script>
+
+<!-- Datatable -->
+<script src="{% static 'assets/plugins/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<!-- ECharts -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+
+</body>
+</html>
