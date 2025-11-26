@@ -92,12 +92,19 @@
     <!-- MICRORED -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary" for="microred_h">MICROREDES:</label>
+        <label class="text-primary" for="p_microredes_establec_h"
+          >MICROREDES:</label
+        >
         <div id="container_microredes_establec_h">
           <select
             class="form-control form-control-sm select2"
-            id="microred_h"
-            name="microred_h"
+            id="p_microredes_establec_h"
+            name="p_microredes_establec_h"
+            hx-get="{% url 'p_establecimientos_s11_captacion_gestante_h' %}"
+            hx-trigger="change"
+            hx-target="#container_establecimientos_h"
+            hx-swap="innerHTML"
+            hx-include="[name='red_h']"
             style="width: 100%"
           >
             <option value="">--- SELECCIONAR ---</option>
@@ -109,14 +116,14 @@
     <!-- ESTABLECIMIENTO -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary" for="establecimiento_h"
+        <label class="text-primary" for="p_establecimiento_h"
           >ESTABLECIMIENTOS:</label
         >
         <div id="container_establecimientos_h">
           <select
             class="form-control form-control-sm select2"
-            id="establecimiento_h"
-            name="establecimiento_h"
+            id="p_establecimiento_h"
+            name="p_establecimiento_h"
             style="width: 100%"
           >
             <option value="">--- SELECCIONAR ---</option>
@@ -137,42 +144,125 @@
 </form>
 
 <script>
+  // Wait for the DOM and all scripts (including jQuery and Select2) to be loaded
   document.addEventListener("DOMContentLoaded", function () {
-    // Inicializar Select2
-    $(".select2").select2({
-      theme: "bootstrap4",
-      width: "100%",
-    });
+    // Este script se ejecuta cuando se carga el partial establecimientos_h.html
+    (function () {
+      // Verificar que jQuery está disponible
+      if (typeof $ === "undefined") {
+        console.error(
+          "❌ jQuery no está cargado. No se puede inicializar Select2."
+        );
+        return;
+      }
 
-    // Manejar eventos Select2 con HTMX para el select de red
-    $("#red_h").on("select2:select", function (e) {
-      // Disparar manualmente el evento HTMX
-      htmx.trigger(this, "change");
-    });
-
-    // Reinicializar Select2 y eventos después de actualizaciones HTMX
-    document.body.addEventListener("htmx:afterSwap", function (event) {
-      // Reinicializar todos los select2
+      // Inicializar Select2
       $(".select2").select2({
         theme: "bootstrap4",
         width: "100%",
-        minimumResultsForSearch: -1, // Oculta la búsqueda si no la necesitas
-        containerCssClass: "select2-sm", // Aplica clase para tamaño pequeño
       });
 
-      // Re-aplicar eventos HTMX en select de microred cuando se cargue dinámicamente
-      const microredSelect = document.getElementById("p_microredes_establec_h");
-      if (microredSelect) {
-        $("#p_microredes_establec_h").on("select2:select", function (e) {
-          htmx.trigger(this, "change");
-        });
-      }
-    });
+      // Obtener el formulario
+      const filterForm = document.getElementById("filter-form");
 
-    // Limpiar formulario
-    document.getElementById("clear-btn").addEventListener("click", function () {
-      document.getElementById("filter-form").reset();
-      $(".select2").val("").trigger("change");
-    });
+      // Función para enviar el formulario automáticamente
+      function autoSubmitForm() {
+        if (filterForm) {
+          console.log("📤 Auto-submit disparado");
+          filterForm.dispatchEvent(new Event("submit"));
+        }
+      }
+
+      // Manejar eventos Select2 con HTMX para el select de red
+      $("#red_h").on("select2:select", function (e) {
+        console.log("🌐 Red seleccionada:", e.params.data.text);
+        // Disparar manualmente el evento HTMX para asegurar que la petición se envíe
+        htmx.trigger(this, "change");
+
+        // Auto-submit después de que HTMX actualice las microredes
+        setTimeout(autoSubmitForm, 300);
+      });
+
+      // Auto-submit cuando se selecciona una microred
+      $(document).on(
+        "select2:select",
+        "#p_microredes_establec_h",
+        function (e) {
+          console.log("� Microred seleccionada:", e.params.data.text);
+          // Disparar manualmente el evento HTMX para cargar establecimientos
+          htmx.trigger(this, "change");
+          // Auto-submit después de que HTMX actualice los establecimientos
+          setTimeout(autoSubmitForm, 300);
+        }
+      );
+
+      // Auto-submit cuando se selecciona un establecimiento
+      $(document).on("select2:select", "#p_establecimiento_h", function (e) {
+        console.log("🏨 Establecimiento seleccionado:", e.params.data.text);
+        autoSubmitForm();
+      });
+
+      // Destruir Select2 y LIMPIAR DOM ANTES de que HTMX reemplace el contenido
+      document.body.addEventListener("htmx:beforeSwap", function (event) {
+        console.log("⚡ HTMX antes de swap - limpiando Select2");
+        const targetElement = event.detail.target;
+
+        // Destruir instancias
+        $(targetElement).find(".select2-hidden-accessible").select2("destroy");
+
+        // IMPORTANTE: Vaciar explícitamente el contenedor para evitar duplicados visuales
+        targetElement.innerHTML = "";
+      });
+
+      // Reinicializar Select2 DESPUÉS de que HTMX haya reemplazado el contenido
+      document.body.addEventListener("htmx:afterSwap", function (event) {
+        console.log("🔄 HTMX swap completado - reinicializando Select2");
+        const targetElement = event.detail.target;
+
+        // Reinicializar Select2 solo en los elementos nuevos del contenedor
+        $(targetElement)
+          .find(".select2")
+          .each(function () {
+            // Verificar si ya está inicializado para evitar doble instancia
+            if ($(this).hasClass("select2-hidden-accessible")) {
+              console.warn("⚠️ Select2 ya estaba inicializado en", this.id);
+              return;
+            }
+
+            $(this).select2({
+              theme: "bootstrap4",
+              width: "100%",
+              minimumResultsForSearch: -1,
+              containerCssClass: "select2-sm",
+            });
+          });
+
+        // Re-aplicar eventos solo si se actualizó el contenedor de microredes
+        if (targetElement.id === "container_microredes_establec_h") {
+          const microredSelect = document.getElementById(
+            "p_microredes_establec_h"
+          );
+          if (microredSelect) {
+            console.log("🔗 Re-aplicando eventos a microred select");
+            // Limpiar eventos previos antes de re-aplicar
+            $("#p_microredes_establec_h").off("select2:select");
+          }
+        }
+      });
+
+      // Limpiar formulario - verificar que clear-btn existe
+      const clearBtn = document.getElementById("clear-btn");
+      if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+          console.log("🧹 Limpiando filtros");
+          document.getElementById("filter-form").reset();
+          $(".select2").val("").trigger("change");
+          // Enviar formulario con valores en blanco para resetear el dashboard
+          setTimeout(autoSubmitForm, 100);
+        });
+      } else {
+        console.warn("⚠️ Botón clear-btn no encontrado");
+      }
+    })();
   });
 </script>

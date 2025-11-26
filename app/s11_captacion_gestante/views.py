@@ -23,7 +23,7 @@ from django.views.generic.base import TemplateView
 
 # Local imports
 from base.models import MAESTRO_HIS_ESTABLECIMIENTO, DimPeriodo, Actualizacion
-from .queries import obtener_velocimetro
+from .queries import obtener_velocimetro, obtener_grafico_mensual, obtener_variables, obtener_variables_detallado
 
 # Initialize logger and user model
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ def _get_provincias_queryset():
 ############################
 ## COMPONENTES Y GRAFICOS 
 ############################
-
+## VELOCIMETRO
 def process_velocimetro(resultados_velocimetro: List[Dict]) -> Dict[str, List]:
     """
     Procesa los resultados del velocímetro para el formato del frontend.
@@ -123,6 +123,294 @@ def process_velocimetro(resultados_velocimetro: List[Dict]) -> Dict[str, List]:
     except (KeyError, ValueError, TypeError) as e:
         logger.error(f"Error procesando datos del velocímetro: {e}, Row: {row}")
         return _get_default_velocimetro_data()
+
+## RESUMEN NUMERADOR Y DENOMINADOR 
+def obtener_resumen_indicador(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia=None, distrito=None):
+    """
+    Obtiene un resumen detallado del indicador 
+    """
+    datos_base = obtener_velocimetro(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia, distrito)
+    
+    if not datos_base:
+        return None
+    
+    resultado = datos_base[0]
+    num = resultado.get('NUM', 0)
+    den = resultado.get('DEN', 0)
+    avance = resultado.get('AVANCE', 0.0)
+    
+    # Calcular métricas adicionales
+    brecha = den - num
+    porcentaje_brecha = (brecha / den * 100) if den > 0 else 0
+    
+    # Determinar clasificación
+    if avance >= 82:
+        clasificacion = "CUMPLE"
+        color = "success"
+        icono = "check-circle"
+    elif avance >= 70:
+        clasificacion = "EN PROCESO"
+        color = "warning"
+        icono = "clock"
+    else:
+        clasificacion = "EN RIESGO"
+        color = "danger"
+        icono = "exclamation-triangle"
+    
+    resumen = {
+        'numerador': num,
+        'denominador': den,
+        'avance': round(avance, 2),
+        'brecha': brecha,
+        'porcentaje_brecha': round(porcentaje_brecha, 2),
+        'clasificacion': clasificacion,
+        'color': color,
+        'icono': icono
+    }
+    
+    return resumen
+
+## GRAFICO MENSUALIZADO 
+def process_avance_mensual(resultados_avance_mensual: List[Dict]) -> Dict[str, List]:
+    """Procesa los resultados del graficos"""
+    data = {
+        'num_1': [],
+        'den_1': [],
+        'cob_1': [],
+        'num_2': [],
+        'den_2': [],
+        'cob_2': [],
+        'num_3': [],
+        'den_3': [],
+        'cob_3': [],
+        'num_4': [],
+        'den_4': [],
+        'cob_4': [],
+        'num_5': [],
+        'den_5': [],
+        'cob_5': [],
+        'num_6': [],
+        'den_6': [],
+        'cob_6': [],
+        'num_7': [],
+        'den_7': [],
+        'cob_7': [],
+        'num_8': [],
+        'den_8': [],
+        'cob_8': [],                
+        'num_9': [],
+        'den_9': [],
+        'cob_9': [],
+        'num_10': [],
+        'den_10': [],
+        'cob_10': [],
+        'num_11': [],
+        'den_11': [],
+        'cob_11': [],
+        'num_12': [],
+        'den_12': [],
+        'cob_12': [],
+    }
+    for index, row in enumerate(resultados_avance_mensual):
+        try:
+            # Verifica que el diccionario tenga las claves necesarias
+            required_keys = {'num_1','den_1','cob_1','num_2','den_2','cob_2','num_3','den_3','cob_3','num_4','den_4','cob_4','num_5','den_5','cob_5','num_6','den_6','cob_6','num_7','den_7','cob_7','num_8','den_8','cob_8','num_9','den_9','cob_9','num_10','den_10','cob_10','num_11','den_11','cob_11','num_12','den_12','cob_12'}
+            
+            if not required_keys.issubset(row.keys()):
+                raise ValueError(f"La fila {index} no tiene las claves necesarias: {row}")
+            # Extraer cada valor, convirtiendo a float
+            num_1_value = float(row.get('num_1', 0.0))
+            den_1_value = float(row.get('den_1', 0.0))
+            cob_1_value = float(row.get('cob_1', 0.0))
+            num_2_value = float(row.get('num_2', 0.0))
+            den_2_value = float(row.get('den_2', 0.0))
+            cob_2_value = float(row.get('cob_2', 0.0))
+            num_3_value = float(row.get('num_3', 0.0))
+            den_3_value = float(row.get('den_3', 0.0))
+            cob_3_value = float(row.get('cob_3', 0.0))
+            num_4_value = float(row.get('num_4', 0.0))
+            den_4_value = float(row.get('den_4', 0.0))
+            cob_4_value = float(row.get('cob_4', 0.0))
+            num_5_value = float(row.get('num_5', 0.0))
+            den_5_value = float(row.get('den_5', 0.0))
+            cob_5_value = float(row.get('cob_5', 0.0))
+            num_6_value = float(row.get('num_6', 0.0))
+            den_6_value = float(row.get('den_6', 0.0))
+            cob_6_value = float(row.get('cob_6', 0.0))
+            num_7_value = float(row.get('num_7', 0.0))
+            den_7_value = float(row.get('den_7', 0.0))
+            cob_7_value = float(row.get('cob_7', 0.0))
+            num_8_value = float(row.get('num_8', 0.0))
+            den_8_value = float(row.get('den_8', 0.0))
+            cob_8_value = float(row.get('cob_8', 0.0))
+            num_9_value = float(row.get('num_9', 0.0))
+            den_9_value = float(row.get('den_9', 0.0))
+            cob_9_value = float(row.get('cob_9', 0.0))
+            num_10_value = float(row.get('num_10', 0.0))
+            den_10_value = float(row.get('den_10', 0.0))
+            cob_10_value = float(row.get('cob_10', 0.0))
+            num_11_value = float(row.get('num_11', 0.0))
+            den_11_value = float(row.get('den_11', 0.0))
+            cob_11_value = float(row.get('cob_11', 0.0))
+            num_12_value = float(row.get('num_12', 0.0))
+            den_12_value = float(row.get('den_12', 0.0))
+            cob_12_value = float(row.get('cob_12', 0.0))
+            
+            data['num_1'].append(num_1_value)
+            data['den_1'].append(den_1_value)
+            data['cob_1'].append(cob_1_value)
+            data['num_2'].append(num_2_value)
+            data['den_2'].append(den_2_value)
+            data['cob_2'].append(cob_2_value)
+            data['num_3'].append(num_3_value)
+            data['den_3'].append(den_3_value)
+            data['cob_3'].append(cob_3_value)
+            data['num_4'].append(num_4_value)
+            data['den_4'].append(den_4_value)
+            data['cob_4'].append(cob_4_value)
+            data['num_5'].append(num_5_value)
+            data['den_5'].append(den_5_value)
+            data['cob_5'].append(cob_5_value)
+            data['num_6'].append(num_6_value)
+            data['den_6'].append(den_6_value)
+            data['cob_6'].append(cob_6_value)
+            data['num_7'].append(num_7_value)
+            data['den_7'].append(den_7_value)
+            data['cob_7'].append(cob_7_value)
+            data['num_8'].append(num_8_value)
+            data['den_8'].append(den_8_value)
+            data['cob_8'].append(cob_8_value)
+            data['num_9'].append(num_9_value)
+            data['den_9'].append(den_9_value)
+            data['cob_9'].append(cob_9_value)
+            data['num_10'].append(num_10_value)
+            data['den_10'].append(den_10_value)
+            data['cob_10'].append(cob_10_value)
+            data['num_11'].append(num_11_value)
+            data['den_11'].append(den_11_value)
+            data['cob_11'].append(cob_11_value)
+            data['num_12'].append(num_12_value)
+            data['den_12'].append(den_12_value)
+            data['cob_12'].append(cob_12_value)
+
+        except Exception as e:
+            logger.error(f"Error procesando la fila {index}: {str(e)}")
+    return data
+
+## GRAFICO VARIABLES 
+def process_variables(resultados_variables: List[Dict]) -> Dict[str, List]:
+    """Procesa los resultados de las variables"""
+    data = {
+        'den_variable': [],
+        'num_1trim': [],
+        'avance_1trim': [],
+        'num_2trim': [],
+        'avance_2trim': [],
+        'num_3trim': [],
+        'avance_3trim': []
+    }
+    for index, row in enumerate(resultados_variables):
+        try:
+            # Verifica que el diccionario tenga las claves necesarias
+            required_keys = {'den_variable','num_1trim','avance_1trim','num_2trim','avance_2trim','num_3trim','avance_3trim'}
+            
+            if not required_keys.issubset(row.keys()):
+                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
+            
+            # Extrae los valores
+            den_variable = row['den_variable']
+            num_1trim = row['num_1trim']
+            avance_1trim = row['avance_1trim']
+            num_2trim = row['num_2trim']
+            avance_2trim = row['avance_2trim']
+            num_3trim = row['num_3trim']
+            avance_3trim = row['avance_3trim']
+            
+            # Agrega los valores a la lista
+            data['den_variable'].append(den_variable)
+            data['num_1trim'].append(num_1trim)
+            data['avance_1trim'].append(avance_1trim)
+            data['num_2trim'].append(num_2trim)
+            data['avance_2trim'].append(avance_2trim)
+            data['num_3trim'].append(num_3trim)
+            data['avance_3trim'].append(avance_3trim)
+            
+        except KeyError as e:
+            logger.error(f"Error procesando la fila {index}: {str(e)}")
+    return data
+
+## TABLLA VARIABLES DETALLADOS
+def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> Dict[str, List]:
+    """Procesa los resultados de las variables"""
+    data = {
+        'anio': [],
+        'mes': [],
+        'Codigo_Red': [],
+        'Red': [],
+        'Codigo_MicroRed': [],
+        'MicroRed': [],
+        'Codigo_Unico': [],
+        'Id_Establecimiento': [],
+        'Nombre_Establecimiento': [],
+        'Ubigueo_Establecimiento': [],
+        'den_variable': [],
+        'num_1trim': [],
+        'avance_1trim': [],
+        'num_2trim': [],
+        'avance_2trim': [],
+        'num_3trim': [],
+        'avance_3trim': []
+    }
+    for index, row in enumerate(resultados_variables_detallado):
+        try:
+            # Verifica que el diccionario tenga las claves necesarias
+            required_keys = {'anio','mes','Codigo_Red','Red','Codigo_MicroRed','MicroRed','Codigo_Unico','Id_Establecimiento','Nombre_Establecimiento','Ubigueo_Establecimiento','den_variable','num_1trim','avance_1trim','num_2trim','avance_2trim','num_3trim','avance_3trim'}
+            
+            if not required_keys.issubset(row.keys()):
+                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
+            
+            # Extrae los valores
+            anio = row['anio']
+            mes = row['mes']
+            Codigo_Red = row['Codigo_Red']
+            Red = row['Red']
+            Codigo_MicroRed = row['Codigo_MicroRed']
+            MicroRed = row['MicroRed']
+            Codigo_Unico = row['Codigo_Unico']
+            Id_Establecimiento = row['Id_Establecimiento']
+            Nombre_Establecimiento = row['Nombre_Establecimiento']
+            Ubigueo_Establecimiento = row['Ubigueo_Establecimiento']
+            den_variable = row['den_variable']
+            num_1trim = row['num_1trim']
+            avance_1trim = row['avance_1trim']
+            num_2trim = row['num_2trim']
+            avance_2trim = row['avance_2trim']
+            num_3trim = row['num_3trim']
+            avance_3trim = row['avance_3trim']
+            
+            # Agrega los valores a la lista
+            data['anio'].append(anio)
+            data['mes'].append(mes)
+            data['Codigo_Red'].append(Codigo_Red)
+            data['Red'].append(Red)
+            data['Codigo_MicroRed'].append(Codigo_MicroRed)
+            data['MicroRed'].append(MicroRed)
+            data['Codigo_Unico'].append(Codigo_Unico)
+            data['Id_Establecimiento'].append(Id_Establecimiento)
+            data['Nombre_Establecimiento'].append(Nombre_Establecimiento)
+            data['Ubigueo_Establecimiento'].append(Ubigueo_Establecimiento)
+            data['den_variable'].append(den_variable)
+            data['num_1trim'].append(num_1trim)
+            data['avance_1trim'].append(avance_1trim)
+            data['num_2trim'].append(num_2trim)
+            data['avance_2trim'].append(avance_2trim)
+            data['num_3trim'].append(num_3trim)
+            data['avance_3trim'].append(avance_3trim)
+            
+        except KeyError as e:
+            logger.error(f"Error procesando la fila {index}: {str(e)}")
+    return data
+
 
 #######################
 ## PANTALLA PRINCIPAL
@@ -166,9 +454,74 @@ def index_s11_captacion_gestante(request):
                 provincia=provincia_seleccionada,
                 distrito=distrito_seleccionado
             )
+
+            # Obtener resumen del indicador
+            resumen = obtener_resumen_indicador(
+                anio=anio,
+                mes_inicio=mes_seleccionado_inicio,
+                mes_fin=mes_seleccionado_fin,
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
+
+
+            # Obtener datos del grafico mensualizado - SIEMPRE todos los meses del año
+            # Los filtros de mes NO afectan el gráfico mensual, solo el velocímetro y resumen
+            resultados_grafico_mensual = obtener_grafico_mensual(
+                anio=anio,
+                mes_inicio='1',  # Siempre desde Enero
+                mes_fin='12',    # Siempre hasta Diciembre
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
             
-            # Procesar y retornar datos
-            data = process_velocimetro(resultados_velocimetro)
+            # Obtener datos de variables por trimestre - RESPETA los filtros de mes
+            resultados_variables = obtener_variables(
+                anio=anio,
+                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
+                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
+
+            # Obtener datos de variables por trimestre - RESPETA los filtros de mes
+            resultados_variables_detallado = obtener_variables_detallado(
+                anio=anio,
+                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
+                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
+
+            # Procesar datos del velocímetro
+            data = {
+               **process_velocimetro(resultados_velocimetro),
+               **process_avance_mensual(resultados_grafico_mensual),
+               **process_variables(resultados_variables),
+               **process_variables_detallado(resultados_variables_detallado)
+            }
+
+                        # Agregar datos del resumen a la respuesta
+            if resumen:
+                data['r_numerador_resumen'] = resumen['numerador']
+                data['r_denominador_resumen'] = resumen['denominador']
+                data['r_avance_resumen'] = resumen['avance']
+                data['r_brecha'] = resumen['brecha']
+                data['r_clasificacion'] = resumen['clasificacion']
+                data['r_color'] = resumen['color']
+                data['r_icono'] = resumen['icono']
             return JsonResponse(data)
             
         except Exception as e:

@@ -1,40 +1,42 @@
 <!-- Card para mostrar numerador y denominador -->
 <script>
-window.renderChartAvanceNumDen = function(data, params) {
-    const container = document.getElementById("detalle-avance-numden-container");
+  window.renderChartAvanceNumDen = function (data, params) {
+    const container = document.getElementById(
+      "detalle-avance-numden-container"
+    );
     if (!container) {
-        console.error("Contenedor para num/den no encontrado");
-        return;
+      console.error("Contenedor para num/den no encontrado");
+      return;
     }
 
     try {
-        const extractValue = (rawValue) => {
-            if (rawValue == null) return 0;
-            const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
-            return parseInt(value, 10) || 0;
-        };
+      const extractValue = (rawValue) => {
+        if (rawValue == null) return 0;
+        const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+        return parseInt(value, 10) || 0;
+      };
 
-        const numerador = extractValue(data.r_numerador_resumen);
-        const denominador = extractValue(data.r_denominador_resumen);
-        const brecha = denominador - numerador;
-        const avance = denominador > 0 ? (numerador / denominador) * 100 : 0;
+      const numerador = extractValue(data.r_numerador_resumen);
+      const denominador = extractValue(data.r_denominador_resumen);
+      const brecha = denominador - numerador;
+      const avance = denominador > 0 ? (numerador / denominador) * 100 : 0;
 
-        let clasificacion, colorClass, iconClass;
-        if (avance >= 75) {
-            clasificacion = "CUMPLE";
-            colorClass = "success";
-            iconClass = "check-circle";
-        } else if (avance >= 33) {
-            clasificacion = "PROCESO";
-            colorClass = "warning";
-            iconClass = "clock";
-        } else {
-            clasificacion = "RIESGO";
-            colorClass = "danger";
-            iconClass = "exclamation-triangle";
-        }
+      let clasificacion, colorClass, iconClass;
+      if (avance >= 82) {
+        clasificacion = "CUMPLE";
+        colorClass = "success";
+        iconClass = "check-circle";
+      } else if (avance >= 70) {
+        clasificacion = "PROCESO";
+        colorClass = "warning";
+        iconClass = "clock";
+      } else {
+        clasificacion = "RIESGO";
+        colorClass = "danger";
+        iconClass = "exclamation-triangle";
+      }
 
-        const cardHTML = `
+      const cardHTML = `
           <div class="card border-${colorClass}">
             <div class="card-header bg-${colorClass} text-white">
               <h6 class="mb-0"><i class="fas fa-${iconClass} mr-2"></i>RESUMEN </h6>
@@ -76,10 +78,11 @@ window.renderChartAvanceNumDen = function(data, params) {
             </div>
           </div>
         `;
-        container.innerHTML = cardHTML;
+      container.innerHTML = cardHTML;
     } catch (error) {
-        console.error("Error al renderizar la tarjeta de num/den:", error);
-        container.innerHTML = '<div class="alert alert-danger">Error al mostrar datos</div>';
+      console.error("Error al renderizar la tarjeta de num/den:", error);
+      container.innerHTML =
+        '<div class="alert alert-danger">Error al mostrar datos</div>';
     }
-};
+  };
 </script>

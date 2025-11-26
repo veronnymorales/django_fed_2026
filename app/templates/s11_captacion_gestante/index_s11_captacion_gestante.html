@@ -79,7 +79,7 @@
                         <h4 class="card-title"><i class="fas fa-filter"></i> FILTROS DE BUSQUEDA </h4>
                         <div class="card-tools">
                             <button type="button" class="btn btn-default btn-sm" id="clear-btn">
-                                Limpiar filtros
+                                 <i class="fas fa-times"></i>Limpiar filtros
                             </button>
                             <button type="button"
                                     class="btn btn-tool"
@@ -128,7 +128,7 @@
 <!-- /.content-header -->
 
 <!-- Main content -->
-<section class="content" id="main-content" style="display: none;"></section>
+<section class="content" id="main-content">
     <div class="container-fluid">
         <!-- Card avance regional -->
         <div class="row">
@@ -138,13 +138,25 @@
             </div>
             <!-- Card resumen -->
             <div class="col-md-2" id="detalle-avance-numden-container">
-                
+                {% include "s11_captacion_gestante/components/chart/chart_avance_numden.html" %}
             </div>
             <!-- Card avance mensual -->
             <div class="col-md-8" id="detalle-avance-mensual-container">
-
+                {% include "s11_captacion_gestante/components/chart/chart_avance_mensual.html" %}
             </div>
         </div>
+        <!-- Card variables -->
+        <div class="row">
+            <!-- Card  variables  detallados-->
+            <div class="col-md-4" id="detalle-avance-variables-container">
+                {% include "s11_captacion_gestante/components/chart/chart_avance_variables.html" %}
+            </div>
+            <!-- Card  variables detallados-->
+            <div class="col-md-8" id="detalle-avance-variables-detallado-container">
+                {% include "s11_captacion_gestante/components/chart/table_variables_detallado.html" %}
+            </div>
+        </div>
+
     </div>
 </section>
 
@@ -156,9 +168,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function actualizarDashboard(params) {
         const queryString = new URLSearchParams(params).toString();
         
-        // Muestra un indicador de carga general (opcional)
-        // document.getElementById('loading-indicator').style.display = 'block';
-
         fetch(`{% url "index_s11_captacion_gestante" %}?${queryString}`, {
             headers: { "X-Requested-With": "XMLHttpRequest" },
         })
@@ -169,17 +178,18 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         })
         .then(data => {
+            console.log('✅ Datos recibidos del servidor:', data);
+            
             // Llama a las funciones de renderizado de cada componente
             // pasando los datos correspondientes.
             if (window.renderChartVelocimetro) window.renderChartVelocimetro(data, params);
-
-        
+            if (window.renderChartAvanceNumDen) window.renderChartAvanceNumDen(data, params);
+            if (window.renderChartAvanceMensual) window.renderChartAvanceMensual(data, params);
+            if (window.renderChartAvanceVariables) window.renderChartAvanceVariables(data, params);
+            if (window.renderTablaVariablesDetallado) window.renderTablaVariablesDetallado(data, params);
         })
         .catch(error => {
-            console.error("Error al cargar datos del dashboard:", error);
-            // Maneja el error de forma centralizada
-            // document.getElementById('loading-indicator').style.display = 'none';
-            // alert('Ocurrió un error al actualizar el dashboard.');
+            console.error("❌ Error al cargar datos del dashboard:", error);
         });
     }
 

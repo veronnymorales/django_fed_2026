@@ -1,171 +1,157 @@
-
-<div class="row">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-brain mr-1"></i>
-                        DOSAJE DE HEMOGLOBINA
-                </h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <div id="chart-dosaje" style="min-height: 250px;"></div>
-            </div>
-        </div>
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-female mr-1"></i>
+      N° GESTANTES CON 1RA APN
+    </h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+        <i class="fas fa-minus"></i>
+      </button>
     </div>
-    
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-child mr-1"></i>
-                    SESION DEMOSTRATIVA
-                </h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <div id="chart-sesion" style="min-height: 250px;"></div>
-            </div>
-        </div>
-    </div>
-
-    
-        
-
+  </div>
+  <div class="card-body">
+    <div id="chart-trimestre" style="min-height: 250px"></div>
+  </div>
 </div>
 
 <script>
-window.renderChartAvanceVariables = function(data, params) {
+  window.renderChartAvanceVariables = function (data, params) {
     if (typeof echarts === "undefined") {
-        console.error("ECharts no está cargado.");
-        return;
+      console.error("ECharts no está cargado.");
+      return;
     }
 
     const chartDOMElements = {
-        dosaje: document.getElementById("chart-dosaje"),
-        sesion: document.getElementById("chart-sesion")
+      trimestre: document.getElementById("chart-trimestre"),
     };
 
     const charts = {};
 
     function createOrUpdateChart(chartKey, labels, chartData) {
-        const chartDOMElement = chartDOMElements[chartKey];
-        if (!chartDOMElement) return;
+      const chartDOMElement = chartDOMElements[chartKey];
+      if (!chartDOMElement) return;
 
-        let chartInstance = echarts.getInstanceByDom(chartDOMElement);
-        if (chartInstance) {
-            chartInstance.dispose();
-        }
-        chartInstance = echarts.init(chartDOMElement);
-        charts[chartKey] = chartInstance;
+      let chartInstance = echarts.getInstanceByDom(chartDOMElement);
+      if (chartInstance) {
+        chartInstance.dispose();
+      }
+      chartInstance = echarts.init(chartDOMElement);
+      charts[chartKey] = chartInstance;
 
-        const option = {
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: { type: 'shadow' },
-                formatter: function (params) {
-                    const dataItem = params[0].data;
-                    return `Alcanzado: ${dataItem.numerator}<br/>Avance: ${dataItem.value.toFixed(1)}%`;
-                }
+      const option = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          formatter: function (params) {
+            const dataItem = params[0].data;
+            return `Alcanzado: ${
+              dataItem.numerator
+            }<br/>Avance: ${dataItem.value.toFixed(1)}%`;
+          },
+        },
+        toolbox: { feature: { saveAsImage: {} } },
+        xAxis: {
+          type: "category",
+          data: labels,
+          axisLabel: { rotate: 45, fontSize: 8 },
+        },
+        yAxis: {
+          type: "value",
+          max: 100,
+          axisLabel: { formatter: "{value}%", fontSize: 8 },
+        },
+        series: [
+          {
+            name: "Avance",
+            type: "bar",
+            data: chartData,
+            itemStyle: { color: "#5070dd" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: function (params) {
+                return params.data.numerator;
+              },
+              fontSize: 8,
+              color: "black",
+              fontWeight: "bold",
             },
-            toolbox: { feature: { saveAsImage: {} } },
-            xAxis: {
-                type: 'category',
-                data: labels,
-                axisLabel: { rotate: 45, fontSize: 8 }
+            markLine: {
+              symbol: "none",
+              lineStyle: { type: "dashed", color: "red" },
+              data: [{ yAxis: 75, name: "M" }],
+              label: {
+                show: true,
+                formatter: `M: 75%`,
+                position: "end",
+                offset: [0, -14],
+                textStyle: { fontSize: 8 },
+              },
             },
-            yAxis: {
-                type: 'value',
-                max: 100,
-                axisLabel: { formatter: '{value}%', fontSize: 8 }
-            },
-            series: [{
-                name: 'Avance',
-                type: 'bar',
-                data: chartData,
-                itemStyle: { color: '#5070dd' },
-                label: {
-                    show: true,
-                    position: 'top',
-                    formatter: function(params) {
-                        return params.data.numerator;
-                    },
-                    fontSize: 8,
-                    color: 'black',
-                    fontWeight: 'bold'
-                },
-                markLine: {
-                    symbol: 'none',
-                    lineStyle: { type: 'dashed', color: 'red' },
-                    data: [{ yAxis: 75, name: 'M' }],
-                    label: { 
-                        show: true, 
-                        formatter: `M: 75%`, 
-                        position: 'end', 
-                        offset: [0, -14], 
-                        textStyle: { fontSize: 8 } 
-                    }
-                }
-            }]
-        };
-        chartInstance.setOption(option);
+          },
+        ],
+      };
+      chartInstance.setOption(option);
     }
 
     try {
-        const extractValue = (rawValue) => {
-            if (rawValue == null) return 0;
-            const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
-            return parseFloat(value) || 0;
-        };
+      console.log("Datos recibidos en renderChartAvanceVariables:", data);
 
-        const indicatorGroups = {
-          dosaje: [
-            { title: 'DOSAJE HB', avance_key: 'i_avance_sup_ta', num_key: 'i_num_sup_ta' },
-            { title: '1° DOSAJE', avance_key: 'i_avance_hb', num_key: 'i_num_hb' },
-            { title: '2° DOSAJE', avance_key: 'i_avance_hb_12m', num_key: 'i_num_hb_12m' },
-          ],
-          sesion: [
-            { title: 'SESION DEMOSTRATIVA', avance_key: 'i_avance_sesion', num_key: 'i_num_sesion' },
-          ],
-        };
+      const extractValue = (rawValue) => {
+        if (rawValue == null) return 0;
+        const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+        return parseFloat(value) || 0;
+      };
 
-        const specialColor = '#505372';
+      const indicatorGroups = {
+        trimestre: [
+          {
+            title: "1° TRIM",
+            avance_key: "avance_1trim",
+            num_key: "num_1trim",
+          },
+          {
+            title: "2° TRIM",
+            avance_key: "avance_2trim",
+            num_key: "num_2trim",
+          },
+          {
+            title: "3° TRIM",
+            avance_key: "avance_3trim",
+            num_key: "num_3trim",
+          },
+        ],
+      };
 
-        for (const group in indicatorGroups) {
-            const labels = indicatorGroups[group].map(item => item.title);
-            const chartData = indicatorGroups[group].map((item, index) => {
-                const value = extractValue(data[item.avance_key]);
-                const numerator = extractValue(data[item.num_key]);
-                const dataItem = { value: value, numerator: numerator };
-                if (index === 0) {
-                    dataItem.itemStyle = { color: specialColor };
-                }
-                if (item.title === 'DOSAJE HB' || item.title === 'DOSAJE HB') {
-                    dataItem.itemStyle = { color: '#0ca8df' };
-                }
-                return dataItem;
-            });
-            createOrUpdateChart(group, labels, chartData);
-        }
+      const specialColor = "#505372";
+
+      for (const group in indicatorGroups) {
+        const labels = indicatorGroups[group].map((item) => item.title);
+        const chartData = indicatorGroups[group].map((item, index) => {
+          const value = extractValue(data[item.avance_key]);
+          const numerator = extractValue(data[item.num_key]);
+          const dataItem = { value: value, numerator: numerator };
+          if (index === 0) {
+            dataItem.itemStyle = { color: specialColor };
+          }
+          if (item.title === "DOSAJE HB" || item.title === "DOSAJE HB") {
+            dataItem.itemStyle = { color: "#0ca8df" };
+          }
+          return dataItem;
+        });
+        createOrUpdateChart(group, labels, chartData);
+      }
     } catch (error) {
-        console.error("Error al renderizar los gráficos de variables:", error);
+      console.error("Error al renderizar los gráficos de variables:", error);
     }
 
-    window.addEventListener('resize', function() {
-        for (const key in charts) {
-            if(charts[key]) {
-                charts[key].resize();
-            }
+    window.addEventListener("resize", function () {
+      for (const key in charts) {
+        if (charts[key]) {
+          charts[key].resize();
         }
+      }
     });
-};
+  };
 </script>

@@ -1,0 +1,293 @@
+<style>
+  #tabla-variables-detallado {
+    width: 100% !important;
+    font-size: 12px;
+  }
+  .number-cell {
+    text-align: right;
+  }
+  .percent-cell {
+    text-align: right;
+    color: #0066cc;
+    font-weight: bold;
+  }
+  tr.group-header:hover {
+    background-color: #e2e6ea !important;
+  }
+</style>
+
+<script>
+  // Función para cargar scripts de DataTables RowGroup dinámicamente
+  function loadRowGroupScript(callback) {
+    if ($.fn.DataTable && $.fn.DataTable.RowGroup) {
+      callback();
+      return;
+    }
+
+    // Cargar CSS
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.datatables.net/rowgroup/1.1.2/css/rowGroup.bootstrap4.min.css";
+    document.head.appendChild(link);
+
+    // Cargar JS
+    var script = document.createElement("script");
+    script.src =
+      "https://cdn.datatables.net/rowgroup/1.1.2/js/dataTables.rowGroup.min.js";
+    script.onload = callback;
+    document.head.appendChild(script);
+  }
+
+  window.renderTablaVariablesDetallado = function (data, params) {
+    const container = document.getElementById(
+      "detalle-avance-variables-detallado-container"
+    );
+
+    if (!container) {
+      console.error("Contenedor para variables detallado no encontrado");
+      return;
+    }
+
+    // Verificar si hay datos
+    const dataLength = data.anio?.length || 0;
+    let hasData = false;
+    for (let i = 0; i < dataLength; i++) {
+      if (data.anio[i] !== "") {
+        hasData = true;
+        break;
+      }
+    }
+
+    if (!hasData) {
+      container.innerHTML = `
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-table" style="margin-right: 8px;"></i>RANKING POR ESTABLECIMIENTO</h6>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted">No hay datos para mostrar con los filtros seleccionados.</p>
+                </div>
+            </div>`;
+      return;
+    }
+
+    // Construir HTML de la tabla
+    let tableHTML = `
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0"><i class="fas fa-table" style="margin-right: 8px;"></i>RANKING POR ESTABLECIMIENTO</h6>
+                <button class="btn btn-tool btn-sm" id="btn-colapsar-todo" title="Colapsar/Expandir Todo">
+                    <i class="fas fa-compress-arrows-alt"></i> Alternar Vistas
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="tabla-variables-detallado" class="table table-bordered table-striped table-hover table-sm" style="width:100%">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Red</th>
+                                <th>MicroRed</th>
+                                <th>Establecimiento</th>
+                                <th>Variable</th>
+                                <th class="text-center">1° Trim</th>
+                                <th class="text-center">1T %</th>
+                                <th class="text-center">2° Trim</th>
+                                <th class="text-center">2T %</th>
+                                <th class="text-center">3° Trim</th>
+                                <th class="text-center">3T %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    `;
+
+    for (let i = 0; i < dataLength; i++) {
+      if (data.anio[i] === "") continue;
+
+      const red = data.Red?.[i] || "";
+      const microred = data.MicroRed?.[i] || "";
+      const establecimiento = data.Nombre_Establecimiento?.[i] || "";
+      const variable = data.den_variable?.[i] || "";
+
+      const num1 = data.num_1trim?.[i] || 0;
+      const av1 =
+        data.avance_1trim?.[i] != null
+          ? data.avance_1trim[i].toFixed(1) + "%"
+          : "0.0%";
+
+      const num2 = data.num_2trim?.[i] || 0;
+      const av2 =
+        data.avance_2trim?.[i] != null
+          ? data.avance_2trim[i].toFixed(1) + "%"
+          : "0.0%";
+
+      const num3 = data.num_3trim?.[i] || 0;
+      const av3 =
+        data.avance_3trim?.[i] != null
+          ? data.avance_3trim[i].toFixed(1) + "%"
+          : "0.0%";
+
+      tableHTML += `
+            <tr>
+                <td>${red}</td>
+                <td>${microred}</td>
+                <td>${establecimiento}</td>
+                <td>${variable}</td>
+                <td class="number-cell">${num1}</td>
+                <td class="percent-cell">${av1}</td>
+                <td class="number-cell">${num2}</td>
+                <td class="percent-cell">${av2}</td>
+                <td class="number-cell">${num3}</td>
+                <td class="percent-cell">${av3}</td>
+            </tr>
+        `;
+    }
+
+    tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = tableHTML;
+
+    // Cargar RowGroup y luego inicializar
+    loadRowGroupScript(() => {
+      if ($.fn.DataTable) {
+        const table = $("#tabla-variables-detallado").DataTable({
+          responsive: true,
+          autoWidth: false,
+          pageLength: 50,
+          searching: false,
+          lengthChange: false,
+          language: {
+            url: "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json",
+          },
+          order: [
+            [0, "asc"], // Red
+            [1, "asc"], // MicroRed
+            [2, "asc"], // Establecimiento
+          ],
+          rowGroup: {
+            dataSrc: [0, 1], // Agrupar por Red (idx 0) y MicroRed (idx 1)
+            startRender: function (rows, group, level) {
+              var icon =
+                '<i class="fas fa-minus-circle fa-fw text-primary mr-2"></i>';
+              var groupTitle =
+                level === 0 ? "RED: " + group : "MICRORED: " + group;
+              var colorClass =
+                level === 0 ? "table-primary" : "table-secondary";
+              var padding = level === 0 ? "" : "pl-4";
+
+              return $(
+                '<tr class="group-header level-' +
+                  level +
+                  " " +
+                  colorClass +
+                  '" style="cursor:pointer">'
+              )
+                .append(
+                  '<td colspan="10" class="' +
+                    padding +
+                    '">' +
+                    icon +
+                    " <b>" +
+                    groupTitle +
+                    "</b> (" +
+                    rows.count() +
+                    ")</td>"
+                )
+                .attr("data-group", group)
+                .attr("data-level", level);
+            },
+          },
+        });
+
+        // Evento click para colapsar/expandir
+        $("#tabla-variables-detallado tbody").on(
+          "click",
+          "tr.group-header",
+          function () {
+            var level = parseInt($(this).data("level"));
+            var icon = $(this).find("i");
+
+            // Cambiar icono
+            if (icon.hasClass("fa-minus-circle")) {
+              icon.removeClass("fa-minus-circle").addClass("fa-plus-circle");
+            } else {
+              icon.removeClass("fa-plus-circle").addClass("fa-minus-circle");
+            }
+
+            // Encontrar filas siguientes hasta el siguiente encabezado del mismo nivel o superior
+            var nextRows = $(this).nextUntil(function () {
+              // Detenerse si encontramos un encabezado de nivel igual o menor (superior en jerarquía)
+              if ($(this).hasClass("group-header")) {
+                var nextLevel = parseInt($(this).data("level"));
+                return nextLevel <= level;
+              }
+              return false;
+            });
+
+            nextRows.toggle();
+          }
+        );
+
+        // Botón para colapsar/expandir todo
+        let allCollapsed = false;
+        $("#btn-colapsar-todo").on("click", function () {
+          if (allCollapsed) {
+            // Expandir todo
+            $("tr.group-header").each(function () {
+              var icon = $(this).find("i");
+              if (icon.hasClass("fa-plus-circle")) {
+                $(this).trigger("click");
+              }
+            });
+            allCollapsed = false;
+          } else {
+            // Colapsar todo
+            // Primero nivel 1 (MicroRed), luego nivel 0 (Red)
+            $("tr.group-header.level-1").each(function () {
+              var icon = $(this).find("i");
+              if (icon.hasClass("fa-minus-circle")) {
+                $(this).trigger("click");
+              }
+            });
+            $("tr.group-header.level-0").each(function () {
+              var icon = $(this).find("i");
+              if (icon.hasClass("fa-minus-circle")) {
+                $(this).trigger("click");
+              }
+            });
+            allCollapsed = true;
+          }
+        });
+
+        // Colapsar inicialmente solo las MicroRedes (Nivel 1) para que se vea Red -> MicroRedes
+        // O colapsar TODO (Nivel 0) para ver solo Redes?
+        // "Agrupado por RED" suele significar ver las Redes.
+        // Vamos a colapsar TODO para que la vista inicial sea limpia.
+
+        // Simular click en headers de nivel 1 primero
+        $("tr.group-header.level-1").each(function () {
+          var icon = $(this).find("i");
+          if (icon.hasClass("fa-minus-circle")) {
+            $(this).trigger("click");
+          }
+        });
+        // Luego nivel 0
+        $("tr.group-header.level-0").each(function () {
+          var icon = $(this).find("i");
+          if (icon.hasClass("fa-minus-circle")) {
+            $(this).trigger("click");
+          }
+        });
+        allCollapsed = true;
+      } else {
+        console.error("DataTables no está cargado.");
+      }
+    });
+  };
+</script>
