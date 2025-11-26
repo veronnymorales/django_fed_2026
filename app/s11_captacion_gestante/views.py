@@ -652,3 +652,178 @@ def p_distritos_s11_captacion_gestante_h(request):
     
     return render(request, 's11_captacion_gestante/partials/p_distritos.html', context)
 
+
+############################
+## HTMX HIERARCHICAL TABLE
+############################
+
+def htmx_get_redes(request):
+    """
+    Vista HTMX para cargar los encabezados de Redes (nivel 1).
+    Retorna HTML con cada Red como un grupo colapsable inicialmente cerrado.
+    """
+    try:
+        # Obtener parámetros de filtros
+        anio = request.GET.get('anio', DEFAULT_YEAR)
+        mes_inicio = request.GET.get('mes_inicio', '1')
+        mes_fin = request.GET.get('mes_fin', '12')
+        provincia = request.GET.get('provincia', '')
+        distrito = request.GET.get('distrito', '')
+        red = request.GET.get('red', '')
+        microred = request.GET.get('microred', '')
+        establecimiento = request.GET.get('establecimiento', '')
+
+        # Obtener datos detallados (necesitamos esto para agrupar por Red)
+        resultados = obtener_variables_detallado(
+            anio=anio,
+            mes_inicio=mes_inicio,
+            mes_fin=mes_fin,
+            red=red,
+            microred=microred,
+            establecimiento=establecimiento,
+            provincia=provincia,
+            distrito=distrito
+        )
+
+        # Agrupar por Red
+        redes_dict = {}
+        for row in resultados:
+            red_nombre = row.get('Red', 'Sin Red')
+            red_codigo = row.get('Codigo_Red', '')
+            
+            if red_nombre not in redes_dict:
+                redes_dict[red_nombre] = {
+                    'codigo': red_codigo,
+                    'count': 0
+                }
+            redes_dict[red_nombre]['count'] += 1
+
+        # Ordenar redes alfabéticamente
+        redes_sorted = sorted(redes_dict.items(), key=lambda x: x[0])
+
+        context = {
+            'redes': redes_sorted
+        }
+
+        return render(request, 's11_captacion_gestante/partials/htmx_redes.html', context)
+
+    except Exception as e:
+        logger.error(f"Error en htmx_get_redes: {e}", exc_info=True)
+        return HttpResponse('<div class="alert alert-danger">Error al cargar las Redes</div>', status=500)
+
+
+def htmx_get_microredes(request):
+    """
+    Vista HTMX para cargar MicroRedes dentro de una Red específica (nivel 2).
+    Retorna HTML con cada MicroRed como un grupo colapsable.
+    """
+    try:
+        # Obtener parámetros de filtros
+        anio = request.GET.get('anio', DEFAULT_YEAR)
+        mes_inicio = request.GET.get('mes_inicio', '1')
+        mes_fin = request.GET.get('mes_fin', '12')
+        provincia = request.GET.get('provincia', '')
+        distrito = request.GET.get('distrito', '')
+        red = request.GET.get('red', '')
+        microred = request.GET.get('microred', '')
+        establecimiento = request.GET.get('establecimiento', '')
+
+        # Obtener datos detallados filtrados por Red
+        resultados = obtener_variables_detallado(
+            anio=anio,
+            mes_inicio=mes_inicio,
+            mes_fin=mes_fin,
+            red=red,
+            microred=microred,
+            establecimiento=establecimiento,
+            provincia=provincia,
+            distrito=distrito
+        )
+
+        # Agrupar por MicroRed
+        microredes_dict = {}
+        for row in resultados:
+            red_codigo = row.get('Codigo_Red', '')
+            microred_nombre = row.get('MicroRed', 'Sin MicroRed')
+            microred_codigo = row.get('Codigo_MicroRed', '')
+            
+            if microred_nombre not in microredes_dict:
+                microredes_dict[microred_nombre] = {
+                    'codigo': microred_codigo,
+                    'red_codigo': red_codigo,
+                    'count': 0
+                }
+            microredes_dict[microred_nombre]['count'] += 1
+
+        # Ordenar microredes alfabéticamente
+        microredes_sorted = sorted(microredes_dict.items(), key=lambda x: x[0])
+
+        context = {
+            'microredes': microredes_sorted,
+            'red_codigo': red
+        }
+
+        return render(request, 's11_captacion_gestante/partials/htmx_microredes.html', context)
+
+    except Exception as e:
+        logger.error(f"Error en htmx_get_microredes: {e}", exc_info=True)
+        return HttpResponse('<div class="alert alert-danger">Error al cargar las MicroRedes</div>', status=500)
+
+
+def htmx_get_establecimientos(request):
+    """
+    Vista HTMX para cargar Establecimientos dentro de una MicroRed (nivel 3).
+    Utiliza Great Tables para dar formato elegante a los datos tabulares.
+    """
+    try:
+        # Obtener parámetros de filtros
+        anio = request.GET.get('anio', DEFAULT_YEAR)
+        mes_inicio = request.GET.get('mes_inicio', '1')
+        mes_fin = request.GET.get('mes_fin', '12')
+        provincia = request.GET.get('provincia', '')
+        distrito = request.GET.get('distrito', '')
+        red = request.GET.get('red', '')
+        microred = request.GET.get('microred', '')
+        establecimiento = request.GET.get('establecimiento', '')
+
+        # Obtener datos detallados filtrados por MicroRed
+        resultados = obtener_variables_detallado(
+            anio=anio,
+            mes_inicio=mes_inicio,
+            mes_fin=mes_fin,
+            red=red,
+            microred=microred,
+            establecimiento=establecimiento,
+            provincia=provincia,
+            distrito=distrito
+        )
+
+        # Agrupar por Establecimiento
+        establecimientos_data = []
+        for row in resultados:
+            establecimiento_nombre = row.get('Nombre_Establecimiento', 'Sin Nombre')
+            variable = row.get('den_variable', '')
+            
+            establecimientos_data.append({
+                'Establecimiento': establecimiento_nombre,
+                'Variable': variable,
+                '1° Trim': row.get('num_1trim', 0),
+                '1T %': f"{row.get('avance_1trim', 0.0):.1f}%",
+                '2° Trim': row.get('num_2trim', 0),
+                '2T %': f"{row.get('avance_2trim', 0.0):.1f}%",
+                '3° Trim': row.get('num_3trim', 0),
+                '3T %': f"{row.get('avance_3trim', 0.0):.1f}%",
+            })
+
+        context = {
+            'establecimientos': establecimientos_data,
+            'microred_codigo': microred,
+            'red_codigo': red
+        }
+
+        return render(request, 's11_captacion_gestante/partials/htmx_establecimientos.html', context)
+
+    except Exception as e:
+        logger.error(f"Error en htmx_get_establecimientos: {e}", exc_info=True)
+        return HttpResponse('<div class="alert alert-danger">Error al cargar los Establecimientos</div>', status=500)
+

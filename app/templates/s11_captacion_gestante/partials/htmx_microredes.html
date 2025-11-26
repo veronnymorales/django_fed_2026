@@ -1,0 +1,23 @@
+{% if microredes %} {% for microred_nombre, microred_data in microredes %}
+<div class="microred-group mb-2">
+  <div
+    class="microred-header"
+    data-microred="{{ microred_data.codigo }}"
+    data-red="{{ red_codigo }}"
+  >
+    <div class="d-flex align-items-center">
+      <i class="fas fa-chevron-down icon-toggle collapsed"></i>
+      <span class="ml-2">MICRORED: {{ microred_nombre }}</span>
+    </div>
+    <span class="badge-count">{{ microred_data.count }}</span>
+  </div>
+  <div id="microred-content-{{ microred_data.codigo }}" style="display: none">
+    <!-- Establecimientos will be loaded here via HTMX -->
+  </div>
+</div>
+{% endfor %} {% else %}
+<div class="alert alert-warning text-center ml-4">
+  <i class="fas fa-exclamation-triangle"></i> No hay MicroRedes disponibles para
+  esta Red.
+</div>
+{% endif %}
