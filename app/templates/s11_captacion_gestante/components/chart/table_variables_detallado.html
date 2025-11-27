@@ -13,25 +13,21 @@
   }
 
   .dtrg-group {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
+    background-color: #ffffff !important; /* Blanco */
+    color: #343a40 !important; /* Texto negro/oscuro */
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    border-bottom: 2px solid #dee2e6; /* Borde para separar visualmente */
   }
 
   .dtrg-group:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+    background-color: #f8f9fa !important; /* Gris muy claro al hover */
     transform: translateX(2px);
   }
 
   .dtrg-level-0 {
-    background: linear-gradient(135deg, #5a67d8 0%, #4c51bf 100%) !important;
-  }
-
-  .dtrg-level-1 {
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
-    padding-left: 30px !important;
+    background-color: #ffffff !important;
   }
 
   .number-cell {
@@ -41,47 +37,93 @@
 
   .percent-cell {
     text-align: right;
-    color: #0066cc;
-    font-weight: 600;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
+    padding: 6px 10px !important;
+    border-radius: 4px;
+  }
+
+  /* Colores para porcentajes con FONDO (solo 1T %) */
+  .percent-bg-low {
+    background-color: #ff6b6b !important;
+    color: white !important;
+  }
+
+  .percent-bg-medium {
+    background-color: #ffd93d !important;
+    color: #333 !important;
+  }
+
+  .percent-bg-high {
+    background-color: #6bcf7f !important;
+    color: white !important;
+  }
+
+  /* Colores para porcentajes SOLO TEXTO (2T % y 3T %) */
+  .percent-text-low {
+    color: #ff6b6b !important;
+    font-weight: 700;
+  }
+
+  .percent-text-medium {
+    color: #ff8c00 !important;
+    font-weight: 700;
+  }
+
+  .percent-text-high {
+    color: #28a745 !important;
+    font-weight: 700;
+  }
+
+  /* Remover color de fondo de filas de datos normales */
+  #tabla-variables-detallado tbody tr:not(.dtrg-group) {
+    background-color: transparent !important;
+  }
+
+  .table-striped tbody tr:nth-of-type(odd):not(.dtrg-group) {
+    background-color: rgba(0, 0, 0, 0.01) !important;
   }
 </style>
 
-<div class="card shadow-sm border-0">
-  <div
-    class="card-header bg-white d-flex justify-content-between align-items-center py-3"
-  >
-    <h6 class="m-0 text-primary font-weight-bold">
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
       <i class="fas fa-layer-group mr-2"></i>RANKING POR ESTABLECIMIENTO
-    </h6>
-    <div>
+    </h3>
+    <div class="card-tools">
       <button
-        class="btn btn-outline-primary btn-sm rounded-pill px-3"
+        type="button"
+        class="btn btn-tool btn-sm"
         id="btn-expandir-todo-dt"
+        data-toggle="tooltip"
+        title="Expandir todos"
       >
-        <i class="fas fa-expand-arrows-alt mr-1"></i> Expandir
+        <i class="fas fa-expand-arrows-alt"></i> Expandir
       </button>
       <button
-        class="btn btn-outline-secondary btn-sm rounded-pill px-3 ml-2"
+        type="button"
+        class="btn btn-tool btn-sm ml-1"
         id="btn-colapsar-todo-dt"
+        data-toggle="tooltip"
+        title="Colapsar todos"
       >
-        <i class="fas fa-compress-arrows-alt mr-1"></i> Colapsar
+        <i class="fas fa-compress-arrows-alt"></i> Colapsar
       </button>
     </div>
   </div>
-  <div class="card-body">
+  <div class="card-body p-0">
     <div class="table-responsive">
       <table
         id="tabla-variables-detallado"
-        class="table table-sm table-hover"
+        class="table table-sm table-hover table-head-fixed text-nowrap"
         style="width: 100%"
       >
-        <thead class="thead-light">
+        <thead>
           <tr>
             <th>Red</th>
             <th>MicroRed</th>
             <th>Establecimiento</th>
-            <th>Variable</th>
+            <th>Den</th>
             <th class="text-center">1° Trim</th>
             <th class="text-center">1T %</th>
             <th class="text-center">2° Trim</th>
@@ -99,11 +141,50 @@
 <script>
   let tablaInstance = null;
 
+  // Función para aplicar colores CON FONDO (solo para 1T %)
+  function applyPercentColorWithBg(td, cellData) {
+    const percentValue = parseFloat(cellData);
+    if (isNaN(percentValue)) return;
+
+    const decimalValue = percentValue / 100;
+
+    if (decimalValue < 0.7) {
+      $(td).addClass("percent-bg-low");
+    } else if (decimalValue >= 0.7 && decimalValue < 0.82) {
+      $(td).addClass("percent-bg-medium");
+    } else if (decimalValue >= 0.82) {
+      $(td).addClass("percent-bg-high");
+    }
+  }
+
+  // Función para aplicar colores SOLO TEXTO (para 2T % y 3T %) - LÓGICA INVERSA
+  function applyPercentColorTextOnly(td, cellData) {
+    const percentValue = parseFloat(cellData);
+    if (isNaN(percentValue)) return;
+
+    const decimalValue = percentValue / 100;
+
+    // LÓGICA INVERSA: Menor porcentaje = Verde (mejor), Mayor porcentaje = Rojo (peor)
+    if (decimalValue < 0.2) {
+      $(td).addClass("percent-text-high"); // Verde
+    } else if (decimalValue >= 0.2 && decimalValue < 0.5) {
+      $(td).addClass("percent-text-medium"); // Naranja
+    } else if (decimalValue >= 0.5) {
+      $(td).addClass("percent-text-low"); // Rojo
+    }
+  }
+
   window.renderTablaVariablesDetallado = function (data, params) {
     console.log("🎯 Renderizando DataTables con agrupación", data);
+    console.log("🔍 Claves disponibles en data:", Object.keys(data));
+    console.log("📊 detallado_anio length:", data.detallado_anio?.length);
+    console.log("📊 detallado_Red:", data.detallado_Red);
 
-    const dataLength = data.anio?.length || 0;
+    const dataLength = data.detallado_anio?.length || 0;
+    console.log("📏 dataLength calculado:", dataLength);
+
     if (dataLength === 0) {
+      console.warn("⚠️ No hay datos para mostrar en la tabla");
       $("#tabla-variables-detallado tbody").html(
         '<tr><td colspan="10" class="text-center text-muted">No hay datos para mostrar</td></tr>'
       );
@@ -116,32 +197,85 @@
       $("#tabla-variables-detallado tbody").empty();
     }
 
-    // Preparar datos
+    // Los filtros se aplican en el backend, no necesitamos filtrar aquí
+    console.log("📊 Datos recibidos del backend:", dataLength, "registros");
+
+    // Preparar datos con porcentaje numérico para ordenar
     const tableData = [];
     for (let i = 0; i < dataLength; i++) {
-      if (!data.anio[i]) continue;
+      if (!data.detallado_anio[i]) continue;
+
+      const rowRed = data.detallado_Red?.[i] || "";
+      const rowMicroRed = data.detallado_MicroRed?.[i] || "";
+      const rowEstablecimiento =
+        data.detallado_Nombre_Establecimiento?.[i] || "";
+
+      const avg1trim =
+        data.detallado_avance_1trim?.[i] != null
+          ? data.detallado_avance_1trim[i]
+          : 0;
 
       tableData.push([
-        data.Red?.[i] || "",
-        data.MicroRed?.[i] || "",
-        data.Nombre_Establecimiento?.[i] || "",
-        data.den_variable?.[i] || "",
-        data.num_1trim?.[i] || 0,
-        data.avance_1trim?.[i] != null
-          ? data.avance_1trim[i].toFixed(1) + "%"
+        rowRed,
+        rowMicroRed,
+        rowEstablecimiento,
+        data.detallado_den_variable?.[i] || "",
+        data.detallado_num_1trim?.[i] || 0,
+        data.detallado_avance_1trim?.[i] != null
+          ? data.detallado_avance_1trim[i].toFixed(1) + "%"
           : "0.0%",
-        data.num_2trim?.[i] || 0,
-        data.avance_2trim?.[i] != null
-          ? data.avance_2trim[i].toFixed(1) + "%"
+        data.detallado_num_2trim?.[i] || 0,
+        data.detallado_avance_2trim?.[i] != null
+          ? data.detallado_avance_2trim[i].toFixed(1) + "%"
           : "0.0%",
-        data.num_3trim?.[i] || 0,
-        data.avance_3trim?.[i] != null
-          ? data.avance_3trim[i].toFixed(1) + "%"
+        data.detallado_num_3trim?.[i] || 0,
+        data.detallado_avance_3trim?.[i] != null
+          ? data.detallado_avance_3trim[i].toFixed(1) + "%"
           : "0.0%",
+        avg1trim, // Columna 10: 1T% individual
       ]);
     }
 
-    console.log("📊 Filas preparadas:", tableData.length);
+    // Calcular el promedio de 1T% para cada RED
+    const redAverages = {};
+    for (let row of tableData) {
+      const red = row[0];
+      const percent = row[10];
+
+      if (!redAverages[red]) {
+        redAverages[red] = { sum: 0, count: 0 };
+      }
+      redAverages[red].sum += percent;
+      redAverages[red].count++;
+    }
+
+    // Calcular promedios finales
+    for (let red in redAverages) {
+      redAverages[red].avg = redAverages[red].sum / redAverages[red].count;
+    }
+
+    console.log("📊 Promedios por RED:", redAverages);
+
+    // Agregar el promedio de RED a cada fila (columna 11)
+    for (let row of tableData) {
+      const red = row[0];
+      row.push(redAverages[red].avg); // Columna 11: Promedio de la RED
+    }
+
+    // Ordenar primero por promedio de RED descendente, luego por 1T% individual descendente
+    tableData.sort((a, b) => {
+      // Primero ordenar por promedio de RED (descendente - mayor a menor)
+      const avgDiff = b[11] - a[11];
+      if (avgDiff !== 0) return avgDiff;
+
+      // Si tienen el mismo promedio de RED, ordenar por 1T% individual descendente
+      return b[10] - a[10];
+    });
+
+    console.log(
+      "📊 Filas ordenadas por promedio de RED (mayor a menor):",
+      tableData.length
+    );
 
     // Cargar RowGroup dinámicamente si no está cargado
     const loadRowGroup = new Promise((resolve) => {
@@ -166,25 +300,63 @@
       tablaInstance = $("#tabla-variables-detallado").DataTable({
         data: tableData,
         columns: [
-          { title: "Red" },
-          { title: "MicroRed" },
-          { title: "Establecimiento" },
-          { title: "Variable" },
-          { title: "1° Trim", className: "number-cell" },
-          { title: "1T %", className: "percent-cell" },
-          { title: "2° Trim", className: "number-cell" },
-          { title: "2T %", className: "percent-cell" },
-          { title: "3° Trim", className: "number-cell" },
-          { title: "3T %", className: "percent-cell" },
+          { title: "Red", visible: true },
+          { title: "MicroRed", visible: true },
+          { title: "Establecimiento", visible: true },
+          { title: "Den", visible: true },
+          { title: "1° Trim", className: "number-cell", visible: true },
+          {
+            title: "1T %",
+            className: "percent-cell",
+            visible: true,
+            createdCell: function (td, cellData, rowData, row, col) {
+              applyPercentColorWithBg(td, cellData);
+            },
+          },
+          { title: "2° Trim", className: "number-cell", visible: true },
+          {
+            title: "2T %",
+            className: "percent-cell",
+            visible: true,
+            createdCell: function (td, cellData, rowData, row, col) {
+              applyPercentColorTextOnly(td, cellData);
+            },
+          },
+          { title: "3° Trim", className: "number-cell", visible: true },
+          {
+            title: "3T %",
+            className: "percent-cell",
+            visible: true,
+            createdCell: function (td, cellData, rowData, row, col) {
+              applyPercentColorTextOnly(td, cellData);
+            },
+          },
+          {
+            title: "Avg1T",
+            visible: false,
+            searchable: false,
+          },
+          {
+            title: "RedAvg",
+            visible: false,
+            searchable: false,
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [10, 11],
+            visible: false,
+            searchable: false,
+          },
         ],
         order: [
-          [0, "asc"],
-          [1, "asc"],
-          [2, "asc"],
+          [11, "desc"], //  Promedio de RED descendente (mayor primero)
+          [10, "desc"], // 1T% individual descendente
         ],
-        pageLength: 50,
+        paging: false,
         searching: false,
         lengthChange: false,
+        info: false,
         responsive: true,
         language: {
           info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
@@ -198,25 +370,55 @@
           },
         },
         rowGroup: {
-          dataSrc: [0, 1],
+          dataSrc: [0], // Agrupar solo por Red
           startRender: function (rows, group, level) {
-            const groupLabel = level === 0 ? "RED" : "MICRORED";
+            const groupLabel = "RED";
             const icon = '<i class="fas fa-plus-circle mr-2"></i>';
 
+            // El promedio ya está calculado, tomarlo de la primera fila del grupo
+            const avgPercent = rows.data()[0][11].toFixed(1);
+
+            // Determinar color de la barra según el porcentaje (estilo Admin LTE)
+            let progressColor = "bg-danger";
+            if (avgPercent >= 82) {
+              progressColor = "bg-success";
+            } else if (avgPercent >= 70) {
+              progressColor = "bg-warning";
+            }
+
+            // Contenedor Flex para alinear: Izquierda (Info) - Derecha (Progreso)
+            const contentHTML = `
+              <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex align-items-center">
+                  ${icon}
+                  <span class="mr-1">${groupLabel}:</span>
+                  <strong class="mr-2">${group}</strong>
+                  <span class="badge badge-light">${rows.count()}</span>
+                </div>
+
+                <div class="d-flex align-items-center" style="width: 350px;">
+                  <small class="text-dark mr-2 text-nowrap">Avance %:</small>
+                  <div class="progress flex-fill mx-2" style="height: 20px; background-color: rgba(0,0,0,0.1);">
+                    <div class="progress-bar ${progressColor}"
+                         role="progressbar"
+                         style="width: ${Math.min(avgPercent, 100)}%"
+                         aria-valuenow="${avgPercent}"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                      <span style="font-size: 11px; font-weight: bold; color: ${
+                        progressColor === "bg-warning" ? "#333" : "white"
+                      };">${avgPercent}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+
             return $("<tr/>")
-              .addClass("dtrg-group dtrg-level-" + level)
-              .append(
-                '<td colspan="10">' +
-                  icon +
-                  groupLabel +
-                  ": <strong>" +
-                  group +
-                  '</strong> <span class="badge badge-light ml-2">' +
-                  rows.count() +
-                  "</span></td>"
-              )
+              .addClass("dtrg-group dtrg-level-0")
+              .append($('<td colspan="12">').html(contentHTML))
               .attr("data-group", group)
-              .attr("data-level", level);
+              .attr("data-level", 0);
           },
         },
       });
@@ -226,7 +428,6 @@
         "click",
         "tr.dtrg-group",
         function () {
-          const level = parseInt($(this).data("level"));
           const icon = $(this).find("i");
 
           // Cambiar icono
@@ -236,58 +437,61 @@
             icon.removeClass("fa-plus-circle").addClass("fa-minus-circle");
           }
 
-          // Toggle siguiente nivel
-          let nextRows = $(this).nextUntil(function () {
-            if ($(this).hasClass("dtrg-group")) {
-              return parseInt($(this).data("level")) <= level;
-            }
-            return false;
-          });
+          const groupName = $(this).attr("data-group");
+          const rows = tablaInstance
+            .rows()
+            .nodes()
+            .to$()
+            .filter(function () {
+              return (
+                $(this).find("td:first").text() === groupName &&
+                !$(this).hasClass("dtrg-group")
+              );
+            });
 
-          nextRows.toggle();
+          rows.toggle();
         }
       );
 
-      // Botones
-      $("#btn-expandir-todo-dt")
-        .off("click")
-        .on("click", function () {
-          $("tr.dtrg-group").each(function () {
-            const icon = $(this).find("i");
-            if (icon.hasClass("fa-plus-circle")) {
-              $(this).trigger("click");
-            }
-          });
-        });
+      // Expandir todo
+      $("#btn-expandir-todo-dt").on("click", function () {
+        $("tr.dtrg-group i")
+          .removeClass("fa-plus-circle")
+          .addClass("fa-minus-circle");
+        tablaInstance.rows().nodes().to$().show();
+      });
 
-      $("#btn-colapsar-todo-dt")
-        .off("click")
-        .on("click", function () {
-          $("tr.dtrg-group.dtrg-level-1").each(function () {
-            const icon = $(this).find("i");
-            if (icon.hasClass("fa-minus-circle")) {
-              $(this).trigger("click");
-            }
-          });
-          $("tr.dtrg-group.dtrg-level-0").each(function () {
-            const icon = $(this).find("i");
-            if (icon.hasClass("fa-minus-circle")) {
-              $(this).trigger("click");
-            }
-          });
-        });
+      // Colapsar todo
+      $("#btn-colapsar-todo-dt").on("click", function () {
+        $("tr.dtrg-group i")
+          .removeClass("fa-minus-circle")
+          .addClass("fa-plus-circle");
+        tablaInstance
+          .rows()
+          .nodes()
+          .to$()
+          .filter(function () {
+            return !$(this).hasClass("dtrg-group");
+          })
+          .hide();
+      });
 
-      console.log("✅ DataTables con RowGroup renderizado");
+      console.log("✅ Tabla renderizada con éxito");
 
-      // Colapsar todo inicialmente - solo mostrar Redes
+      // Colapsar automáticamente al inicio
       setTimeout(() => {
-        // Ocultar todas las filas que no sean grupos
-        $("#tabla-variables-detallado tbody tr").not(".dtrg-group").hide();
-
-        // Ocultar todos los grupos de MicroRed (nivel 1)
-        $("tr.dtrg-group.dtrg-level-1").hide();
-
-        console.log("✅ Vista inicial colapsada - solo Redes visibles");
+        $("tr.dtrg-group i")
+          .removeClass("fa-minus-circle")
+          .addClass("fa-plus-circle");
+        tablaInstance
+          .rows()
+          .nodes()
+          .to$()
+          .filter(function () {
+            return !$(this).hasClass("dtrg-group");
+          })
+          .hide();
+        console.log("📁 Tabla colapsada automáticamente");
       }, 100);
     });
   };

@@ -168,6 +168,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function actualizarDashboard(params) {
         const queryString = new URLSearchParams(params).toString();
         
+        console.log('🔍 FILTROS APLICADOS:', params);
+        console.log('📋 Query String:', queryString);
+        
         fetch(`{% url "index_s11_captacion_gestante" %}?${queryString}`, {
             headers: { "X-Requested-With": "XMLHttpRequest" },
         })
@@ -179,6 +182,14 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(data => {
             console.log('✅ Datos recibidos del servidor:', data);
+            console.log('📊 Datos del gráfico de variables:');
+            console.log('  - den_variable:', data.den_variable);
+            console.log('  - num_1trim:', data.num_1trim);
+            console.log('  - avance_1trim:', data.avance_1trim);
+            console.log('  - num_2trim:', data.num_2trim);
+            console.log('  - avance_2trim:', data.avance_2trim);
+            console.log('  - num_3trim:', data.num_3trim);
+            console.log('  - avance_3trim:', data.avance_3trim);
             
             // Llama a las funciones de renderizado de cada componente
             // pasando los datos correspondientes.

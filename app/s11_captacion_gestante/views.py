@@ -341,25 +341,26 @@ def process_variables(resultados_variables: List[Dict]) -> Dict[str, List]:
 
 ## TABLLA VARIABLES DETALLADOS
 def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> Dict[str, List]:
-    """Procesa los resultados de las variables"""
+    """Procesa los resultados de las variables detalladas
+    NOTA: Usa prefijo 'detallado_' para las claves para NO sobrescribir los datos agregados"""
     data = {
-        'anio': [],
-        'mes': [],
-        'Codigo_Red': [],
-        'Red': [],
-        'Codigo_MicroRed': [],
-        'MicroRed': [],
-        'Codigo_Unico': [],
-        'Id_Establecimiento': [],
-        'Nombre_Establecimiento': [],
-        'Ubigueo_Establecimiento': [],
-        'den_variable': [],
-        'num_1trim': [],
-        'avance_1trim': [],
-        'num_2trim': [],
-        'avance_2trim': [],
-        'num_3trim': [],
-        'avance_3trim': []
+        'detallado_anio': [],
+        'detallado_mes': [],
+        'detallado_Codigo_Red': [],
+        'detallado_Red': [],
+        'detallado_Codigo_MicroRed': [],
+        'detallado_MicroRed': [],
+        'detallado_Codigo_Unico': [],
+        'detallado_Id_Establecimiento': [],
+        'detallado_Nombre_Establecimiento': [],
+        'detallado_Ubigueo_Establecimiento': [],
+        'detallado_den_variable': [],
+        'detallado_num_1trim': [],
+        'detallado_avance_1trim': [],
+        'detallado_num_2trim': [],
+        'detallado_avance_2trim': [],
+        'detallado_num_3trim': [],
+        'detallado_avance_3trim': []
     }
     for index, row in enumerate(resultados_variables_detallado):
         try:
@@ -388,24 +389,24 @@ def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> D
             num_3trim = row['num_3trim']
             avance_3trim = row['avance_3trim']
             
-            # Agrega los valores a la lista
-            data['anio'].append(anio)
-            data['mes'].append(mes)
-            data['Codigo_Red'].append(Codigo_Red)
-            data['Red'].append(Red)
-            data['Codigo_MicroRed'].append(Codigo_MicroRed)
-            data['MicroRed'].append(MicroRed)
-            data['Codigo_Unico'].append(Codigo_Unico)
-            data['Id_Establecimiento'].append(Id_Establecimiento)
-            data['Nombre_Establecimiento'].append(Nombre_Establecimiento)
-            data['Ubigueo_Establecimiento'].append(Ubigueo_Establecimiento)
-            data['den_variable'].append(den_variable)
-            data['num_1trim'].append(num_1trim)
-            data['avance_1trim'].append(avance_1trim)
-            data['num_2trim'].append(num_2trim)
-            data['avance_2trim'].append(avance_2trim)
-            data['num_3trim'].append(num_3trim)
-            data['avance_3trim'].append(avance_3trim)
+            # Agrega los valores a la lista CON PREFIJO
+            data['detallado_anio'].append(anio)
+            data['detallado_mes'].append(mes)
+            data['detallado_Codigo_Red'].append(Codigo_Red)
+            data['detallado_Red'].append(Red)
+            data['detallado_Codigo_MicroRed'].append(Codigo_MicroRed)
+            data['detallado_MicroRed'].append(MicroRed)
+            data['detallado_Codigo_Unico'].append(Codigo_Unico)
+            data['detallado_Id_Establecimiento'].append(Id_Establecimiento)
+            data['detallado_Nombre_Establecimiento'].append(Nombre_Establecimiento)
+            data['detallado_Ubigueo_Establecimiento'].append(Ubigueo_Establecimiento)
+            data['detallado_den_variable'].append(den_variable)
+            data['detallado_num_1trim'].append(num_1trim)
+            data['detallado_avance_1trim'].append(avance_1trim)
+            data['detallado_num_2trim'].append(num_2trim)
+            data['detallado_avance_2trim'].append(avance_2trim)
+            data['detallado_num_3trim'].append(num_3trim)
+            data['detallado_avance_3trim'].append(avance_3trim)
             
         except KeyError as e:
             logger.error(f"Error procesando la fila {index}: {str(e)}")
@@ -482,18 +483,8 @@ def index_s11_captacion_gestante(request):
             )
             
             # Obtener datos de variables por trimestre - RESPETA los filtros de mes
-            resultados_variables = obtener_variables(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
-                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-
-            # Obtener datos de variables por trimestre - RESPETA los filtros de mes
+            # NOTA: Utilizamos obtener_variables_detallado y agregamos los datos aquí
+            # porque fn_obtener_variables no está filtrando correctamente
             resultados_variables_detallado = obtener_variables_detallado(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
@@ -504,6 +495,65 @@ def index_s11_captacion_gestante(request):
                 provincia=provincia_seleccionada,
                 distrito=distrito_seleccionado
             )
+            
+            # Agregar manualmente los datos de todos los establecimientos
+            logger.info(f"🔢 Total de registros detallados obtenidos: {len(resultados_variables_detallado) if resultados_variables_detallado else 0}")
+            
+            if resultados_variables_detallado:
+                total_den_variable = 0
+                total_num_1trim = 0
+                total_num_2trim = 0
+                total_num_3trim = 0
+                
+                logger.info("📝 Procesando registros detallados:")
+                for idx, row in enumerate(resultados_variables_detallado):
+                    den = int(row.get('den_variable', 0) or 0)
+                    n1 = int(row.get('num_1trim', 0) or 0)
+                    n2 = int(row.get('num_2trim', 0) or 0)
+                    n3 = int(row.get('num_3trim', 0) or 0)
+                    
+                    total_den_variable += den
+                    total_num_1trim += n1
+                    total_num_2trim += n2
+                    total_num_3trim += n3
+                    
+                    if idx < 5:  # Mostrar solo los primeros 5 para no saturar logs
+                        logger.info(f"  Registro {idx+1}: den={den}, n1={n1}, n2={n2}, n3={n3}")
+                
+                logger.info(f"➕ TOTALES CALCULADOS: den={total_den_variable}, n1={total_num_1trim}, n2={total_num_2trim}, n3={total_num_3trim}")
+                
+                # Calcular avances
+                avance_1trim = (total_num_1trim / total_den_variable * 100) if total_den_variable > 0 else 0
+                avance_2trim = (total_num_2trim / total_den_variable * 100) if total_den_variable > 0 else 0
+                avance_3trim = (total_num_3trim / total_den_variable * 100) if total_den_variable > 0 else 0
+                
+                resultados_variables = [{
+                    'den_variable': total_den_variable,
+                    'num_1trim': total_num_1trim,
+                    'avance_1trim': round(avance_1trim, 2),
+                    'num_2trim': total_num_2trim,
+                    'avance_2trim': round(avance_2trim, 2),
+                    'num_3trim': total_num_3trim,
+                    'avance_3trim': round(avance_3trim, 2)
+                }]
+                
+                logger.info(f"✅ Variables agregadas calculadas manualmente: {resultados_variables[0]}")
+
+            else:
+                # Sin datos, usar valores por defecto
+                resultados_variables = [{
+                    'den_variable': 0,
+                    'num_1trim': 0,
+                    'avance_1trim': 0.0,
+                    'num_2trim': 0,
+                    'avance_2trim': 0.0,
+                    'num_3trim': 0,
+                    'avance_3trim': 0.0
+                }]
+                logger.warning("⚠️ No hay datos detallados para agregar")
+
+            # NOTA: resultados_variables_detallado ya se obtuvo arriba y se usó para calcular resultados_variables
+
 
             # Procesar datos del velocímetro
             data = {
@@ -522,6 +572,16 @@ def index_s11_captacion_gestante(request):
                 data['r_clasificacion'] = resumen['clasificacion']
                 data['r_color'] = resumen['color']
                 data['r_icono'] = resumen['icono']
+            
+            # Log final de los datos que se envían al frontend
+            logger.info(f"📤 Datos finales enviados al frontend (variables):")
+            logger.info(f"   num_1trim: {data.get('num_1trim')}")
+            logger.info(f"   num_2trim: {data.get('num_2trim')}")
+            logger.info(f"   num_3trim: {data.get('num_3trim')}")
+            logger.info(f"   avance_1trim: {data.get('avance_1trim')}")
+            logger.info(f"   avance_2trim: {data.get('avance_2trim')}")
+            logger.info(f"   avance_3trim: {data.get('avance_3trim')}")
+            
             return JsonResponse(data)
             
         except Exception as e:

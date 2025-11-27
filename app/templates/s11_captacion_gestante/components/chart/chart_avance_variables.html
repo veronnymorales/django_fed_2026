@@ -96,12 +96,44 @@
     }
 
     try {
-      console.log("Datos recibidos en renderChartAvanceVariables:", data);
+      console.log("📊 Datos recibidos en renderChartAvanceVariables:", data);
+
+      // Logs detallados de los datos recibidos
+      console.log("🔍 Valores brutos recibidos:");
+      console.log(
+        "  - num_1trim:",
+        data.num_1trim,
+        "tipo:",
+        typeof data.num_1trim,
+        "es array:",
+        Array.isArray(data.num_1trim)
+      );
+      console.log(
+        "  - num_2trim:",
+        data.num_2trim,
+        "tipo:",
+        typeof data.num_2trim,
+        "es array:",
+        Array.isArray(data.num_2trim)
+      );
+      console.log(
+        "  - num_3trim:",
+        data.num_3trim,
+        "tipo:",
+        typeof data.num_3trim,
+        "es array:",
+        Array.isArray(data.num_3trim)
+      );
+      console.log("  - avance_1trim:", data.avance_1trim);
+      console.log("  - avance_2trim:", data.avance_2trim);
+      console.log("  - avance_3trim:", data.avance_3trim);
 
       const extractValue = (rawValue) => {
         if (rawValue == null) return 0;
+        // Si es un array, tomar el primer elemento
         const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
-        return parseFloat(value) || 0;
+        const numValue = parseFloat(value) || 0;
+        return numValue;
       };
 
       const indicatorGroups = {
@@ -131,6 +163,11 @@
         const chartData = indicatorGroups[group].map((item, index) => {
           const value = extractValue(data[item.avance_key]);
           const numerator = extractValue(data[item.num_key]);
+
+          console.log(
+            `📈 ${item.title}: numerador=${numerator}, avance=${value}%`
+          );
+
           const dataItem = { value: value, numerator: numerator };
           if (index === 0) {
             dataItem.itemStyle = { color: specialColor };
@@ -140,10 +177,12 @@
           }
           return dataItem;
         });
+
+        console.log("✅ Datos del gráfico procesados:", chartData);
         createOrUpdateChart(group, labels, chartData);
       }
     } catch (error) {
-      console.error("Error al renderizar los gráficos de variables:", error);
+      console.error("❌ Error al renderizar los gráficos de variables:", error);
     }
 
     window.addEventListener("resize", function () {
