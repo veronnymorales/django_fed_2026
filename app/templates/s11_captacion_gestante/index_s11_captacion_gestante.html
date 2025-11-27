@@ -79,7 +79,7 @@
                         <h4 class="card-title"><i class="fas fa-filter"></i> FILTROS DE BUSQUEDA </h4>
                         <div class="card-tools">
                             <button type="button" class="btn btn-default btn-sm" id="clear-btn">
-                                 <i class="fas fa-times"></i>Limpiar filtros
+                                 <i class="fas fa-eraser"></i> Limpiar filtros
                             </button>
                             <button type="button"
                                     class="btn btn-tool"
@@ -156,6 +156,82 @@
                 {% include "s11_captacion_gestante/components/chart/table_variables_detallado.html" %}
             </div>
         </div>
+        
+        <!-- GRAFICOS DE RANKING Y AVANCES POR RED, MICRORED Y ESTABLECIMIENTO -->
+        <div class="row">
+            <!-- RED: ranking del Indicador -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            AVANCE POR REDES
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div id="chart_red_ranking" style="height: 400px;">
+                                {% include 's11_captacion_gestante/components/chart/chart_grafico_red.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Microred: ranking del Indicador -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            AVANCE POR MICRORED
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div id="chart_microred_ranking" style="height: 400px;">
+                                 {% include 's11_captacion_gestante/components/chart/chart_grafico_microred.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Establecimiento: ranking del Indicador -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            AVANCE POR ESTABLECIMIENTO
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div id="chart_establecimiento_ranking" style="height: 400px;">
+                                 {% include 's11_captacion_gestante/components/chart/chart_grafico_establecimiento.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     </div>
 </section>
@@ -198,6 +274,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (window.renderChartAvanceMensual) window.renderChartAvanceMensual(data, params);
             if (window.renderChartAvanceVariables) window.renderChartAvanceVariables(data, params);
             if (window.renderTablaVariablesDetallado) window.renderTablaVariablesDetallado(data, params);
+            if (window.renderChartRedRanking) window.renderChartRedRanking(data, params);
+            if (window.renderChartMicroredRanking) window.renderChartMicroredRanking(data, params);
+            if (window.renderChartEstablecimiento) window.renderChartEstablecimiento(data, params);
         })
         .catch(error => {
             console.error("❌ Error al cargar datos del dashboard:", error);

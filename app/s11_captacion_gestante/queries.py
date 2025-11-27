@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 # Constants
 DEFAULT_VELOCIMETRO_DATA = {'NUM': 0, 'DEN': 0, 'AVANCE': 0.0}
+
 DEFAULT_GRAFICO_MENSUALIZADO_DATA = {
     'num_1': 0, 'den_1': 0, 'cob_1': 0.0,
     'num_2': 0, 'den_2': 0, 'cob_2': 0.0,
@@ -23,6 +24,7 @@ DEFAULT_GRAFICO_MENSUALIZADO_DATA = {
     'num_11': 0, 'den_11': 0, 'cob_11': 0.0,
     'num_12': 0, 'den_12': 0, 'cob_12': 0.0
 }
+
 DEFAULT_VARIABLES_DATA = {
     'den_variable': 0,
     'num_1trim': 0,
@@ -32,24 +34,49 @@ DEFAULT_VARIABLES_DATA = {
     'num_3trim': 0,
     'avance_3trim': 0.0
 }
+
 DEFAULT_VARIABLES_DETALLADO_DATA = {
-    'anio': '',
-    'mes': '',
-    'Codigo_Red': '',
-    'Red': '',
-    'Codigo_MicroRed': '',
-    'MicroRed': '',
-    'Codigo_Unico': '',
-    'Id_Establecimiento': '',
-    'Nombre_Establecimiento': '',
-    'Ubigueo_Establecimiento': '',
-    'den_variable': 0,
-    'num_1trim': 0,
-    'avance_1trim': 0.0,
-    'num_2trim': 0,
-    'avance_2trim': 0.0,
-    'num_3trim': 0,
-    'avance_3trim': 0.0
+    'd_anio': '',
+    'd_mes': '',
+    'd_codigo_red': '',
+    'd_red': '',
+    'd_codigo_microred': '',
+    'd_microred': '',
+    'd_codigo_unico': '',
+    'd_id_establecimiento': '',
+    'd_nombre_establecimiento': '',
+    'd_ubigueo_establecimiento': '',
+    'd_den_variable': 0,
+    'd_num_1trim': 0,
+    'd_avance_1trim': 0.0,
+    'd_num_2trim': 0,
+    'd_avance_2trim': 0.0,
+    'd_num_3trim': 0,
+    'd_avance_3trim': 0.0
+}
+
+DEFAULT_VARIABLES_GRAFICO_REDES = {
+    'red_r': '',
+    'den_r': 0,
+    'num_r': 0,
+    'avance_r': 0.0,
+    'brecha_r': 0
+}
+
+DEFAULT_VARIABLES_GRAFICO_MICRORED = {
+    'microred_mr': '',
+    'den_mr': 0,
+    'num_mr': 0,
+    'avance_mr': 0.0,
+    'brecha_mr': 0
+}
+
+DEFAULT_VARIABLES_GRAFICO_ESTABLECIMIENTOS = {
+    'establecimiento_e': '',
+    'den_e': 0,
+    'num_e': 0,
+    'avance_e': 0.0,
+    'brecha_e': 0
 }
 
 def obtener_distritos(provincia: str) -> List[Dict[str, str]]:
@@ -69,6 +96,7 @@ def obtener_distritos(provincia: str) -> List[Dict[str, str]]:
     )
     return list(distritos)
 
+## velocimetro
 def obtener_velocimetro(
     anio: str,
     mes_inicio: Optional[str],
@@ -132,6 +160,7 @@ def obtener_velocimetro(
         logger.error(f"Error al obtener datos del velocímetro: {e}", exc_info=True)
         return [DEFAULT_VELOCIMETRO_DATA]
 
+## grafico mensualizado
 def obtener_grafico_mensual(
     anio: str,
     mes_inicio: Optional[str],
@@ -165,7 +194,7 @@ def obtener_grafico_mensual(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_obtener_grafico_mensualizado', [
+            cursor.callproc('fn_grafico_mensualizado', [
                 anio,
                 mes_inicio,
                 mes_fin,
@@ -234,7 +263,7 @@ def obtener_grafico_mensual(
         logger.error(f"Error al obtener datos del grafico mensualizado: {e}", exc_info=True)
         return [DEFAULT_GRAFICO_MENSUALIZADO_DATA]
 
-
+## grafico variables
 def obtener_variables(
     anio: str,
     mes_inicio: Optional[str],
@@ -304,7 +333,7 @@ def obtener_variables(
         logger.error(f"Error al obtener datos de variables: {e}", exc_info=True)
         return [DEFAULT_VARIABLES_DATA]
 
-
+## tabla variables detallado
 def obtener_variables_detallado(
     anio: str,
     mes_inicio: Optional[str],
@@ -357,23 +386,23 @@ def obtener_variables_detallado(
                 for row in rows:
                     if len(row) >= 17:
                         resultados.append({
-                            'anio': str(row[0]) if row[0] is not None else '',
-                            'mes': str(row[1]) if row[1] is not None else '',
-                            'Codigo_Red': str(row[2]) if row[2] is not None else '',
-                            'Red': str(row[3]) if row[3] is not None else '',
-                            'Codigo_MicroRed': str(row[4]) if row[4] is not None else '',
-                            'MicroRed': str(row[5]) if row[5] is not None else '',
-                            'Codigo_Unico': str(row[6]) if row[6] is not None else '',
-                            'Id_Establecimiento': str(row[7]) if row[7] is not None else '',
-                            'Nombre_Establecimiento': str(row[8]) if row[8] is not None else '',
-                            'Ubigueo_Establecimiento': str(row[9]) if row[9] is not None else '',
-                            'den_variable': int(row[10]) if row[10] is not None else 0,
-                            'num_1trim': int(row[11]) if row[11] is not None else 0,
-                            'avance_1trim': float(row[12]) if row[12] is not None else 0.0,
-                            'num_2trim': int(row[13]) if row[13] is not None else 0,
-                            'avance_2trim': float(row[14]) if row[14] is not None else 0.0,
-                            'num_3trim': int(row[15]) if row[15] is not None else 0,
-                            'avance_3trim': float(row[16]) if row[16] is not None else 0.0
+                            'd_anio': str(row[0]) if row[0] is not None else '',
+                            'd_mes': str(row[1]) if row[1] is not None else '',
+                            'd_codigo_red': str(row[2]) if row[2] is not None else '',
+                            'd_red': str(row[3]) if row[3] is not None else '',
+                            'd_codigo_microred': str(row[4]) if row[4] is not None else '',
+                            'd_microred': str(row[5]) if row[5] is not None else '',
+                            'd_codigo_unico': str(row[6]) if row[6] is not None else '',
+                            'd_id_establecimiento': str(row[7]) if row[7] is not None else '',
+                            'd_nombre_establecimiento': str(row[8]) if row[8] is not None else '',
+                            'd_ubigueo_establecimiento': str(row[9]) if row[9] is not None else '',
+                            'd_den_variable': int(row[10]) if row[10] is not None else 0,
+                            'd_num_1trim': int(row[11]) if row[11] is not None else 0,
+                            'd_avance_1trim': float(row[12]) if row[12] is not None else 0.0,
+                            'd_num_2trim': int(row[13]) if row[13] is not None else 0,
+                            'd_avance_2trim': float(row[14]) if row[14] is not None else 0.0,
+                            'd_num_3trim': int(row[15]) if row[15] is not None else 0,
+                            'd_avance_3trim': float(row[16]) if row[16] is not None else 0.0
                         })
                     else:
                         logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 17, omitiendo...")
@@ -392,3 +421,234 @@ def obtener_variables_detallado(
     except Exception as e:
         logger.error(f"Error al obtener datos de variables detallado: {e}", exc_info=True)
         return [DEFAULT_VARIABLES_DETALLADO_DATA]
+
+## grafico ranking redes de salud
+def obtener_grafico_por_redes(
+    anio: str,
+    mes_inicio: Optional[str],
+    mes_fin: Optional[str],
+    red: Optional[str],
+    microred: Optional[str],
+    establecimiento: Optional[str],
+    provincia: Optional[str],
+    distrito: Optional[str]
+) -> List[Dict[str, float]]:
+    """
+    Obtiene los datos detallados de ranking de redes de salud.
+    
+    Llama a la función almacenada 'fn_grafico_redes' en PostgreSQL
+    para obtener información detallada por establecimiento.
+    
+    Args:
+        anio: Año de consulta
+        mes_inicio: Mes de inicio del rango
+        mes_fin: Mes fin del rango
+        red: Red de salud (opcional)
+        microred: Microred de salud (opcional)
+        establecimiento: Establecimiento de salud (opcional)
+        provincia: Provincia (opcional)
+        distrito: Distrito (opcional)
+        
+    Returns:
+        Lista con diccionarios conteniendo información detallada por establecimiento.
+        Retorna valores por defecto en caso de error o sin datos.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Llamar a la función almacenada con los parámetros en orden
+            cursor.callproc('fn_grafico_redes', [
+                anio,
+                mes_inicio,
+                mes_fin,
+                red,
+                microred,
+                establecimiento,
+                provincia,
+                distrito
+            ])
+            
+            # Obtener TODAS las filas resultantes (todos los establecimientos)
+            rows = cursor.fetchall()
+            
+            if rows:
+                resultados = []
+                for row in rows:
+                    if len(row) >= 5:
+                        resultados.append({
+                            'red_r': str(row[0]) if row[0] is not None else '',
+                            'den_r': int(row[1]) if row[1] is not None else 0,
+                            'num_r': int(row[2]) if row[2] is not None else 0,
+                            'avance_r': float(row[3]) if row[3] is not None else 0.0,
+                            'brecha_r': int(row[4]) if row[4] is not None else 0,
+                        })
+                    else:
+                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 5, omitiendo...")
+                
+                if resultados:
+                    logger.info(f"Se obtuvieron {len(resultados)} establecimientos para variables detallado")
+                    return resultados
+                else:
+                    logger.warning("No se pudieron procesar filas válidas de variables detallado")
+                    return [DEFAULT_VARIABLES_GRAFICO_REDES]
+            else:
+                # Sin datos en la tabla
+                logger.warning("La consulta de variables detallado no retornó datos")
+                return [DEFAULT_VARIABLES_GRAFICO_REDES]
+                
+    except Exception as e:
+        logger.error(f"Error al obtener datos de variables detallado: {e}", exc_info=True)
+        return [DEFAULT_VARIABLES_GRAFICO_REDES]
+
+## grafico ranking microredes de salud
+def obtener_grafico_por_microredes(
+    anio: str,
+    mes_inicio: Optional[str],
+    mes_fin: Optional[str],
+    red: Optional[str],
+    microred: Optional[str],
+    establecimiento: Optional[str],
+    provincia: Optional[str],
+    distrito: Optional[str]
+) -> List[Dict[str, float]]:
+    """
+    Obtiene los datos detallados de ranking de microredes de salud.
+    
+    Llama a la función almacenada 'fn_grafico_microredes' en PostgreSQL
+    para obtener información detallada por establecimiento.
+    
+    Args:
+        anio: Año de consulta
+        mes_inicio: Mes de inicio del rango
+        mes_fin: Mes fin del rango
+        red: Red de salud (opcional)
+        microred: Microred de salud (opcional)
+        establecimiento: Establecimiento de salud (opcional)
+        provincia: Provincia (opcional)
+        distrito: Distrito (opcional)
+        
+    Returns:
+        Lista con diccionarios conteniendo información detallada por establecimiento.
+        Retorna valores por defecto en caso de error o sin datos.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Llamar a la función almacenada con los parámetros en orden
+            cursor.callproc('fn_grafico_microredes', [
+                anio,
+                mes_inicio,
+                mes_fin,
+                red,
+                microred,
+                establecimiento,
+                provincia,
+                distrito
+            ])
+            
+            # Obtener TODAS las filas resultantes (todos los establecimientos)
+            rows = cursor.fetchall()
+            
+            if rows:
+                resultados = []
+                for row in rows:
+                    if len(row) >= 5:
+                        resultados.append({
+                            'microred_mr': str(row[0]) if row[0] is not None else '',
+                            'den_mr': int(row[1]) if row[1] is not None else 0,
+                            'num_mr': int(row[2]) if row[2] is not None else 0,
+                            'avance_mr': float(row[3]) if row[3] is not None else 0.0,
+                            'brecha_mr': int(row[4]) if row[4] is not None else 0,
+                        })
+                    else:
+                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 5, omitiendo...")
+                
+                if resultados:
+                    logger.info(f"Se obtuvieron {len(resultados)} establecimientos para variables detallado")
+                    return resultados
+                else:
+                    logger.warning("No se pudieron procesar filas válidas de variables detallado")
+                    return [DEFAULT_VARIABLES_GRAFICO_MICRORED]
+            else:
+                # Sin datos en la tabla
+                logger.warning("La consulta de variables detallado no retornó datos")
+                return [DEFAULT_VARIABLES_GRAFICO_MICRORED]
+                
+    except Exception as e:
+        logger.error(f"Error al obtener datos de variables detallado: {e}", exc_info=True)
+        return [DEFAULT_VARIABLES_GRAFICO_MICRORED]
+
+## grafico ranking establecimientos de salud
+def obtener_grafico_por_establecimientos(
+    anio: str,
+    mes_inicio: Optional[str],
+    mes_fin: Optional[str],
+    red: Optional[str],
+    microred: Optional[str],
+    establecimiento: Optional[str],
+    provincia: Optional[str],
+    distrito: Optional[str]
+) -> List[Dict[str, float]]:
+    """
+    Obtiene los datos detallados de ranking de establecimientos de salud.
+    
+    Llama a la función almacenada 'fn_grafico_establecimientos' en PostgreSQL
+    para obtener información detallada por establecimiento.
+    
+    Args:
+        anio: Año de consulta
+        mes_inicio: Mes de inicio del rango
+        mes_fin: Mes fin del rango
+        red: Red de salud (opcional)
+        microred: Microred de salud (opcional)
+        establecimiento: Establecimiento de salud (opcional)
+        provincia: Provincia (opcional)
+        distrito: Distrito (opcional)
+        
+    Returns:
+        Lista con diccionarios conteniendo información detallada por establecimiento.
+        Retorna valores por defecto en caso de error o sin datos.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Llamar a la función almacenada con los parámetros en orden
+            cursor.callproc('fn_grafico_establecimientos', [
+                anio,
+                mes_inicio,
+                mes_fin,
+                red,
+                microred,
+                establecimiento,
+                provincia,
+                distrito
+            ])
+            
+            # Obtener TODAS las filas resultantes (todos los establecimientos)
+            rows = cursor.fetchall()
+            
+            if rows:
+                resultados = []
+                for row in rows:
+                    if len(row) >= 5:
+                        resultados.append({
+                            'establecimiento_e': str(row[0]) if row[0] is not None else '',
+                            'den_e': int(row[1]) if row[1] is not None else 0,
+                            'num_e': int(row[2]) if row[2] is not None else 0,
+                            'avance_e': float(row[3]) if row[3] is not None else 0.0,
+                            'brecha_e': int(row[4]) if row[4] is not None else 0,
+                        })
+                    else:
+                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 5, omitiendo...")
+                
+                if resultados:
+                    logger.info(f"Se obtuvieron {len(resultados)} establecimientos para variables detallado")
+                    return resultados
+                else:
+                    logger.warning("No se pudieron procesar filas válidas de variables detallado")
+                    return [DEFAULT_VARIABLES_GRAFICO_ESTABLECIMIENTOS]
+            else:
+                # Sin datos en la tabla
+                logger.warning("La consulta de variables detallado no retornó datos")
+                return [DEFAULT_VARIABLES_GRAFICO_ESTABLECIMIENTOS]
+                
+    except Exception as e:
+        logger.error(f"Error al obtener datos de variables detallado: {e}", exc_info=True)
+        return [DEFAULT_VARIABLES_GRAFICO_ESTABLECIMIENTOS]

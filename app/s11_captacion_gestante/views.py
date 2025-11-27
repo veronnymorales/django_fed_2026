@@ -23,7 +23,8 @@ from django.views.generic.base import TemplateView
 
 # Local imports
 from base.models import MAESTRO_HIS_ESTABLECIMIENTO, DimPeriodo, Actualizacion
-from .queries import obtener_velocimetro, obtener_grafico_mensual, obtener_variables, obtener_variables_detallado
+from .queries import obtener_velocimetro, obtener_grafico_mensual, obtener_variables, obtener_variables_detallado, obtener_grafico_por_redes
+from .queries import obtener_grafico_por_microredes, obtener_grafico_por_establecimientos
 
 # Initialize logger and user model
 logger = logging.getLogger(__name__)
@@ -89,9 +90,9 @@ def _get_provincias_queryset():
     )
 
 
-############################
-## COMPONENTES Y GRAFICOS 
-############################
+######################################
+## PROCESOS DE COMPONENTES Y GRAFICOS 
+######################################
 ## VELOCIMETRO
 def process_velocimetro(resultados_velocimetro: List[Dict]) -> Dict[str, List]:
     """
@@ -344,74 +345,181 @@ def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> D
     """Procesa los resultados de las variables detalladas
     NOTA: Usa prefijo 'detallado_' para las claves para NO sobrescribir los datos agregados"""
     data = {
-        'detallado_anio': [],
-        'detallado_mes': [],
-        'detallado_Codigo_Red': [],
-        'detallado_Red': [],
-        'detallado_Codigo_MicroRed': [],
-        'detallado_MicroRed': [],
-        'detallado_Codigo_Unico': [],
-        'detallado_Id_Establecimiento': [],
-        'detallado_Nombre_Establecimiento': [],
-        'detallado_Ubigueo_Establecimiento': [],
-        'detallado_den_variable': [],
-        'detallado_num_1trim': [],
-        'detallado_avance_1trim': [],
-        'detallado_num_2trim': [],
-        'detallado_avance_2trim': [],
-        'detallado_num_3trim': [],
-        'detallado_avance_3trim': []
+        'd_anio': [],
+        'd_mes': [],
+        'd_codigo_red': [],
+        'd_red': [],
+        'd_codigo_microred': [],
+        'd_microred': [],
+        'd_codigo_unico': [],
+        'd_id_establecimiento': [],
+        'd_nombre_establecimiento': [],
+        'd_ubigueo_establecimiento': [],
+        'd_den_variable': [],
+        'd_num_1trim': [],
+        'd_avance_1trim': [],
+        'd_num_2trim': [],
+        'd_avance_2trim': [],
+        'd_num_3trim': [],
+        'd_avance_3trim': []
     }
     for index, row in enumerate(resultados_variables_detallado):
         try:
             # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'anio','mes','Codigo_Red','Red','Codigo_MicroRed','MicroRed','Codigo_Unico','Id_Establecimiento','Nombre_Establecimiento','Ubigueo_Establecimiento','den_variable','num_1trim','avance_1trim','num_2trim','avance_2trim','num_3trim','avance_3trim'}
+            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento','d_den_variable','d_num_1trim','d_avance_1trim','d_num_2trim','d_avance_2trim','d_num_3trim','d_avance_3trim'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
             
-            # Extrae los valores
-            anio = row['anio']
-            mes = row['mes']
-            Codigo_Red = row['Codigo_Red']
-            Red = row['Red']
-            Codigo_MicroRed = row['Codigo_MicroRed']
-            MicroRed = row['MicroRed']
-            Codigo_Unico = row['Codigo_Unico']
-            Id_Establecimiento = row['Id_Establecimiento']
-            Nombre_Establecimiento = row['Nombre_Establecimiento']
-            Ubigueo_Establecimiento = row['Ubigueo_Establecimiento']
-            den_variable = row['den_variable']
-            num_1trim = row['num_1trim']
-            avance_1trim = row['avance_1trim']
-            num_2trim = row['num_2trim']
-            avance_2trim = row['avance_2trim']
-            num_3trim = row['num_3trim']
-            avance_3trim = row['avance_3trim']
+            # Extrae los valores (las claves NO tienen el prefijo 'detallado_' en los datos)
+            d_anio = row['d_anio']
+            d_mes = row['d_mes']
+            d_codigo_red = row['d_codigo_red']
+            d_red = row['d_red']
+            d_codigo_microred = row['d_codigo_microred']
+            d_microred = row['d_microred']
+            d_codigo_unico = row['d_codigo_unico']
+            d_id_establecimiento = row['d_id_establecimiento']
+            d_nombre_establecimiento = row['d_nombre_establecimiento']
+            d_ubigueo_establecimiento = row['d_ubigueo_establecimiento']
+            d_den_variable = row['d_den_variable']
+            d_num_1trim = row['d_num_1trim']
+            d_avance_1trim = row['d_avance_1trim']
+            d_num_2trim = row['d_num_2trim']
+            d_avance_2trim = row['d_avance_2trim']
+            d_num_3trim = row['d_num_3trim']
+            d_avance_3trim = row['d_avance_3trim']
             
             # Agrega los valores a la lista CON PREFIJO
-            data['detallado_anio'].append(anio)
-            data['detallado_mes'].append(mes)
-            data['detallado_Codigo_Red'].append(Codigo_Red)
-            data['detallado_Red'].append(Red)
-            data['detallado_Codigo_MicroRed'].append(Codigo_MicroRed)
-            data['detallado_MicroRed'].append(MicroRed)
-            data['detallado_Codigo_Unico'].append(Codigo_Unico)
-            data['detallado_Id_Establecimiento'].append(Id_Establecimiento)
-            data['detallado_Nombre_Establecimiento'].append(Nombre_Establecimiento)
-            data['detallado_Ubigueo_Establecimiento'].append(Ubigueo_Establecimiento)
-            data['detallado_den_variable'].append(den_variable)
-            data['detallado_num_1trim'].append(num_1trim)
-            data['detallado_avance_1trim'].append(avance_1trim)
-            data['detallado_num_2trim'].append(num_2trim)
-            data['detallado_avance_2trim'].append(avance_2trim)
-            data['detallado_num_3trim'].append(num_3trim)
-            data['detallado_avance_3trim'].append(avance_3trim)
+            data['d_anio'].append(d_anio)
+            data['d_mes'].append(d_mes)
+            data['d_codigo_red'].append(d_codigo_red)
+            data['d_red'].append(d_red)
+            data['d_codigo_microred'].append(d_codigo_microred)
+            data['d_microred'].append(d_microred)
+            data['d_codigo_unico'].append(d_codigo_unico)
+            data['d_id_establecimiento'].append(d_id_establecimiento)
+            data['d_nombre_establecimiento'].append(d_nombre_establecimiento)
+            data['d_ubigueo_establecimiento'].append(d_ubigueo_establecimiento)
+            data['d_den_variable'].append(d_den_variable)
+            data['d_num_1trim'].append(d_num_1trim)
+            data['d_avance_1trim'].append(d_avance_1trim)
+            data['d_num_2trim'].append(d_num_2trim)
+            data['d_avance_2trim'].append(d_avance_2trim)
+            data['d_num_3trim'].append(d_num_3trim)
+            data['d_avance_3trim'].append(d_avance_3trim)
             
         except KeyError as e:
             logger.error(f"Error procesando la fila {index}: {str(e)}")
     return data
 
+## GRAFICO DE RANKING POR REDES
+def process_grafico_por_redes(resultados_grafico_por_redes: List[Dict]) -> Dict[str, List]:
+    """Procesa los resultados del graficos por redes"""
+    data = {
+            'red_r': [],
+            'den_r': [],
+            'num_r': [],
+            'avance_r': [],
+            'brecha_r': [],
+    }   
+    for index, row in enumerate(resultados_grafico_por_redes):
+        try:
+            # Verifica que el diccionario tenga las claves necesarias
+            required_keys = {'red_r','den_r','num_r','avance_r','brecha_r'}
+            
+            if not required_keys.issubset(row.keys()):
+                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
+            
+            # Extrae los valores
+            red_r = row['red_r']
+            den_r = row['den_r']
+            num_r = row['num_r']
+            avance_r = row['avance_r']
+            brecha_r = row['brecha_r']
+            
+            # Agrega los valores a la lista
+            data['red_r'].append(red_r)
+            data['den_r'].append(den_r)
+            data['num_r'].append(num_r)
+            data['avance_r'].append(avance_r)
+            data['brecha_r'].append(brecha_r)
+
+        except KeyError as e:
+            logger.warning(f"Fila con estructura inválida (clave faltante: {e}): {row}")
+    return data
+
+## GRAFICO DE RANKING POR MICROREDES
+def process_grafico_por_microredes(resultados_grafico_por_microredes: List[Dict]) -> Dict[str, List]:
+    """Procesa los resultados del graficos por microredes"""
+    data = {
+            'microred_mr': [],
+            'den_mr': [],
+            'num_mr': [],
+            'avance_mr': [],
+            'brecha_mr': [],
+    }   
+    for index, row in enumerate(resultados_grafico_por_microredes):
+        try:
+            # Verifica que el diccionario tenga las claves necesarias
+            required_keys = {'microred_mr','den_mr','num_mr','avance_mr','brecha_mr'}
+            
+            if not required_keys.issubset(row.keys()):
+                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
+            
+            # Extrae los valores
+            microred_mr = row['microred_mr']
+            den_mr = row['den_mr']
+            num_mr = row['num_mr']
+            avance_mr = row['avance_mr']
+            brecha_mr = row['brecha_mr']
+            
+            # Agrega los valores a la lista
+            data['microred_mr'].append(microred_mr)
+            data['den_mr'].append(den_mr)
+            data['num_mr'].append(num_mr)
+            data['avance_mr'].append(avance_mr)
+            data['brecha_mr'].append(brecha_mr)
+
+        except KeyError as e:
+            logger.warning(f"Fila con estructura inválida (clave faltante: {e}): {row}")
+    return data
+
+## GRAFICO DE RANKING POR ESTABLECIMIENTOS
+def process_grafico_por_establecimientos(resultados_grafico_por_establecimientos: List[Dict]) -> Dict[str, List]:
+    """Procesa los resultados del graficos por establecimientos"""
+    data = {
+            'establecimiento_e': [],
+            'den_e': [],
+            'num_e': [],
+            'avance_e': [],
+            'brecha_e': [],
+    }   
+    for index, row in enumerate(resultados_grafico_por_establecimientos):
+        try:
+            # Verifica que el diccionario tenga las claves necesarias
+            required_keys = {'establecimiento_e','den_e','num_e','avance_e','brecha_e'}
+            
+            if not required_keys.issubset(row.keys()):
+                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
+            
+            # Extrae los valores
+            establecimiento_e = row['establecimiento_e']
+            den_e = row['den_e']
+            num_e = row['num_e']
+            avance_e = row['avance_e']
+            brecha_e = row['brecha_e']
+            
+            # Agrega los valores a la lista
+            data['establecimiento_e'].append(establecimiento_e)
+            data['den_e'].append(den_e)
+            data['num_e'].append(num_e)
+            data['avance_e'].append(avance_e)
+            data['brecha_e'].append(brecha_e)
+
+        except KeyError as e:
+            logger.warning(f"Fila con estructura inválida (clave faltante: {e}): {row}")
+    return data
 
 #######################
 ## PANTALLA PRINCIPAL
@@ -468,13 +576,10 @@ def index_s11_captacion_gestante(request):
                 distrito=distrito_seleccionado
             )
 
-
-            # Obtener datos del grafico mensualizado - SIEMPRE todos los meses del año
-            # Los filtros de mes NO afectan el gráfico mensual, solo el velocímetro y resumen
             resultados_grafico_mensual = obtener_grafico_mensual(
                 anio=anio,
-                mes_inicio='1',  # Siempre desde Enero
-                mes_fin='12',    # Siempre hasta Diciembre
+                mes_inicio='1',  # Siempre desde Enero,  # Usa el mes de inicio seleccionado
+                mes_fin='12',      # Usa el mes de fin seleccionado
                 red=red_seleccionada,
                 microred=microred_seleccionada,
                 establecimiento=establecimiento_seleccionado,
@@ -482,9 +587,20 @@ def index_s11_captacion_gestante(request):
                 distrito=distrito_seleccionado
             )
             
+            # Obtener datos del grafico mensualizado - SIEMPRE todos los meses del año
+            # Los filtros de mes NO afectan el gráfico mensual, solo el velocímetro y resumen
+            resultados_variables = obtener_variables(
+                anio=anio,
+                mes_inicio=mes_seleccionado_inicio,
+                mes_fin=mes_seleccionado_fin, # Siempre hasta Diciembre
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
+
             # Obtener datos de variables por trimestre - RESPETA los filtros de mes
-            # NOTA: Utilizamos obtener_variables_detallado y agregamos los datos aquí
-            # porque fn_obtener_variables no está filtrando correctamente
             resultados_variables_detallado = obtener_variables_detallado(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
@@ -496,71 +612,48 @@ def index_s11_captacion_gestante(request):
                 distrito=distrito_seleccionado
             )
             
-            # Agregar manualmente los datos de todos los establecimientos
-            logger.info(f"🔢 Total de registros detallados obtenidos: {len(resultados_variables_detallado) if resultados_variables_detallado else 0}")
+            resultados_grafico_por_redes = obtener_grafico_por_redes(
+                anio=anio,
+                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
+                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
             
-            if resultados_variables_detallado:
-                total_den_variable = 0
-                total_num_1trim = 0
-                total_num_2trim = 0
-                total_num_3trim = 0
-                
-                logger.info("📝 Procesando registros detallados:")
-                for idx, row in enumerate(resultados_variables_detallado):
-                    den = int(row.get('den_variable', 0) or 0)
-                    n1 = int(row.get('num_1trim', 0) or 0)
-                    n2 = int(row.get('num_2trim', 0) or 0)
-                    n3 = int(row.get('num_3trim', 0) or 0)
-                    
-                    total_den_variable += den
-                    total_num_1trim += n1
-                    total_num_2trim += n2
-                    total_num_3trim += n3
-                    
-                    if idx < 5:  # Mostrar solo los primeros 5 para no saturar logs
-                        logger.info(f"  Registro {idx+1}: den={den}, n1={n1}, n2={n2}, n3={n3}")
-                
-                logger.info(f"➕ TOTALES CALCULADOS: den={total_den_variable}, n1={total_num_1trim}, n2={total_num_2trim}, n3={total_num_3trim}")
-                
-                # Calcular avances
-                avance_1trim = (total_num_1trim / total_den_variable * 100) if total_den_variable > 0 else 0
-                avance_2trim = (total_num_2trim / total_den_variable * 100) if total_den_variable > 0 else 0
-                avance_3trim = (total_num_3trim / total_den_variable * 100) if total_den_variable > 0 else 0
-                
-                resultados_variables = [{
-                    'den_variable': total_den_variable,
-                    'num_1trim': total_num_1trim,
-                    'avance_1trim': round(avance_1trim, 2),
-                    'num_2trim': total_num_2trim,
-                    'avance_2trim': round(avance_2trim, 2),
-                    'num_3trim': total_num_3trim,
-                    'avance_3trim': round(avance_3trim, 2)
-                }]
-                
-                logger.info(f"✅ Variables agregadas calculadas manualmente: {resultados_variables[0]}")
-
-            else:
-                # Sin datos, usar valores por defecto
-                resultados_variables = [{
-                    'den_variable': 0,
-                    'num_1trim': 0,
-                    'avance_1trim': 0.0,
-                    'num_2trim': 0,
-                    'avance_2trim': 0.0,
-                    'num_3trim': 0,
-                    'avance_3trim': 0.0
-                }]
-                logger.warning("⚠️ No hay datos detallados para agregar")
-
-            # NOTA: resultados_variables_detallado ya se obtuvo arriba y se usó para calcular resultados_variables
-
+            resultados_grafico_por_microredes = obtener_grafico_por_microredes(
+                anio=anio,
+                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
+                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
+            
+            resultados_grafico_por_establecimientos = obtener_grafico_por_establecimientos(
+                anio=anio,
+                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
+                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
+                red=red_seleccionada,
+                microred=microred_seleccionada,
+                establecimiento=establecimiento_seleccionado,
+                provincia=provincia_seleccionada,
+                distrito=distrito_seleccionado
+            )
 
             # Procesar datos del velocímetro
             data = {
                **process_velocimetro(resultados_velocimetro),
                **process_avance_mensual(resultados_grafico_mensual),
                **process_variables(resultados_variables),
-               **process_variables_detallado(resultados_variables_detallado)
+               **process_variables_detallado(resultados_variables_detallado),
+               **process_grafico_por_redes(resultados_grafico_por_redes),
+               **process_grafico_por_microredes(resultados_grafico_por_microredes),
+               **process_grafico_por_establecimientos(resultados_grafico_por_establecimientos)
             }
 
                         # Agregar datos del resumen a la respuesta
@@ -572,15 +665,6 @@ def index_s11_captacion_gestante(request):
                 data['r_clasificacion'] = resumen['clasificacion']
                 data['r_color'] = resumen['color']
                 data['r_icono'] = resumen['icono']
-            
-            # Log final de los datos que se envían al frontend
-            logger.info(f"📤 Datos finales enviados al frontend (variables):")
-            logger.info(f"   num_1trim: {data.get('num_1trim')}")
-            logger.info(f"   num_2trim: {data.get('num_2trim')}")
-            logger.info(f"   num_3trim: {data.get('num_3trim')}")
-            logger.info(f"   avance_1trim: {data.get('avance_1trim')}")
-            logger.info(f"   avance_2trim: {data.get('avance_2trim')}")
-            logger.info(f"   avance_3trim: {data.get('avance_3trim')}")
             
             return JsonResponse(data)
             

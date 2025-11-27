@@ -1,88 +1,314 @@
 <script>
-window.renderChartMicrored = function(data, params) {
+  window.renderChartMicroredRanking = function (data, params) {
+    // === VALIDACIONES INICIALES ===
     const container = document.getElementById("chart_microred_ranking");
+
     if (!container) {
-        console.error('El contenedor para el ranking de microredes no fue encontrado.');
-        return;
-    }
-    if (typeof echarts === "undefined") {
-        console.error("ECharts no está cargado.");
-        return;
+      console.error(
+        "El contenedor para el ranking de microredes no fue encontrado."
+      );
+      return;
     }
 
+    if (typeof echarts === "undefined") {
+      console.error("ECharts no está cargado.");
+      return;
+    }
+
+    // === INICIALIZACIÓN DEL GRÁFICO ===
     let myChart = echarts.getInstanceByDom(container);
     if (myChart) {
-        myChart.dispose();
+      myChart.dispose();
     }
     myChart = echarts.init(container);
 
     try {
-        if (!data.m_microred || !Array.isArray(data.m_microred) || data.m_microred.length === 0) {
-            container.innerHTML = '<p class="text-center text-info">No hay datos de microred para mostrar.</p>';
-            return;
-        }
+      // Validar datos de entrada
+      if (
+        !data?.microred_mr ||
+        !Array.isArray(data.microred_mr) ||
+        data.microred_mr.length === 0
+      ) {
+        container.innerHTML =
+          '<p class="text-center text-info">No hay datos de microredes para mostrar.</p>';
+        return;
+      }
 
-        const datosCompletos = data.m_microred.map((microred, index) => ({
-            microred: microred,
-            denominador: data.m_denominador[index] || 0,
-            numerador: data.m_numerador[index] || 0,
-            cobertura: data.m_cobertura[index] || 0,
-        }));
+      // === PROCESAMIENTO DE DATOS ===
+      const datosCompletos = data.microred_mr.map((microred, index) => ({
+        microred: microred,
+        den_mr: data.den_mr?.[index] ?? 0,
+        num_mr: data.num_mr?.[index] ?? 0,
+        avance_mr: data.avance_mr?.[index] ?? 0,
+        brecha_mr: data.brecha_mr?.[index] ?? 0,
+      }));
 
-        datosCompletos.sort((a, b) => b.cobertura - a.cobertura);
+      // Ordenar por avance descendente
+      datosCompletos.sort((a, b) => b.avance_mr - a.avance_mr);
 
-        const microredes = datosCompletos.map((d) => d.microred);
-        const denominadores = datosCompletos.map((d) => d.denominador);
-        const numeradores = datosCompletos.map((d) => d.numerador);
-        const coberturas = datosCompletos.map((d) => d.cobertura);
-        
-        const totalElementos = microredes.length;
-        const porcentajeFinal = totalElementos > 10 ? (10 / totalElementos) * 100 : 100;
+      // ⭐ LIMITAR A LAS 10 PRIMERAS BARRAS
+      const TOP_N = 7;
+      const datosLimitados = datosCompletos.slice(0, TOP_N);
 
-        const option = {
-            tooltip: {
-                trigger: "axis",
-                axisPointer: { type: "shadow" },
-                formatter: function (params) {
-                    if (!params || params.length === 0) return "";
-                    let result = params[0].name + "<br/>";
-                    params.forEach(function (item) {
-                        if (item.seriesName === "Cob") {
-                            result += `${item.marker} ${item.seriesName}: ${parseFloat(item.value).toFixed(2)}%<br/>`;
-                        } else {
-                            result += `${item.marker} ${item.seriesName}: ${item.value}<br/>`;
-                        }
-                    });
-                    return result;
-                },
+      // Extraer arrays para el gráfico (solo los primeros 10)
+      const microredes = datosLimitados.map((d) => d.microred);
+      const den_mr = datosLimitados.map((d) => d.den_mr);
+      const num_mr = datosLimitados.map((d) => d.num_mr);
+      const avance_mr = datosLimitados.map((d) => d.avance_mr);
+      const brecha_mr = datosLimitados.map((d) => d.brecha_mr);
+
+      // === CONFIGURACIÓN DEL GRÁFICO ===
+      const option = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          formatter: (params) => {
+            let result = `<strong>${params[0].name}</strong><br/>`;
+
+            params.forEach((item) => {
+              let valor;
+              if (item.seriesName === "Avance") {
+                valor = `${parseFloat(item.value).toFixed(2)}%`;
+              } else if (item.seriesName === "Brecha") {
+                valor = `${item.value} (pendientes)`;
+              } else {
+                valor = item.value;
+              }
+              result += `${item.marker} ${item.seriesName}: ${valor}<br/>`;
+            });
+
+            return result;
+          },
+        },
+
+        // ⭐ TOOLBOX CON HERRAMIENTAS DE ZOOM
+        toolbox: {
+          show: true,
+          orient: "horizontal",
+          right: 20,
+          top: 10,
+          feature: {
+            // Herramienta de zoom por selección de área
+            dataZoom: {
+              show: true,
+              title: {
+                zoom: "Zoom de área",
+                back: "Restaurar zoom",
+              },
+              icon: {
+                zoom: "path://M0,0 L0,0", // Icono personalizado opcional
+                back: "path://M0,0 L0,0",
+              },
+              yAxisIndex: "none", // Solo zoom en eje X
             },
-            legend: { data: ["Poblacion", "PN", "Cob"] },
-            dataZoom: [
-                { type: "slider", show: true, xAxisIndex: [0], start: 0, end: porcentajeFinal, bottom: 10, height: 10 },
-                { type: "inside", xAxisIndex: [0], start: 0, end: porcentajeFinal }
-            ],
-            xAxis: [{ type: "category", data: microredes, axisPointer: { type: "shadow" }, axisLabel: { rotate: 45, interval: 0, fontSize: 9 } }],
-            yAxis: [
-                { type: "value", name: "Cantidad", min: 0, axisLabel: { formatter: "{value}" } },
-                { type: "value", name: "Cobertura (%)", min: 0, max: 100, interval: 20, axisLabel: { formatter: "{value}%" } }
-            ],
-            series: [
-                { name: "Poblacion", type: "bar", data: denominadores, label: { show: true, position: "top", formatter: "{c}", fontSize: 10 }, itemStyle: { color: "#91cc75" } },
-                { name: "PN", type: "bar", data: numeradores, label: { show: true, position: "top", formatter: "{c}", fontSize: 10 }, itemStyle: { color: "#fac858" } },
-                { name: "Cob", type: "line", yAxisIndex: 1, data: coberturas, itemStyle: { color: "#5470c6" }, label: { show: true, position: "top", formatter: (p) => `${parseFloat(p.value).toFixed(2)}%`, fontSize: 10, fontWeight: "bold" },
-                    markLine: {
-                        symbol: "none",
-                        lineStyle: { type: "dashed", color: "red" },
-                        data: [{ yAxis: 85, name: "Meta" }],
-                        label: { show: true, formatter: "Meta: 85%", position: "end" }
-                    }
-                }
-            ]
-        };
-        myChart.setOption(option);
+          },
+        },
+
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "20%", // Más espacio para el dataZoom
+          top: "15%",
+          containLabel: true,
+        },
+
+        // ⭐ DATAZOOM - CONTROLES DE ZOOM INTERACTIVOS
+        dataZoom: [
+          // Zoom tipo slider (barra inferior)
+          {
+            type: "slider",
+            show: true,
+            xAxisIndex: [0],
+            start: 0,
+            end: 100,
+            bottom: 10,
+            height: 20,
+            borderColor: "#ddd",
+            fillerColor: "rgba(84, 112, 198, 0.2)",
+            handleStyle: {
+              color: "#5470c6",
+            },
+            textStyle: {
+              color: "#333",
+            },
+            // Texto informativo
+            labelFormatter: (value, valueStr) => {
+              return valueStr;
+            },
+          },
+          // Zoom tipo inside (zoom con scroll del mouse)
+          {
+            type: "inside",
+            xAxisIndex: [0],
+            start: 0,
+            end: 100,
+            zoomOnMouseWheel: true, // Zoom con rueda del mouse
+            moveOnMouseMove: true, // Mover con arrastrar
+            moveOnMouseWheel: false,
+          },
+          // Zoom vertical (opcional - para el eje Y)
+          {
+            type: "slider",
+            show: true,
+            yAxisIndex: [0],
+            right: 60,
+            start: 0,
+            end: 100,
+            width: 10,
+            borderColor: "#ddd",
+            fillerColor: "rgba(145, 204, 117, 0.2)",
+            handleStyle: {
+              color: "#91cc75",
+            },
+          },
+        ],
+
+        xAxis: {
+          type: "category",
+          data: microredes,
+          axisPointer: { type: "shadow" },
+          axisLabel: {
+            rotate: 45,
+            interval: 0,
+            fontSize: 9,
+          },
+        },
+
+        yAxis: [
+          {
+            type: "value",
+            name: "Cantidad",
+            min: 0,
+            axisLabel: { formatter: "{value}" },
+          },
+          {
+            type: "value",
+            name: "Avance (%)",
+            min: 0,
+            max: 100,
+            interval: 20,
+            axisLabel: { formatter: "{value}%" },
+          },
+        ],
+
+        series: [
+          // Barra del Denominador
+          {
+            name: "Denominador",
+            type: "bar",
+            yAxisIndex: 0,
+            data: den_mr,
+            itemStyle: { color: "#91cc75" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: "{c}",
+              fontSize: 10,
+              fontWeight: "bold",
+            },
+          },
+          // Barra del Numerador
+          {
+            name: "Numerador",
+            type: "bar",
+            yAxisIndex: 0,
+            data: num_mr,
+            itemStyle: { color: "#fac858" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: "{c}",
+              fontSize: 10,
+              fontWeight: "bold",
+            },
+          },
+          // Línea punteada para la Brecha
+          {
+            name: "Brecha",
+            type: "line",
+            yAxisIndex: 0,
+            data: brecha_mr,
+            z: 5,
+            symbol: "diamond",
+            symbolSize: 10,
+            lineStyle: {
+              type: "dashed",
+              width: 2,
+              color: "#ee6666",
+            },
+            itemStyle: {
+              color: "#ee6666",
+              borderColor: "#fff",
+              borderWidth: 2,
+            },
+            label: {
+              show: true,
+              position: "bottom",
+              formatter: "{c}",
+              fontSize: 9,
+              color: "#ee6666",
+              fontWeight: "bold",
+              backgroundColor: "rgba(255,255,255,0.8)",
+              padding: [2, 4],
+              borderRadius: 2,
+            },
+          },
+          // Línea de Avance
+          {
+            name: "Avance",
+            type: "line",
+            yAxisIndex: 1,
+            data: avance_mr,
+            z: 10,
+            symbol: "circle",
+            symbolSize: 8,
+            lineStyle: {
+              type: "solid",
+              width: 3,
+              color: "#5470c6",
+            },
+            itemStyle: {
+              color: "#5470c6",
+              borderColor: "#fff",
+              borderWidth: 2,
+            },
+            label: {
+              show: true,
+              position: "top",
+              formatter: ({ value }) => `${parseFloat(value).toFixed(2)}%`,
+              fontSize: 10,
+              fontWeight: "bold",
+              color: "#5470c6",
+            },
+            markLine: {
+              symbol: "none",
+              lineStyle: {
+                type: "dashed",
+                color: "#ff4d4f",
+                width: 2,
+              },
+              data: [{ yAxis: 85, name: "Meta" }],
+              label: {
+                show: true,
+                formatter: "Meta: 85%",
+                position: "end",
+                fontWeight: "bold",
+              },
+            },
+          },
+        ],
+      };
+
+      myChart.setOption(option);
+
+      // Responsive
+      window.addEventListener("resize", () => {
+        myChart.resize();
+      });
     } catch (error) {
-        console.error("Error al renderizar el ranking de microredes:", error);
-        container.innerHTML = '<p class="text-center text-danger">Ocurrió un error al cargar el gráfico.</p>';
+      console.error("Error al renderizar el ranking de microredes:", error);
+      container.innerHTML =
+        '<p class="text-center text-danger">Ocurrió un error al cargar el gráfico.</p>';
     }
-};
+  };
 </script>

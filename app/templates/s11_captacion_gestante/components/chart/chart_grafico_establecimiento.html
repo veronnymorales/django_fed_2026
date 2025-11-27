@@ -1,90 +1,475 @@
 <script>
-window.renderChartEstablecimiento = function(data, params) {
-    const container = document.getElementById("chart_establecimiento_ranking");
-    if (!container) {
-        console.error('El contenedor para el ranking de establecimientos no fue encontrado.');
-        return;
-    }
-    if (typeof echarts === "undefined") {
-        console.error("ECharts no está cargado.");
-        return;
-    }
+  /**
+   * Módulo de Gráfico de Ranking de Establecimientos
+   * @description Renderiza un gráfico de barras horizontales con los establecimientos
+   * @version 2.2.0 - Orden descendente + DataZoom lateral
+   */
+  const ChartEstablecimiento = (function () {
+    "use strict";
 
-    let myChart = echarts.getInstanceByDom(container);
-    if (myChart) {
-        myChart.dispose();
-    }
-    myChart = echarts.init(container);
+    // ═══════════════════════════════════════════════════════════════
+    // CONFIGURACIÓN
+    // ═══════════════════════════════════════════════════════════════
+    const CONFIG = {
+      containerId: "chart_establecimiento_ranking",
+      maxBarsToShow: 100,
+      showDetailedTooltip: true,
+      dataZoom: {
+        enabled: true,
+        startPercent: 0,
+        endPercent: 50, // Muestra 50% inicial (ajustable según cantidad)
+      },
+      colors: {
+        bar: "#91cc75",
+        labelText: "#000",
+        errorText: "text-danger",
+        infoText: "text-info",
+      },
+      styles: {
+        fontSize: {
+          axisLabel: 8,
+          barLabel: 10,
+        },
+      },
+      messages: {
+        noContainer:
+          "El contenedor para el ranking de establecimientos no fue encontrado.",
+        noEcharts: "ECharts no está cargado.",
+        noData:
+          '<p class="text-center text-info">No hay datos de establecimientos para mostrar.</p>',
+        error:
+          '<p class="text-center text-danger">Ocurrió un error al cargar el gráfico.</p>',
+      },
+    };
 
-    try {
-        if (!data.e_establecimiento || !Array.isArray(data.e_establecimiento) || data.e_establecimiento.length === 0) {
-            container.innerHTML = '<p class="text-center text-info">No hay datos de establecimientos para mostrar.</p>';
-            return;
+    // ═══════════════════════════════════════════════════════════════
+    // VALIDADORES
+    // ═══════════════════════════════════════════════════════════════
+    const Validators = {
+      container(container) {
+        if (!container) {
+          console.error(CONFIG.messages.noContainer);
+          return false;
+        }
+        return true;
+      },
+
+      echarts() {
+        if (typeof echarts === "undefined") {
+          console.error(CONFIG.messages.noEcharts);
+          return false;
+        }
+        return true;
+      },
+
+      data(data) {
+        return (
+          data?.establecimiento_e &&
+          Array.isArray(data.establecimiento_e) &&
+          data.establecimiento_e.length > 0
+        );
+      },
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // TRANSFORMADORES DE DATOS
+    // ═══════════════════════════════════════════════════════════════
+    const DataTransformer = {
+      parseRawData(data) {
+        return data.establecimiento_e.map((nombre, index) => ({
+          establecimiento: nombre,
+          denominador: data.den_e?.[index] ?? 0,
+          numerador: data.num_e?.[index] ?? 0,
+          avance: data.avance_e?.[index] ?? 0,
+          brecha: data.brecha_e?.[index] ?? 0,
+        }));
+      },
+
+      /**
+       * Ordena los datos por avance de MAYOR a MENOR
+       * @param {Array<Object>} datos
+       * @returns {Array<Object>}
+       */
+      sortByAvanceDesc(datos) {
+        return [...datos].sort((a, b) => b.avance - a.avance);
+      },
+
+      getTopN(datos, limit = CONFIG.maxBarsToShow) {
+        return datos.slice(0, limit);
+      },
+
+      extractArrays(datos) {
+        return {
+          establecimiento_e: datos.map((d) => d.establecimiento),
+          avance_e: datos.map((d) => d.avance),
+          num_e: datos.map((d) => d.numerador),
+          den_e: datos.map((d) => d.denominador),
+          brecha_e: datos.map((d) => d.brecha),
+        };
+      },
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // CONSTRUCTOR DE OPCIONES DEL GRÁFICO
+    // ═══════════════════════════════════════════════════════════════
+    const ChartOptionsBuilder = {
+      build(chartData) {
+        const { establecimiento_e, avance_e, num_e, den_e, brecha_e } =
+          chartData;
+
+        return {
+          tooltip: this._buildTooltip(
+            establecimiento_e,
+            den_e,
+            num_e,
+            avance_e,
+            brecha_e
+          ),
+          grid: this._buildGrid(),
+          xAxis: this._buildXAxis(),
+          yAxis: this._buildYAxis(establecimiento_e),
+          dataZoom: this._buildDataZoom(establecimiento_e.length),
+          series: this._buildSeries(avance_e),
+        };
+      },
+
+      _buildTooltip(establecimiento_e, den_e, num_e, avance_e, brecha_e) {
+        return {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          borderColor: "#ccc",
+          borderWidth: 1,
+          padding: [10, 15],
+          textStyle: {
+            color: "#333",
+            fontSize: 12,
+          },
+          formatter: (params) => {
+            if (!params?.length) return "";
+            const idx = params[0].dataIndex;
+
+            if (CONFIG.showDetailedTooltip) {
+              return `
+                <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                  📍 ${establecimiento_e[idx]}
+                </div>
+                <div style="display: grid; grid-template-columns: auto auto; gap: 4px 12px;">
+                  <span style="color: #666;">📊 Denominador:</span>
+                  <span style="font-weight: 600; text-align: right;">${den_e[
+                    idx
+                  ].toLocaleString()}</span>
+                  
+                  <span style="color: #666;">✅ Numerador:</span>
+                  <span style="font-weight: 600; text-align: right;">${num_e[
+                    idx
+                  ].toLocaleString()}</span>
+                  
+                  <span style="color: #666;">📈 Avance:</span>
+                  <span style="font-weight: 600; text-align: right; color: ${this._getBarColor(
+                    avance_e[idx]
+                  )};">${avance_e[idx].toFixed(2)}%</span>
+                  
+                  <span style="color: #666;">📉 Brecha:</span>
+                  <span style="font-weight: 600; text-align: right; color: #ee6666;">${brecha_e[
+                    idx
+                  ].toFixed(2)}%</span>
+                </div>
+              `.trim();
+            } else {
+              return `
+                <strong>${establecimiento_e[idx]}</strong><br/>
+                📈 Avance: ${avance_e[idx].toFixed(2)}%
+              `.trim();
+            }
+          },
+        };
+      },
+
+      _buildGrid() {
+        return {
+          left: "3%",
+          right: "12%", // Más espacio para el dataZoom lateral
+          bottom: "3%",
+          top: "3%",
+          containLabel: true,
+        };
+      },
+
+      _buildXAxis() {
+        return {
+          type: "value",
+          max: 100,
+          axisLabel: {
+            formatter: "{value}%",
+            fontSize: 10,
+          },
+          splitLine: {
+            lineStyle: { type: "dashed" },
+          },
+          axisTick: { show: false },
+        };
+      },
+
+      _buildYAxis(establecimiento_e) {
+        return {
+          type: "category",
+          data: establecimiento_e,
+          axisLabel: {
+            interval: 0,
+            fontSize: CONFIG.styles.fontSize.axisLabel,
+            fontWeight: "normal",
+            width: 150,
+            overflow: "truncate",
+          },
+          axisTick: { show: false },
+        };
+      },
+
+      /**
+       * Construye el DataZoom lateral (slider vertical)
+       * @private
+       */
+      _buildDataZoom(totalItems) {
+        if (!CONFIG.dataZoom.enabled) return [];
+
+        // Calcular porcentaje para mostrar ~10 items inicialmente
+        const itemsToShow = Math.min(10, totalItems);
+        const endPercent = (itemsToShow / totalItems) * 100;
+
+        return [
+          {
+            type: "slider",
+            yAxisIndex: 0,
+            right: 10,
+            top: 20,
+            bottom: 20,
+            width: 20,
+            start: 0,
+            end: Math.min(endPercent, 100),
+            showDetail: false,
+            showDataShadow: false,
+            handleSize: "60%",
+            handleStyle: {
+              color: "#91cc75",
+              borderColor: "#91cc75",
+            },
+            fillerColor: "rgba(145, 204, 117, 0.2)",
+            borderColor: "#ddd",
+            backgroundColor: "#f5f5f5",
+            brushSelect: false,
+          },
+          {
+            type: "inside",
+            yAxisIndex: 0,
+            zoomOnMouseWheel: false,
+            moveOnMouseWheel: true,
+            moveOnMouseMove: true,
+          },
+        ];
+      },
+
+      _buildSeries(avances) {
+        return [
+          {
+            name: "Avance",
+            type: "bar",
+            data: avances,
+            barWidth: "50%",
+            label: {
+              show: true,
+              position: "right",
+              formatter: ({ value }) => `${parseFloat(value).toFixed(1)}%`,
+              fontSize: CONFIG.styles.fontSize.barLabel,
+              color: CONFIG.colors.labelText,
+            },
+            itemStyle: {
+              color: (params) => this._getBarColor(params.value),
+              borderRadius: [0, 4, 4, 0],
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: "rgba(0, 0, 0, 0.3)",
+              },
+            },
+          },
+        ];
+      },
+
+      _getBarColor(value) {
+        if (value < 30) return "#ee6666";
+        if (value < 60) return "#fac858";
+        if (value < 80) return "#73c0de";
+        return "#91cc75";
+      },
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // ADMINISTRADOR DEL GRÁFICO
+    // ═══════════════════════════════════════════════════════════════
+    const ChartManager = {
+      instance: null,
+
+      init(container) {
+        const existingInstance = echarts.getInstanceByDom(container);
+        if (existingInstance) {
+          existingInstance.dispose();
         }
 
-        const datosCompletos = data.e_establecimiento.map((nombre, index) => ({
-            establecimiento: nombre,
-            denominador: data.e_denominador[index] || 0,
-            numerador: data.e_numerador[index] || 0,
-            cobertura: data.e_cobertura[index] || 0,
-        }));
+        this.instance = echarts.init(container);
+        this._setupResizeHandler();
 
-        datosCompletos.sort((a, b) => a.cobertura - b.cobertura);
+        return this.instance;
+      },
 
-        const establecimientos = datosCompletos.map((d) => d.establecimiento);
-        const coberturas = datosCompletos.map((d) => d.cobertura);
-        const numeradores = datosCompletos.map((d) => d.numerador);
-        const denominadores = datosCompletos.map((d) => d.denominador);
+      render(options) {
+        if (this.instance) {
+          this.instance.setOption(options, true);
+        }
+      },
 
-        const totalEstablecimientos = establecimientos.length;
-        const startValue = totalEstablecimientos > 10 ? 100 - (10 / totalEstablecimientos * 100) : 0;
+      showMessage(container, message) {
+        container.innerHTML = message;
+      },
 
-        const option = {
-            tooltip: {
-                trigger: "axis",
-                axisPointer: { type: "shadow" },
-                formatter: function (params) {
-                    if (!params || params.length === 0) return "";
-                    const dataIndex = params[0].dataIndex;
-                    return `${establecimientos[dataIndex]}<br/>
-                            Población: ${denominadores[dataIndex]}<br/>
-                            Atendidos: ${numeradores[dataIndex]}<br/>
-                            Cobertura: ${parseFloat(coberturas[dataIndex]).toFixed(2)}%`;
-                },
-            },
-            xAxis: {
-                type: "value",
-                max: 100,
-                axisLabel: { formatter: "{value}%" },
-            },
-            yAxis: {
-                type: "category",
-                data: establecimientos,
-                axisPointer: { type: "shadow" },
-                axisLabel: { interval: 0, fontSize: 8, fontWeight: "normal" },
-            },
-            dataZoom: [
-                { type: "slider", yAxisIndex: 0, width: 10, right: 10, start: startValue, end: 100 },
-                { type: "inside", yAxisIndex: 0 },
-            ],
-            series: [{
-                name: "Cobertura",
-                type: "bar",
-                data: coberturas,
-                label: {
-                    show: true,
-                    position: "right",
-                    formatter: (params) => `${parseFloat(params.value).toFixed(1)}%`,
-                    fontSize: 10,
-                    color: "#000",
-                },
-                itemStyle: { color: "#91cc75" },
-            }],
-        };
-        myChart.setOption(option);
-    } catch (error) {
-        console.error("Error al renderizar el ranking de establecimientos:", error);
-        container.innerHTML = '<p class="text-center text-danger">Ocurrió un error al cargar el gráfico.</p>';
-    }
-};
+      _setupResizeHandler() {
+        const chart = this.instance;
+        const resizeHandler = () => chart?.resize();
+
+        window.removeEventListener("resize", resizeHandler);
+        window.addEventListener("resize", resizeHandler);
+      },
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // LOGGER
+    // ═══════════════════════════════════════════════════════════════
+    const Logger = {
+      enabled: true,
+
+      debug(label, data) {
+        if (this.enabled) {
+          console.group(`📊 [ChartEstablecimiento] ${label}`);
+          console.table(data);
+          console.groupEnd();
+        }
+      },
+
+      error(message, error) {
+        console.error(`❌ [ChartEstablecimiento] ${message}`, error);
+      },
+
+      info(message) {
+        if (this.enabled) {
+          console.info(`ℹ️ [ChartEstablecimiento] ${message}`);
+        }
+      },
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // API PÚBLICA
+    // ═══════════════════════════════════════════════════════════════
+    return {
+      /**
+       * Renderiza el gráfico de ranking de establecimientos
+       * @param {Object} data - Datos del servidor
+       * @param {Object} params - Parámetros adicionales
+       * @param {boolean} params.showDetailedTooltip - Mostrar tooltip detallado
+       * @param {boolean} params.enableDataZoom - Habilitar zoom lateral
+       * @param {number} params.maxBars - Máximo de barras a mostrar (0 = todas)
+       */
+      render(data, params = {}) {
+        const container = document.getElementById(CONFIG.containerId);
+
+        // Aplicar parámetros opcionales
+        if (typeof params.showDetailedTooltip === "boolean") {
+          CONFIG.showDetailedTooltip = params.showDetailedTooltip;
+        }
+        if (typeof params.enableDataZoom === "boolean") {
+          CONFIG.dataZoom.enabled = params.enableDataZoom;
+        }
+        if (typeof params.maxBars === "number") {
+          CONFIG.maxBarsToShow = params.maxBars;
+        }
+
+        // Validaciones
+        if (!Validators.container(container)) return;
+        if (!Validators.echarts()) return;
+
+        try {
+          if (!Validators.data(data)) {
+            ChartManager.showMessage(container, CONFIG.messages.noData);
+            Logger.info("No hay datos para mostrar");
+            return;
+          }
+
+          // Transformar datos - ORDENAR DE MAYOR A MENOR
+          const datosParseados = DataTransformer.parseRawData(data);
+          const datosOrdenados =
+            DataTransformer.sortByAvanceDesc(datosParseados);
+
+          // Si maxBarsToShow es 0, mostrar todos con dataZoom
+          let datosFinales;
+          if (CONFIG.maxBarsToShow === 0) {
+            datosFinales = datosOrdenados;
+          } else {
+            datosFinales = DataTransformer.getTopN(
+              datosOrdenados,
+              CONFIG.maxBarsToShow
+            );
+          }
+
+          const chartData = DataTransformer.extractArrays(datosFinales);
+
+          // Debug
+          Logger.debug(
+            "Establecimientos (Mayor a Menor Avance)",
+            datosFinales.slice(0, 10)
+          );
+          Logger.info(
+            `Mostrando ${datosFinales.length} de ${datosOrdenados.length} establecimientos`
+          );
+
+          // Construir opciones y renderizar
+          const options = ChartOptionsBuilder.build(chartData);
+          ChartManager.init(container);
+          ChartManager.render(options);
+
+          Logger.info("Gráfico renderizado correctamente ✅");
+        } catch (error) {
+          Logger.error("Error al renderizar", error);
+          ChartManager.showMessage(container, CONFIG.messages.error);
+        }
+      },
+
+      setConfig(newConfig) {
+        Object.assign(CONFIG, newConfig);
+      },
+
+      setDetailedTooltip(enabled) {
+        CONFIG.showDetailedTooltip = enabled;
+      },
+
+      /**
+       * Habilita/deshabilita el DataZoom
+       * @param {boolean} enabled
+       */
+      setDataZoom(enabled) {
+        CONFIG.dataZoom.enabled = enabled;
+      },
+
+      setDebug(enabled) {
+        Logger.enabled = enabled;
+      },
+
+      getInstance() {
+        return ChartManager.instance;
+      },
+    };
+  })();
+
+  window.renderChartEstablecimiento =
+    ChartEstablecimiento.render.bind(ChartEstablecimiento);
 </script>
