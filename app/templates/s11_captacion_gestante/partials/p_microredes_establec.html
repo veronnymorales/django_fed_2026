@@ -1,62 +1,41 @@
-<label
-  class="text-primary"
-  for="p_microredes_establec"
-  name="p_microredes_establec"
-  >MICRORED :
-</label>
+{% if microredes %}
+<!-- Select HABILITADO con datos -->
 <select
-  class="form-control custom-select"
-  name="p_microredes_establec"
-  id="p_microredes_establec"
-  hx-get="{% url 'p_establecimientos_paquete_compromiso' %}"
+  class="form-control"
+  name="microred"
+  id="microred"
+  hx-get="{% url 'p_establecimientos_s11_captacion_gestante' %}"
   hx-trigger="change"
-  hx-target="#p_establecimientos"
-  hx-include="[name='red'], [name='p_microredes_establec']"
+  hx-target="#container-establecimientos"
+  hx-swap="innerHTML"
+  hx-include="[name='red']"
+  hx-indicator="#loading-establecimientos"
 >
-  <option value="">--- SELECCIONAR ---</option>
+  <option value="">
+    --- SELECCIONAR MICRORED ({{ microredes|length }} disponibles) ---
+  </option>
   {% for m in microredes %}
   <option value="{{ m.Codigo_MicroRed }}">{{ m.MicroRed }}</option>
-  {% endfor %} {% if not microredes %}
-  <option value="" disabled>No hay microredes disponibles</option>
-  {% endif %}
+  {% endfor %}
 </select>
+<small id="loading-establecimientos" class="htmx-indicator text-info">
+  <i class="fas fa-spinner fa-spin"></i> Cargando establecimientos...
+</small>
 
-{% if is_htmx %}
-<!--- INCLUDE DROP INCLUYENTE ESTABLECIMIENTO --->
-<div class="row">
-  <div class="col-md-12">
-    <div class="form-group">
-      <div id="p_establecimientos" hx-swap-oob="true">
-        {% include 's11_captacion_gestante/partials/p_establecimientos.html' %}
-      </div>
-    </div>
-  </div>
-</div>
-<!--- FIN INCLUDE DROP INCLUYENTE ESTABLECIMIENTO --->
-
-<!-- Debug JavaScript -->
+<!-- Resetear establecimientos -->
 <script>
-  document
-    .getElementById("p_microredes_establec")
-    .addEventListener("change", function () {
-      console.log("DEBUG JS - Microred seleccionada:", this.value);
-      var redElement = document.getElementById("red");
-      if (redElement) {
-        console.log("DEBUG JS - Red actual:", redElement.value);
-        console.log("DEBUG JS - Red element existe:", true);
-      } else {
-        console.log("DEBUG JS - Red element NO existe");
-      }
-
-      // Verificar todos los campos del formulario
-      var form = this.closest("form");
-      if (form) {
-        var formData = new FormData(form);
-        console.log("DEBUG JS - Todos los campos del formulario:");
-        for (var pair of formData.entries()) {
-          console.log("DEBUG JS -", pair[0] + ":", pair[1]);
-        }
-      }
-    });
+  (function () {
+    var container = document.getElementById("container-establecimientos");
+    if (container) {
+      container.innerHTML =
+        '<select class="form-control" name="establecimiento" id="establecimiento" disabled><option value="">--- Seleccione una MICRORED ---</option></select>';
+    }
+  })();
 </script>
+
+{% else %}
+<!-- Select DESHABILITADO sin datos -->
+<select class="form-control" name="microred" id="microred" disabled>
+  <option value="">--- No hay microredes para esta RED ---</option>
+</select>
 {% endif %}

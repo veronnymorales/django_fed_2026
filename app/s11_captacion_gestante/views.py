@@ -15,7 +15,7 @@ from openpyxl.utils import column_index_from_string, get_column_letter
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from django.db.models import IntegerField
+from django.db.models import IntegerField,CharField
 from django.db.models.functions import Cast, Substr
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -578,8 +578,8 @@ def index_s11_captacion_gestante(request):
 
             resultados_grafico_mensual = obtener_grafico_mensual(
                 anio=anio,
-                mes_inicio='1',  # Siempre desde Enero,  # Usa el mes de inicio seleccionado
-                mes_fin='12',      # Usa el mes de fin seleccionado
+                mes_inicio=mes_seleccionado_inicio,  # Siempre desde Enero,  # Usa el mes de inicio seleccionado
+                mes_fin=mes_seleccionado_fin,      # Usa el mes de fin seleccionado
                 red=red_seleccionada,
                 microred=microred_seleccionada,
                 establecimiento=establecimiento_seleccionado,
@@ -797,177 +797,1282 @@ def p_distritos_s11_captacion_gestante_h(request):
     return render(request, 's11_captacion_gestante/partials/p_distritos.html', context)
 
 
-############################
-## HTMX HIERARCHICAL TABLE
-############################
+###########################################
+## SEGUIMIENTO NOMINAL FILTROS
+##########################################
 
-def htmx_get_redes(request):
+###########################################
+## FILTRO AMBITO DE SALUD
+###########################################
+
+## ============================================
+# CONFIGURACIÓN BASE
+# ============================================
+FILTROS_BASE = {
+    'Descripcion_Sector': 'GOBIERNO REGIONAL',
+    'Disa': 'JUNIN'
+}
+
+
+FILTROS_BASE_ESTABLECIMIENTO = {
+    'Descripcion_Sector': 'GOBIERNO REGIONAL',
+    'Disa': 'JUNIN'
+}
+
+# ============================================
+# HELPER FUNCTIONS - QUERIES REUTILIZABLES
+# ============================================
+
+def _get_redes_queryset():
     """
-    Vista HTMX para cargar los encabezados de Redes (nivel 1).
-    Retorna HTML con cada Red como un grupo colapsable inicialmente cerrado.
+    Obtiene las redes de salud del gobierno regional de Junín.
+    Returns: QuerySet con Codigo_Red, Red y codigo_red_filtrado
     """
-    try:
-        # Obtener parámetros de filtros
-        anio = request.GET.get('anio', DEFAULT_YEAR)
-        mes_inicio = request.GET.get('mes_inicio', '1')
-        mes_fin = request.GET.get('mes_fin', '12')
+    return (
+        MAESTRO_HIS_ESTABLECIMIENTO.objects
+        .filter(**FILTROS_BASE_ESTABLECIMIENTO)
+        .annotate(codigo_red_filtrado=Substr('Codigo_Red', 1, 4))
+        .values('Codigo_Red', 'Red', 'codigo_red_filtrado')
+        .distinct()
+        .order_by('Red')
+    )
+
+
+def _get_meses_queryset(anio=None):
+    """
+    Obtiene los meses disponibles para los filtros.
+    Args:
+        anio: Año opcional para filtrar (None = todos los años)
+    Returns: QuerySet con Mes y nro_mes
+    """
+    queryset = DimPeriodo.objects.all()
+    
+    if anio:
+        queryset = queryset.filter(Anio=anio)
+    
+    return (
+        queryset
+        .annotate(nro_mes=Cast('NroMes', IntegerField()))
+        .values('Mes', 'nro_mes')
+        .order_by('nro_mes')
+        .distinct()
+    )
+
+
+def _get_microredes_queryset(codigo_red):
+    """
+    Obtiene las microredes según el código de red.
+    Args:
+        codigo_red: Código de la red (puede ser parcial para usar startswith)
+    Returns: QuerySet con Codigo_MicroRed y MicroRed
+    """
+    if not codigo_red:
+        return []
+    
+    return (
+        MAESTRO_HIS_ESTABLECIMIENTO.objects
+        .filter(
+            Codigo_Red__startswith=codigo_red,
+            **FILTROS_BASE_ESTABLECIMIENTO
+        )
+        .values('Codigo_MicroRed', 'MicroRed')
+        .distinct()
+        .order_by('MicroRed')
+    )
+
+
+def _get_establecimientos_queryset(codigo_microred, codigo_red=None):
+    """
+    Obtiene los establecimientos según la microred.
+    Args:
+        codigo_microred: Código de la microred
+        codigo_red: Código de la red (opcional, para filtro adicional)
+    Returns: QuerySet con Codigo_Unico y Nombre_Establecimiento
+    """
+    if not codigo_microred:
+        return []
+    
+    filtros = {
+        'Codigo_MicroRed__startswith': codigo_microred,
+        **FILTROS_BASE_ESTABLECIMIENTO
+    }
+    
+    if codigo_red:
+        filtros['Codigo_Red__startswith'] = codigo_red
+    
+    return (
+        MAESTRO_HIS_ESTABLECIMIENTO.objects
+        .filter(**filtros)
+        .values('Codigo_Unico', 'Nombre_Establecimiento')
+        .distinct()
+        .order_by('Nombre_Establecimiento')
+    )
+
+
+def _get_context_base_con_filtros(include_meses=True, anio_meses=None):
+    """
+    Genera el contexto base común para los formularios.
+    Args:
+        include_meses: Si incluir los meses en el contexto
+        anio_meses: Año para filtrar meses (None = todos)
+    Returns: dict con redes y opcionalmente meses
+    """
+    context = {
+        'redes': _get_redes_queryset(),
+    }
+    
+    if include_meses:
+        meses = _get_meses_queryset(anio_meses)
+        context.update({
+            'mes_inicio': meses,
+            'mes_fin': meses,
+        })
+    
+    return context
+
+
+# ============================================
+# VISTAS PRINCIPALES - FORMULARIOS
+# ============================================
+
+def get_redes_s11_captacion_gestante(request, redes_id):
+    """
+    Renderiza el formulario de reportes por REDES.
+    """
+    context = _get_context_base_con_filtros(include_meses=True)
+    return render(request, 's11_captacion_gestante/components/salud/redes.html', context)
+
+
+def get_microredes_s11_captacion_gestante(request, microredes_id):
+    """
+    Renderiza el formulario de reportes por MICROREDES.
+    """
+    context = _get_context_base_con_filtros(include_meses=True, anio_meses='2024')
+    return render(request, 's11_captacion_gestante/components/salud/microredes.html', context)
+
+
+def get_establecimientos_s11_captacion_gestante(request, establecimiento_id):
+    """Renderiza el formulario de reportes por ESTABLECIMIENTO."""
+    context = {
+        'redes': _get_redes_queryset(),
+        'mes_inicio': _get_meses_queryset(),
+        'mes_fin': _get_meses_queryset(),
+    }
+    return render(request, 's11_captacion_gestante/components/salud/establecimientos.html', context)
+
+
+# ============================================
+# VISTAS PARTIALS - HTMX
+# ============================================
+
+def p_microredes_s11_captacion_gestante(request):
+    """
+    Partial HTMX: Carga microredes según la red seleccionada.
+    Usado en el formulario de MICROREDES (sin encadenamiento).
+    
+    GET params:
+        - red: Código de la red seleccionada
+    """
+    red = request.GET.get('red', '').strip()
+    microredes = list(_get_microredes_queryset(red))
+    
+    context = {
+        'microredes': microredes,
+        'red': red,
+    }
+    
+    return render(request, 's11_captacion_gestante/partials/p_microredes.html', context)
+
+
+def p_microredes_establec_s11_captacion_gestante(request):
+    """
+    HTMX Partial: Carga microredes según la red seleccionada.
+    Se encadena con el select de establecimientos.
+    """
+    red = request.GET.get('red', '').strip()
+    
+    # Debug
+    print(f"[p_microredes_establec] RED recibida: '{red}'")
+    
+    microredes = []
+    if red:
+        microredes = list(
+            MAESTRO_HIS_ESTABLECIMIENTO.objects
+            .filter(Codigo_Red__startswith=red, **FILTROS_BASE)
+            .values('Codigo_MicroRed', 'MicroRed')
+            .distinct()
+            .order_by('MicroRed')
+        )
+        print(f"[p_microredes_establec] Microredes encontradas: {len(microredes)}")
+    
+    return render(request, 's11_captacion_gestante/partials/p_microredes_establec.html', {
+        'microredes': microredes,
+        'red': red,
+    })
+
+# ============================================
+# PARTIAL: ESTABLECIMIENTOS
+# ============================================
+def p_establecimientos_s11_captacion_gestante(request):
+    """
+    HTMX Partial: Carga establecimientos según la microred seleccionada.
+    """
+    microred = request.GET.get('microred', '').strip()
+    red = request.GET.get('red', '').strip()
+    
+    # Debug
+    print(f"[p_establecimientos] MICRORED: '{microred}', RED: '{red}'")
+    
+    establecimientos = []
+    if microred:
+        filtros = {'Codigo_MicroRed': microred, **FILTROS_BASE}
+        if red:
+            filtros['Codigo_Red__startswith'] = red
+        
+        establecimientos = list(
+            MAESTRO_HIS_ESTABLECIMIENTO.objects
+            .filter(**filtros)
+            .values('Codigo_Unico', 'Nombre_Establecimiento')
+            .distinct()
+            .order_by('Nombre_Establecimiento')
+        )
+        print(f"[p_establecimientos] Establecimientos encontrados: {len(establecimientos)}")
+    
+    return render(request, 's11_captacion_gestante/partials/p_establecimientos.html', {
+        'establecimientos': establecimientos,
+    })
+######################---------------------------
+## FILTRO AMBITO DE MUNICIPIO
+######################-------------------------------
+
+## SEGUIMIENTO POR PROVINCIA
+def get_provincias_s11_captacion_gestante(request, provincia_id):
+    provincias = (
+                MAESTRO_HIS_ESTABLECIMIENTO
+                .objects.filter(Descripcion_Sector='GOBIERNO REGIONAL')
+                .annotate(ubigueo_filtrado=Substr('Ubigueo_Establecimiento', 1, 4))
+                .values('Provincia','ubigueo_filtrado')
+                .distinct()
+                .order_by('Provincia')
+    )
+    mes_inicio = (
+                DimPeriodo
+                .objects.filter()
+                .annotate(nro_mes=Cast('NroMes', IntegerField())) 
+                .values('Mes','nro_mes')
+                .order_by('NroMes')
+                .distinct()
+    ) 
+    mes_fin = (
+                DimPeriodo
+                .objects.filter()
+                .annotate(nro_mes=Cast('NroMes', IntegerField())) 
+                .values('Mes','nro_mes')
+                .order_by('NroMes')
+                .distinct()
+    )
+    context = {
+                'provincias': provincias,
+                'mes_inicio':mes_inicio,
+                'mes_fin':mes_fin,
+            }
+    
+    return render(request, 's11_captacion_gestante/components/municipio/provincias.html', context)
+
+## SEGUIMIENTO POR DISTRITOS
+def get_distritos_s11_captacion_gestante(request, distrito_id):
+    provincias = (
+                MAESTRO_HIS_ESTABLECIMIENTO
+                .objects.filter(Descripcion_Sector='GOBIERNO REGIONAL')
+                .annotate(ubigueo_filtrado=Substr('Ubigueo_Establecimiento', 1, 4))
+                .values('Provincia','ubigueo_filtrado')
+                .distinct()
+                .order_by('Provincia')
+    )
+    mes_inicio = (
+                DimPeriodo
+                .objects.filter()
+                .annotate(nro_mes=Cast('NroMes', IntegerField())) 
+                .values('Mes','nro_mes')
+                .order_by('NroMes')
+                .distinct()
+    ) 
+    mes_fin = (
+                DimPeriodo
+                .objects.filter()
+                .annotate(nro_mes=Cast('NroMes', IntegerField())) 
+                .values('Mes','nro_mes')
+                .order_by('NroMes')
+                .distinct()
+    ) 
+    context = {
+                'provincias': provincias,
+                'mes_inicio':mes_inicio,
+                'mes_fin':mes_fin,
+    }
+    return render(request, 's11_captacion_gestante/components/municipio/distritos.html', context)
+
+
+def p_distrito_s11_captacion_gestante(request):
+    provincia_param = request.GET.get('provincia', '')
+
+    # Filtra los establecimientos por sector "GOBIERNO REGIONAL"
+    establecimientos = MAESTRO_HIS_ESTABLECIMIENTO.objects.filter(Descripcion_Sector='GOBIERNO REGIONAL')
+
+    # Filtra los establecimientos por el código de la provincia
+    if provincia_param:
+        establecimientos = establecimientos.filter(Ubigueo_Establecimiento__startswith=provincia_param[:4])
+    # Selecciona el distrito y el código Ubigueo
+    distritos = establecimientos.values('Distrito', 'Ubigueo_Establecimiento').distinct().order_by('Distrito')
+    
+    context = {
+        'provincia': provincia_param,
+        'distritos': distritos
+    }
+    return render(request, 's11_captacion_gestante/partials/p_distritos.html', context)
+
+
+########################################
+## SEGUIMIENTO REPORTE EXCEL 
+#######################################
+
+## REPORTE DE EXCEL
+class RptCaptacionGestante(TemplateView):
+    def get(self, request, *args, **kwargs):
+        # Variables ingresadas
+        anio = request.GET.get('anio', '2025')
+        mes_inicio = request.GET.get('fecha_inicio', '')
+        mes_fin = request.GET.get('fecha_fin', '')
         provincia = request.GET.get('provincia', '')
         distrito = request.GET.get('distrito', '')
-        red = request.GET.get('red', '')
-        microred = request.GET.get('microred', '')
-        establecimiento = request.GET.get('establecimiento', '')
+        p_red = request.GET.get('red', '')
+        p_microredes = request.GET.get('p_microredes', '')
+        p_establecimiento = request.GET.get('p_establecimiento', '')
+        p_cumple = request.GET.get('cumple', '') 
 
-        # Obtener datos detallados (necesitamos esto para agrupar por Red)
-        resultados = obtener_variables_detallado(
-            anio=anio,
-            mes_inicio=mes_inicio,
-            mes_fin=mes_fin,
-            red=red,
-            microred=microred,
-            establecimiento=establecimiento,
-            provincia=provincia,
-            distrito=distrito
-        )
+        # Creación de la consulta
+        #print(f"Año: {anio}, Mes Inicio: {mes_inicio}, Mes Fin: {mes_fin}, Provincia: {provincia}, Distrito: {distrito}, Red: {p_red}, Microredes: {p_microredes}, Establecimiento: {p_establecimiento}, Cumple: {p_cumple}")
+        resultado_seguimiento_s11_captacion_gestante = obtener_seguimiento_s11_captacion_gestante(anio, mes_inicio, mes_fin, provincia, distrito, p_red, p_microredes, p_establecimiento, p_cumple)
+        
+        wb = Workbook()
+        
+        consultas = [
+                ('Seguimiento', resultado_seguimiento_s11_captacion_gestante)
+        ]
+        
+        for index, (sheet_name, results) in enumerate(consultas):
+            if index == 0:
+                ws = wb.active
+                ws.title = sheet_name
+            else:
+                ws = wb.create_sheet(title=sheet_name)
+        
+            fill_worksheet(ws, results)
+        
+        ##########################################################################          
+        # Establecer el nombre del archivo
+        nombre_archivo = "rpt_s11_captacion_gestante.xlsx"
+        # Definir el tipo de respuesta que se va a dar
+        response = HttpResponse(content_type="application/ms-excel")
+        contenido = "attachment; filename={}".format(nombre_archivo)
+        response["Content-Disposition"] = contenido
+        wb.save(response)
 
-        # Agrupar por Red
-        redes_dict = {}
-        for row in resultados:
-            red_nombre = row.get('Red', 'Sin Red')
-            red_codigo = row.get('Codigo_Red', '')
-            
-            if red_nombre not in redes_dict:
-                redes_dict[red_nombre] = {
-                    'codigo': red_codigo,
-                    'count': 0
-                }
-            redes_dict[red_nombre]['count'] += 1
+        return response
 
-        # Ordenar redes alfabéticamente
-        redes_sorted = sorted(redes_dict.items(), key=lambda x: x[0])
+class RptPnPoblacionMicroRed(TemplateView):
+    def get(self, request, *args, **kwargs):
+        # Variables ingresadas
+        p_departamento = 'JUNIN'
+        p_red = request.GET.get('red', '')
+        p_microred = request.GET.get('microredes', '')
+        p_establec = ''
+        p_edades =  request.GET.get('edades','')
+        p_cumple = request.GET.get('cumple', '') 
+        # Creación de la consulta
+        resultado_seguimiento_microred = obtener_seguimiento_s11_captacion_gestante_microred(p_departamento, p_red, p_microred, p_edades, p_cumple)
 
-        context = {
-            'redes': redes_sorted
-        }
+        wb = Workbook()
+        
+        consultas = [
+                ('Seguimiento', resultado_seguimiento_microred)
+        ]
+        
+        for index, (sheet_name, results) in enumerate(consultas):
+            if index == 0:
+                ws = wb.active
+                ws.title = sheet_name
+            else:
+                ws = wb.create_sheet(title=sheet_name)
+        
+            fill_worksheet(ws, results)
+        
+        ##########################################################################          
+        # Establecer el nombre del archivo
+        nombre_archivo = "rpt_s11_captacion_gestante_microred.xlsx"
+        # Definir el tipo de respuesta que se va a dar
+        response = HttpResponse(content_type="application/ms-excel")
+        contenido = "attachment; filename={}".format(nombre_archivo)
+        response["Content-Disposition"] = contenido
+        wb.save(response)
 
-        return render(request, 's11_captacion_gestante/partials/htmx_redes.html', context)
+        return response
 
-    except Exception as e:
-        logger.error(f"Error en htmx_get_redes: {e}", exc_info=True)
-        return HttpResponse('<div class="alert alert-danger">Error al cargar las Redes</div>', status=500)
+class RptPnPoblacionEstablec(TemplateView):
+    def get(self, request, *args, **kwargs):
+        # Variables ingresadas
+        p_departamento = 'JUNIN'
+        p_red = request.GET.get('red','')
+        p_microred = request.GET.get('p_microredes_establec','')  # Corregido
+        p_establec = request.GET.get('p_establecimiento','')
+        p_mes = request.GET.get('mes', '')
+        p_edades = request.GET.get('edades', '')
+        # Manejo seguro de fechas - usar valores por defecto si no están presentes
+        p_cumple = request.GET.get('cumple', '')
+        
+        # Creación de la consulta
+        resultado_seguimiento = obtener_seguimiento_s11_captacion_gestante_establecimiento(p_departamento,p_establec,p_edades,p_cumple)
+                
+        wb = Workbook()
+        
+        consultas = [
+                ('Seguimiento', resultado_seguimiento)
+        ]
+        
+        for index, (sheet_name, results) in enumerate(consultas):
+            if index == 0:
+                ws = wb.active
+                ws.title = sheet_name
+            else:
+                ws = wb.create_sheet(title=sheet_name)
+        
+            fill_worksheet(ws, results)
+        
+        ##########################################################################          
+        # Establecer el nombre del archivo
+        nombre_archivo = "rpt_s11_captacion_gestante_establecimiento.xlsx"
+        # Definir el tipo de respuesta que se va a dar
+        response = HttpResponse(content_type="application/ms-excel")
+        contenido = "attachment; filename={}".format(nombre_archivo)
+        response["Content-Disposition"] = contenido
+        wb.save(response)
+
+        return response
 
 
-def htmx_get_microredes(request):
-    """
-    Vista HTMX para cargar MicroRedes dentro de una Red específica (nivel 2).
-    Retorna HTML con cada MicroRed como un grupo colapsable.
-    """
+def fill_worksheet(ws, results): 
+# cambia el alto de la columna
+    ws.row_dimensions[1].height = 14
+    ws.row_dimensions[2].height = 14
+    ws.row_dimensions[3].height = 12
+    ws.row_dimensions[4].height = 25
+    ws.row_dimensions[5].height = 18
+    ws.row_dimensions[6].height = 18
+    ws.row_dimensions[7].height = 25
+    ws.row_dimensions[8].height = 30
+    # cambia el ancho de la columna
+    ws.column_dimensions['A'].width = 1
+    ws.column_dimensions['B'].width = 2
+    ws.column_dimensions['C'].width = 9
+    ws.column_dimensions['D'].width = 35
+    ws.column_dimensions['E'].width = 9
+    ws.column_dimensions['F'].width = 3
+    ws.column_dimensions['G'].width = 3
+    ws.column_dimensions['H'].width = 3
+    ws.column_dimensions['I'].width = 3
+    ws.column_dimensions['J'].width = 5
+    ws.column_dimensions['K'].width = 9
+    ws.column_dimensions['L'].width = 30
+    ws.column_dimensions['M'].width = 18
+    ws.column_dimensions['N'].width = 9
+    ws.column_dimensions['O'].width = 4
+    ws.column_dimensions['P'].width = 9
+    ws.column_dimensions['Q'].width = 35
+    ws.column_dimensions['R'].width = 9
+    ws.column_dimensions['S'].width = 10
+    ws.column_dimensions['T'].width = 9
+    ws.column_dimensions['U'].width = 3
+    ws.column_dimensions['V'].width = 4
+    ws.column_dimensions['W'].width = 5
+    ws.column_dimensions['X'].width = 4
+    ws.column_dimensions['Y'].width = 9
+    ws.column_dimensions['Z'].width = 3
+    ws.column_dimensions['AA'].width = 4
+    ws.column_dimensions['AB'].width = 5
+    ws.column_dimensions['AC'].width = 4
+    ws.column_dimensions['AD'].width = 9
+    ws.column_dimensions['AE'].width = 3
+    ws.column_dimensions['AF'].width = 4
+    ws.column_dimensions['AG'].width = 5
+    ws.column_dimensions['AH'].width = 9
+    ws.column_dimensions['AI'].width = 10
+    ws.column_dimensions['AJ'].width = 15
+    ws.column_dimensions['AK'].width = 18
+    ws.column_dimensions['AL'].width = 18
+    ws.column_dimensions['AM'].width = 5
+    ws.column_dimensions['AN'].width = 15
+    ws.column_dimensions['AO'].width = 5
+    ws.column_dimensions['AP'].width = 20
+    ws.column_dimensions['AQ'].width = 9
+    ws.column_dimensions['AR'].width = 20
+    
+# Guardar los anchos de las columnas que se van a agrupar
+    grouped_widths = {
+        'K': 9, 'L': 30, 'M': 18, 'N': 9, 'O': 4, 'P': 9, 'Q': 35, 'R': 9
+    }
+    
+    # Agrupa las columnas de la K a la R para que se puedan ocultar y mostrar con un botón.
+    ws.column_dimensions.group('K', 'R', hidden=True)
+
+    # Restaurar explícitamente los anchos después del agrupamiento y configurar outline_level
+    for col, width in grouped_widths.items():
+        ws.column_dimensions[col].width = width
+        ws.column_dimensions[col].outline_level = 1
+    
+    # linea de division
+    ws.freeze_panes = 'S10'
+    # Configuración del fondo y el borde
+    # Definir el color usando formato aRGB (opacidad completa 'FF' + color RGB)
+    fill = PatternFill(start_color='FF60D7E0', end_color='FF60D7E0', fill_type='solid')
+    # Definir el color anaranjado usando formato aRGB
+    orange_fill = PatternFill(start_color='FFE0A960', end_color='FFE0A960', fill_type='solid')
+    # Definir los estilos para gris
+    gray_fill = PatternFill(start_color='FFD3D3D3', end_color='FFD3D3D3', fill_type='solid')
+    # Definir el estilo de color verde
+    green_fill = PatternFill(start_color='FF60E0B3', end_color='FF60E0B3', fill_type='solid')
+    # Definir el estilo de color amarillo
+    yellow_fill = PatternFill(start_color='FFE0DE60', end_color='FFE0DE60', fill_type='solid')
+    # Definir el estilo de color azul
+    blue_fill = PatternFill(start_color='FF60A2E0', end_color='FF60A2E0', fill_type='solid')
+    # Definir el estilo de color verde 2
+    green_fill_2 = PatternFill(start_color='FF60E07E', end_color='FF60E07E', fill_type='solid')   
+    
+    green_font = Font(name='Arial', size=8, color='00FF00')  # Verde
+    red_font = Font(name='Arial', size=8, color='FF0000')    # Rojo
+    
+    border = Border(left=Side(style='thin', color='00B0F0'),
+                    right=Side(style='thin', color='00B0F0'),
+                    top=Side(style='thin', color='00B0F0'),
+                    bottom=Side(style='thin', color='00B0F0'))
+    borde_plomo = Border(left=Side(style='thin', color='A9A9A9'), # Plomo
+                    right=Side(style='thin', color='A9A9A9'), # Plomo
+                    top=Side(style='thin', color='A9A9A9'), # Plomo
+                    bottom=Side(style='thin', color='A9A9A9')) # Plomo
+    
+    # Configuración del fondo y el borde
+    # Definir el color usando formato aRGB (opacidad completa 'FF' + color RGB)
+    fill = PatternFill(start_color='FF60D7E0', end_color='FF60D7E0', fill_type='solid')
+    # Definir el color anaranjado usando formato aRGB
+    orange_fill = PatternFill(start_color='FFE0A960', end_color='FFE0A960', fill_type='solid')
+    # Definir los estilos para gris
+    gray_fill = PatternFill(start_color='FFD3D3D3', end_color='FFD3D3D3', fill_type='solid')
+    # Definir el estilo de color verde
+    green_fill = PatternFill(start_color='FF60E0B3', end_color='FF60E0B3', fill_type='solid')
+    # Definir el estilo de color amarillo
+    yellow_fill = PatternFill(start_color='FFE0DE60', end_color='FFE0DE60', fill_type='solid')
+    # Definir el estilo de color azul
+    blue_fill = PatternFill(start_color='FF60A2E0', end_color='FF60A2E0', fill_type='solid')
+    # Definir el estilo de color verde 2
+    green_fill_2 = PatternFill(start_color='FF60E07E', end_color='FF60E07E', fill_type='solid')   
+    # Definir el estilo de relleno celeste
+    celeste_fill = PatternFill(start_color='FF87CEEB', end_color='FF87CEEB', fill_type='solid')
+    # Morado más claro
+    morado_claro_fill = PatternFill(start_color='FFE9D8FF', end_color='FFE9D8FF', fill_type='solid')
+    # Plomo más claro
+    plomo_claro_fill = PatternFill(start_color='FFEDEDED', end_color='FFEDEDED', fill_type='solid')
+    # Azul más claro
+    azul_claro_fill = PatternFill(start_color='FFD8EFFA', end_color='FFD8EFFA', fill_type='solid')
+    # Naranja más claro
+    naranja_claro_fill = PatternFill(start_color='FFFFEBD8', end_color='FFFFEBD8', fill_type='solid')
+    # Verde más claro
+    verde_claro_fill = PatternFill(start_color='FFBDF7BD', end_color='FFBDF7BD', fill_type='solid')
+    
+    green_font = Font(name='Arial', size=8, color='00FF00')  # Verde
+    red_font = Font(name='Arial', size=8, color='FF0000')    # Rojo
+    
+    border = Border(left=Side(style='thin', color='00B0F0'),
+                    right=Side(style='thin', color='00B0F0'),
+                    top=Side(style='thin', color='00B0F0'),
+                    bottom=Side(style='thin', color='00B0F0'))
+    borde_plomo = Border(left=Side(style='thin', color='A9A9A9'), # Plomo
+                    right=Side(style='thin', color='A9A9A9'), # Plomo
+                    top=Side(style='thin', color='A9A9A9'), # Plomo
+                    bottom=Side(style='thin', color='A9A9A9')) # Plomo
+    
+    borde_plomo = Border(left=Side(style='thin', color='A9A9A9'), # Plomo
+                    right=Side(style='thin', color='A9A9A9'), # Plomo
+                    top=Side(style='thin', color='A9A9A9'), # Plomo
+                    bottom=Side(style='thin', color='A9A9A9')) # Plomo
+    
+    border_negro = Border(left=Side(style='thin', color='000000'), # negro
+                    right=Side(style='thin', color='000000'),
+                    top=Side(style='thin', color='000000'), 
+                    bottom=Side(style='thin', color='000000')) 
+    
+    # Merge cells 
+    # numerador y denominador
+    ws.merge_cells('B5:R5') 
+    ws.merge_cells('S5:AR5')
+    
+    # CABECERA NOMBRES
+    ws.merge_cells('B6:R6') 
+    ws.merge_cells('S6:AC6')
+    ws.merge_cells('AD6:AG6')
+    ws.merge_cells('AH6:AR6')
+        
+    # Auxiliar HORIZONTAL
+    ws.merge_cells('AH7:AH8')
+    ws.merge_cells('AI7:AI8')
+    
+    # intervalo
+    ws.merge_cells('B7:C7')
+    ws.merge_cells('D7:J7')
+    ws.merge_cells('K7:L7')
+    ws.merge_cells('M7:O7')
+    ws.merge_cells('P7:R7')
+    ws.merge_cells('S7:X7')
+    ws.merge_cells('Y7:AC7')
+    ws.merge_cells('AD7:AG7')
+    ws.merge_cells('AJ7:AR7')
+    
+    # COD HIS
+    ws.merge_cells('B8:C8')
+    ws.merge_cells('D8:R8')
+    ws.merge_cells('S8:X8')
+    ws.merge_cells('Y8:AC8')
+    ws.merge_cells('AD8:AG8')
+    ws.merge_cells('AJ8:AR8')
+
+    # Combina cela
+    ws['B5'] = 'META (DENOMINADOR)'
+    ws['S5'] = 'AVANCE (NUMERADOR)'
+    
+    # CABECERA GRUPAL
+    ws['B6']  = 'PADRON NOMINAL'
+    ws['S6']  = 'DOSAJE DE HEMOBLOBINA'
+    ws['AD6'] = 'SESION DEMOSTRATIVA'
+    
+    # INTERVALO
+    #ws['S7'] = 'NUMERADOR PARCIAL'
+
+    ws['D7'] = 'Niñas y niños que hayan cumplido entre 6 meses (180 dias) y 12 meses de edad (389 dias) del Padron Nominal, en el mes de medición'
+    ws['K7'] = 'Establecimiento de Salud del Padron Nominal'
+    ws['M7'] = 'Visita del Padron Nominal'
+    ws['P7'] = 'Datos de la Madre del Padron Nominal'
+    ws['S7'] = '1° Dosaje de Hemoglobina entre los 170 a 209 dias de edad'
+    ws['Y7'] = '3° Dosaje de Hemoglobina entre los 350 y 389 dias de edad'
+    ws['AD7'] = 'A partir del 6to mes de nacimiento, el niño cuenta con SD'
+    ws['AJ7'] = 'Informacion Territorial del HIS MINSA'
+    # CODIGO HIS
+    
+    ws['S8'] = 'DX = 85018 ó 85018.01 (Valor de Hemoglobina mayor o igual 10.5 g/dl)'
+    ws['Y8'] = 'DX = 85018 ó 85018.01 (Valor de Hemoglobina mayor o igual 10.5 g/dl)'
+    ws['AD8'] = 'DX = C0010 + TD = D + LAB = "ALI" + LAB = "GL" (opcional el registro del GL)'
+    
+    ### numerador y denominador     
+    ws['B5'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['B5'].font = Font(name = 'Arial', size= 10, bold = True)
+    ws['B5'].fill = gray_fill
+    ws['B5'].border = border_negro
+    
+    ws['S5'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['S5'].font = Font(name = 'Arial', size= 10, bold = True)
+    ws['S5'].fill = naranja_claro_fill
+    ws['S5'].border = border_negro
+    
+    ### intervalo 
+    ws['B6'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['B6'].font = Font(name = 'Arial', size= 10, bold = True)
+    ws['B6'].fill = gray_fill
+    ws['B6'].border = border_negro
+    
+    ws['S6'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['S6'].font = Font(name = 'Arial', size= 10, bold = True)
+    ws['S6'].fill = gray_fill
+    ws['S6'].border = border_negro
+    
+    
+    ws['AD6'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AD6'].font = Font(name = 'Arial', size= 7)
+    ws['AD6'].fill = morado_claro_fill
+    ws['AD6'].border = border_negro
+    
+    ws['AJ6'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AJ6'].font = Font(name = 'Arial', size= 7)
+    ws['AJ6'].fill = morado_claro_fill
+    ws['AJ6'].border = border_negro
+    
+    #intervalos 
+    ws['B7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['B7'].font = Font(name = 'Arial', size= 7)
+    ws['B7'].fill = naranja_claro_fill
+    ws['B7'].border = border_negro
+    
+    ws['D7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['D7'].font = Font(name = 'Arial', size= 7)
+    ws['D7'].fill = plomo_claro_fill
+    ws['D7'].border = border_negro
+    
+    ws['K7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['K7'].font = Font(name = 'Arial', size= 7)
+    ws['K7'].fill = plomo_claro_fill
+    ws['K7'].border = border_negro
+    
+    ws['M7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['M7'].font = Font(name = 'Arial', size= 7)
+    ws['M7'].fill = plomo_claro_fill
+    ws['M7'].border = border_negro
+    
+    ws['P7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['P7'].font = Font(name = 'Arial', size= 7)
+    ws['P7'].fill = plomo_claro_fill
+    ws['P7'].border = border_negro
+    
+    ws['S7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['S7'].font = Font(name = 'Arial', size= 7)
+    ws['S7'].fill = plomo_claro_fill
+    ws['S7'].border = border_negro
+    
+    ws['Y7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['Y7'].font = Font(name = 'Arial', size= 7)
+    ws['Y7'].fill = plomo_claro_fill
+    ws['Y7'].border = border_negro
+    
+    ws['AD7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AD7'].font = Font(name = 'Arial', size= 7)
+    ws['AD7'].fill = plomo_claro_fill
+    ws['AD7'].border = border_negro
+    
+    ws['AH7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AH7'].font = Font(name = 'Arial', size= 7)
+    ws['AH7'].fill = plomo_claro_fill
+    ws['AH7'].border = border_negro
+    
+    ws['AI7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AI7'].font = Font(name = 'Arial', size= 7)
+    ws['AI7'].fill = plomo_claro_fill
+    ws['AI7'].border = border_negro
+    
+    ws['AJ7'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AJ7'].font = Font(name = 'Arial', size= 7)
+    ws['AJ7'].fill = plomo_claro_fill
+    ws['AJ7'].border = border_negro
+    
+    # CODIGO HIS
+    
+    ws['B8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['B8'].font = Font(name = 'Arial', size= 7)
+    ws['B8'].fill = azul_claro_fill
+    ws['B8'].border = border_negro
+    
+    ws['D8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['D8'].font = Font(name = 'Arial', size= 7)
+    ws['D8'].fill = azul_claro_fill
+    ws['D8'].border = border_negro
+    
+    ws['K8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['K8'].font = Font(name = 'Arial', size= 7)
+    ws['K8'].fill = azul_claro_fill
+    ws['K8'].border = border_negro
+    
+    ws['M8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['M8'].font = Font(name = 'Arial', size= 7)
+    ws['M8'].fill = azul_claro_fill
+    ws['M8'].border = border_negro
+    
+    ws['P8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['P8'].font = Font(name = 'Arial', size= 7)
+    ws['P8'].fill = azul_claro_fill
+    ws['P8'].border = border_negro
+    
+    ws['S8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['S8'].font = Font(name = 'Arial', size= 7)
+    ws['S8'].fill = azul_claro_fill
+    ws['S8'].border = border_negro
+    
+    ws['Y8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['Y8'].font = Font(name = 'Arial', size= 7)
+    ws['Y8'].fill = azul_claro_fill
+    ws['Y8'].border = border_negro
+    
+    ws['AD8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AD8'].font = Font(name = 'Arial', size= 7)
+    ws['AD8'].fill = azul_claro_fill
+    ws['AD8'].border = border_negro
+    
+    ws['AH8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AH8'].font = Font(name = 'Arial', size= 7)
+    ws['AH8'].fill = azul_claro_fill
+    ws['AH8'].border = border_negro
+    
+    ws['AI8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AI8'].font = Font(name = 'Arial', size= 7)
+    ws['AI8'].fill = azul_claro_fill
+    ws['AI8'].border = border_negro
+    
+    ws['AJ8'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AJ8'].font = Font(name = 'Arial', size= 7)
+    ws['AJ8'].fill = azul_claro_fill
+    ws['AJ8'].border = border_negro
+    
+    ws['B7'].alignment = Alignment(horizontal= "center", vertical="center")
+    ws['B7'].font = Font(name = 'Arial', size= 7, bold = True)
+    ws['B7'].fill = plomo_claro_fill
+    ws['B7'].border = border_negro
+    ws['B7'] = 'INTERVALO'
+    
+    ws['B8'].alignment = Alignment(horizontal= "center", vertical="center")
+    ws['B8'].font = Font(name = 'Arial', size= 7, bold = True)
+    ws['B8'].fill = azul_claro_fill
+    ws['B8'].border = border_negro
+    ws['B8'] = 'COD HIS'
+    
+    ### BORDE DE CELDAS CONBINADAS
+
+    # NUM y DEN
+    inicio_columna = 'B'
+    fin_columna = 'AR'
+    fila = 5
+    from openpyxl.utils import column_index_from_string
+    # Convertir letras de columna a índices numéricos
+    indice_inicio = column_index_from_string(inicio_columna)
+    indice_fin = column_index_from_string(fin_columna)
+    # Iterar sobre las columnas en el rango especificado
+    for col in range(indice_inicio, indice_fin + 1):
+        celda = ws.cell(row=fila, column=col)
+        celda.border = border_negro
+    
+    # NUM y DEN
+    inicio_columna = 'B'
+    fin_columna = 'AR'
+    fila = 6
+    from openpyxl.utils import column_index_from_string
+    # Convertir letras de columna a índices numéricos
+    indice_inicio = column_index_from_string(inicio_columna)
+    indice_fin = column_index_from_string(fin_columna)
+    # Iterar sobre las columnas en el rango especificado
+    for col in range(indice_inicio, indice_fin + 1):
+        celda = ws.cell(row=fila, column=col)
+        celda.border = border_negro
+        
+    # INTERVALO
+    inicio_columna = 'B'
+    fin_columna = 'AR'
+    fila = 7
+    from openpyxl.utils import column_index_from_string
+    # Convertir letras de columna a índices numéricos
+    indice_inicio = column_index_from_string(inicio_columna)
+    indice_fin = column_index_from_string(fin_columna)
+    # Iterar sobre las columnas en el rango especificado
+    for col in range(indice_inicio, indice_fin + 1):
+        celda = ws.cell(row=fila, column=col)
+        celda.border = border_negro
+        
+    # CODIGO HIS 
+    inicio_columna = 'B'
+    fin_columna = 'AR'
+    fila = 8
+    from openpyxl.utils import column_index_from_string
+    # Convertir letras de columna a índices numéricos
+    indice_inicio = column_index_from_string(inicio_columna)
+    indice_fin = column_index_from_string(fin_columna)
+    # Iterar sobre las columnas en el rango especificado
+    for col in range(indice_inicio, indice_fin + 1):
+        celda = ws.cell(row=fila, column=col)
+        celda.border = border_negro
+    
+    ##### imprimer fecha y hora del reporte
+    fecha_hora_actual = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    nombre_usuario = getpass.getuser()
+
+    # Obtener el usuario actualmente autenticado
     try:
-        # Obtener parámetros de filtros
-        anio = request.GET.get('anio', DEFAULT_YEAR)
-        mes_inicio = request.GET.get('mes_inicio', '1')
-        mes_fin = request.GET.get('mes_fin', '12')
-        provincia = request.GET.get('provincia', '')
-        distrito = request.GET.get('distrito', '')
-        red = request.GET.get('red', '')
-        microred = request.GET.get('microred', '')
-        establecimiento = request.GET.get('establecimiento', '')
+        user = User.objects.get(is_active=True)
+    except User.DoesNotExist:
+        user = None
+    except User.MultipleObjectsReturned:
+        # Manejar el caso donde hay múltiples usuarios activos
+        user = User.objects.filter(is_active=True).first()  # Por ejemplo, obtener el primero
+    
+    # Asignar fecha y hora a la celda A1
+    ws['V1'].value = 'Fecha y Hora:'
+    ws['W1'].value = fecha_hora_actual
 
-        # Obtener datos detallados filtrados por Red
-        resultados = obtener_variables_detallado(
-            anio=anio,
-            mes_inicio=mes_inicio,
-            mes_fin=mes_fin,
-            red=red,
-            microred=microred,
-            establecimiento=establecimiento,
-            provincia=provincia,
-            distrito=distrito
-        )
+    # Asignar nombre de usuario a la celda A2
+    ws['V2'].value = 'Usuario:'
+    ws['W2'].value = nombre_usuario
+    
+    # Formatear las etiquetas en negrita
+    etiqueta_font = Font(name='Arial', size=8)
+    ws['V1'].font = etiqueta_font
+    ws['W1'].font = etiqueta_font
+    ws['V2'].font = etiqueta_font
+    ws['W2'].font = etiqueta_font
 
-        # Agrupar por MicroRed
-        microredes_dict = {}
-        for row in resultados:
-            red_codigo = row.get('Codigo_Red', '')
-            microred_nombre = row.get('MicroRed', 'Sin MicroRed')
-            microred_codigo = row.get('Codigo_MicroRed', '')
+    # Alinear el texto
+    ws['V1'].alignment = Alignment(horizontal="right", vertical="center")
+    ws['W1'].alignment = Alignment(horizontal="left", vertical="center")
+    ws['V2'].alignment = Alignment(horizontal="right", vertical="center")
+    ws['W2'].alignment = Alignment(horizontal="left", vertical="center")
+    
+    ## crea titulo del reporte
+    ws['B1'].alignment = Alignment(horizontal= "left", vertical="center")
+    ws['B1'].font = Font(name = 'Arial', size= 7, bold = True)
+    ws['B1'] = 'OFICINA DE TECNOLOGIAS DE LA INFORMACION'
+    
+    ws['B2'].alignment = Alignment(horizontal= "left", vertical="center")
+    ws['B2'].font = Font(name = 'Arial', size= 7, bold = True)
+    ws['B2'] = 'DIRECCION REGIONAL DE SALUD JUNIN'
+    
+    ws['B4'].alignment = Alignment(horizontal= "left", vertical="center")
+    ws['B4'].font = Font(name = 'Arial', size= 12, bold = True)
+    ws['B4'] = 'SEGUIMIENTO NOMINAL DEL INDICADOR. PORCENTAJE DE NIÑOS DE 6 A 12 MESES DE EDAD SIN ANEMIA'
+    
+    ws['B3'].alignment = Alignment(horizontal= "left", vertical="center")
+    ws['B3'].font = Font(name = 'Arial', size= 7, bold = True, color='0000CC')
+    ws['B3'] ='El usuario se compromete a mantener la confidencialidad de los datos personales que conozca como resultado del reporte realizado, cumpliendo con lo establecido en la Ley N° 29733 - Ley de Protección de Datos Personales y sus normas complementarias.'
+        
+    ws['B9'].alignment = Alignment(horizontal= "center", vertical="center")
+    ws['B9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['B9'].fill = fill
+    ws['B9'].border = border
+    ws['B9'] = 'TD'
+    
+    ws['C9'].alignment = Alignment(horizontal= "center", vertical="center")
+    ws['C9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['C9'].fill = fill
+    ws['C9'].border = border
+    ws['C9'] = 'NUM DOC'
+    
+    ws['D9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['D9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['D9'].fill = fill
+    ws['D9'].border = border
+    ws['D9'] = 'NOMBRE'      
+    
+    ws['E9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['E9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['E9'].fill = fill
+    ws['E9'].border = border
+    ws['E9'] = 'FECHA NAC' 
+    
+    ws['F9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['F9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['F9'].fill = fill
+    ws['F9'].border = border
+    ws['F9'] = 'ED A'     
+    
+    ws['G9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['G9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['G9'].fill = fill
+    ws['G9'].border = border
+    ws['G9'] = 'ED M'    
+    
+    ws['H9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['H9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['H9'].fill = fill
+    ws['H9'].border = border
+    ws['H9'] = 'ED D'    
+    
+    ws['I9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['I9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['I9'].fill = fill
+    ws['I9'].border = border
+    ws['I9'] = 'SEXO'    
+    
+    ws['J9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['J9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['J9'].fill = fill
+    ws['J9'].border = border
+    ws['J9'] = 'SEGURO'  
+    
+    ws['K9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['K9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['K9'].fill = green_fill_2
+    ws['K9'].border = border
+    ws['K9'] = 'COD EESS'  
+    
+    ws['L9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['L9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['L9'].fill = green_fill_2
+    ws['L9'].border = border
+    ws['L9'] = 'NOMBRE EESS'  
+    
+    ws['M9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['M9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['M9'].fill = green_fill_2
+    ws['M9'].border = border
+    ws['M9'] = 'FRECUENCIA'  
+    
+    ws['N9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['N9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['N9'].fill = green_fill_2
+    ws['N9'].border = border
+    ws['N9'] = 'VISITA'  
+    
+    ws['O9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['O9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['O9'].fill = green_fill_2
+    ws['O9'].border = border
+    ws['O9'] = 'ENC'  
+    
+    ws['P9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['P9'].font = Font(name = 'Arial', size= 8, bold = True)
+    ws['P9'].fill = green_fill
+    ws['P9'].border = border
+    ws['P9'] = 'DNI MADRE'  
+    
+    ws['Q9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['Q9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['Q9'].fill = green_fill
+    ws['Q9'].border = border
+    ws['Q9'] = 'MADRE'    
+    
+    ws['R9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['R9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['R9'].fill = green_fill
+    ws['R9'].border = border
+    ws['R9'] = 'CELULAR' 
+    
+    ws['S9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['S9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['S9'].fill = green_fill_2
+    ws['S9'].border = border
+    ws['S9'] = 'TAMIZAJE' 
+    
+    ws['T9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['T9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['T9'].fill = yellow_fill
+    ws['T9'].border = border
+    ws['T9'] = '1° DOSAJE' 
+    
+    ws['U9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['U9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['U9'].fill = yellow_fill   
+    ws['U9'].border = border
+    ws['U9'] = 'TD' 
+    
+    ws['V9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['V9'].font = Font(name = 'Arial', size= 7, bold = True, color='000000')
+    ws['V9'].fill = yellow_fill
+    ws['V9'].border = border
+    ws['V9'] = 'LAB' 
+    
+    ws['W9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['W9'].font = Font(name = 'Arial', size= 7, bold = True, color='000000')
+    ws['W9'].fill = yellow_fill
+    ws['W9'].border = border
+    ws['W9'] = 'VAL HB'   
+    
+    ws['X9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['X9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['X9'].fill = yellow_fill
+    ws['X9'].border = border
+    ws['X9'] = 'IND' 
+    
+    ws['Y9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['Y9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['Y9'].fill = green_fill
+    ws['Y9'].border = border
+    ws['Y9'] = '3° DOSAJE' 
+    
+    ws['Z9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['Z9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['Z9'].fill = green_fill
+    ws['Z9'].border = border
+    ws['Z9'] = 'TD' 
+    
+    ws['AA9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AA9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AA9'].fill = green_fill
+    ws['AA9'].border = border
+    ws['AA9'] = 'LAB' 
+    
+    ws['AB9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AB9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AB9'].fill = green_fill
+    ws['AB9'].border = border
+    ws['AB9'] = 'VAL HB'     
+    
+    ws['AC9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AC9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AC9'].fill = green_fill
+    ws['AC9'].border = border
+    ws['AC9'] = 'IND' 
+    
+    ws['AD9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AD9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AD9'].fill = blue_fill
+    ws['AD9'].border = border
+    ws['AD9'] = 'SESION' 
+    
+    ws['AE9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AE9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AE9'].fill = blue_fill
+    ws['AE9'].border = border
+    ws['AE9'] = 'TD' 
+    
+    ws['AF9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AF9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AF9'].fill = blue_fill
+    ws['AF9'].border = border
+    ws['AF9'] = 'LAB' 
+    
+    ws['AG9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AG9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AG9'].fill = blue_fill
+    ws['AG9'].border = border
+    ws['AG9'] = 'IND' 
+    
+    ws['AH9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AH9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AH9'].fill = orange_fill
+    ws['AH9'].border = border
+    ws['AH9'] = 'MES EVAL' 
+    
+    ws['AI9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AI9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AI9'].fill = orange_fill
+    ws['AI9'].border = border
+    ws['AI9'] = 'INDICADOR' 
+    
+    ws['AJ9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AJ9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AJ9'].fill = orange_fill
+    ws['AJ9'].border = border
+    ws['AJ9'] = 'ZONA ' 
+    
+    ws['AK9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AK9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AK9'].fill = orange_fill
+    ws['AK9'].border = border
+    ws['AK9'] = ' PROVINCIA' 
+    
+    ws['AL9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AL9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AL9'].fill = orange_fill
+    ws['AL9'].border = border
+    ws['AL9'] = 'DISTRITO' 
+    
+    ws['AM9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AM9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AM9'].fill = orange_fill
+    ws['AM9'].border = border
+    ws['AM9'] = 'COD RED' 
+    
+    ws['AN9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AN9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AN9'].fill = orange_fill
+    ws['AN9'].border = border
+    ws['AN9'] = 'RED' 
+    
+    ws['AO9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AO9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AO9'].fill = orange_fill
+    ws['AO9'].border = border
+    ws['AO9'] = 'COD MICRO' 
+    
+    ws['AP9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AP9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AP9'].fill = orange_fill
+    ws['AP9'].border = border
+    ws['AP9'] = 'MICRORED' 
+    
+    ws['AQ9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AQ9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AQ9'].fill = orange_fill
+    ws['AQ9'].border = border
+    ws['AQ9'] = 'COD EESS' 
+    
+    ws['AR9'].alignment = Alignment(horizontal= "center", vertical="center", wrap_text=True)
+    ws['AR9'].font = Font(name = 'Arial', size= 8, bold = True, color='000000')
+    ws['AR9'].fill = orange_fill
+    ws['AR9'].border = border
+    ws['AR9'] = 'ESTABLECIMIENTO DE SALUD' 
+    
+    
+    # Definir estilos
+    header_font = Font(name = 'Arial', size= 8, bold = True)
+    centered_alignment = Alignment(horizontal='center')
+    border = Border(left=Side(style='thin', color='A9A9A9'),
+            right=Side(style='thin', color='A9A9A9'),
+            top=Side(style='thin', color='A9A9A9'),
+            bottom=Side(style='thin', color='A9A9A9'))
+    header_fill = PatternFill(patternType='solid', fgColor='00B0F0')
+    
+    
+    # Definir los caracteres especiales de check y X
+    check_mark = '✓'  # Unicode para check
+    x_mark = '✗'  # Unicode para X
+    sub_cumple = 'CUMPLE'
+    sub_no_cumple = 'NO CUMPLE'
+    
+    # Escribir datos
+    for row, record in enumerate(results, start=10):
+        for col, value in enumerate(record.values(), start=2):
+            cell = ws.cell(row=row, column=col, value=value)
+
+            # Alinear a la izquierda solo en las columnas específicas
+            if col in [4, 12, 17, 38, 40, 42, 44]:
+                cell.alignment = Alignment(horizontal='left')
+            else:
+                cell.alignment = Alignment(horizontal='center')
+
+            # Aplicar color en la columna INDICADOR
+            if col == 35:
+                if isinstance(value, str):
+                    value_upper = value.strip().upper()
+                    if value_upper == "NO CUMPLE":
+                        cell.fill = PatternFill(patternType='solid', fgColor='FF0000')  # Fondo rojo
+                        cell.font = Font(name='Arial', size=8, bold = True,color="FFFFFF")  # Letra blanca
+                    elif value_upper == "CUMPLE":
+                        cell.fill = PatternFill(patternType='solid', fgColor='00FF00')  # Fondo verde
+                        cell.font = Font(name='Arial', size=8,  bold = True,color="FFFFFF")  # Letra blanca
+                    else:
+                        cell.font = Font(name='Arial', size=8, bold = True)
+                else:
+                    cell.font = Font(name='Arial', size=8,  bold = True)
             
-            if microred_nombre not in microredes_dict:
-                microredes_dict[microred_nombre] = {
-                    'codigo': microred_codigo,
-                    'red_codigo': red_codigo,
-                    'count': 0
-                }
-            microredes_dict[microred_nombre]['count'] += 1
-
-        # Ordenar microredes alfabéticamente
-        microredes_sorted = sorted(microredes_dict.items(), key=lambda x: x[0])
-
-        context = {
-            'microredes': microredes_sorted,
-            'red_codigo': red
-        }
-
-        return render(request, 's11_captacion_gestante/partials/htmx_microredes.html', context)
-
-    except Exception as e:
-        logger.error(f"Error en htmx_get_microredes: {e}", exc_info=True)
-        return HttpResponse('<div class="alert alert-danger">Error al cargar las MicroRedes</div>', status=500)
-
-
-def htmx_get_establecimientos(request):
-    """
-    Vista HTMX para cargar Establecimientos dentro de una MicroRed (nivel 3).
-    Utiliza Great Tables para dar formato elegante a los datos tabulares.
-    """
-    try:
-        # Obtener parámetros de filtros
-        anio = request.GET.get('anio', DEFAULT_YEAR)
-        mes_inicio = request.GET.get('mes_inicio', '1')
-        mes_fin = request.GET.get('mes_fin', '12')
-        provincia = request.GET.get('provincia', '')
-        distrito = request.GET.get('distrito', '')
-        red = request.GET.get('red', '')
-        microred = request.GET.get('microred', '')
-        establecimiento = request.GET.get('establecimiento', '')
-
-        # Obtener datos detallados filtrados por MicroRed
-        resultados = obtener_variables_detallado(
-            anio=anio,
-            mes_inicio=mes_inicio,
-            mes_fin=mes_fin,
-            red=red,
-            microred=microred,
-            establecimiento=establecimiento,
-            provincia=provincia,
-            distrito=distrito
-        )
-
-        # Agrupar por Establecimiento
-        establecimientos_data = []
-        for row in resultados:
-            establecimiento_nombre = row.get('Nombre_Establecimiento', 'Sin Nombre')
-            variable = row.get('den_variable', '')
+            # Aplicar color de letra SUB INDICADORES
+            elif col in [19]:
+                if value == 0:
+                    cell.value = sub_no_cumple  # Insertar check
+                    cell.font = Font(name='Arial', size=7, color="FF0000") 
+                elif value == 1:
+                    cell.value = sub_cumple # Insertar check
+                    cell.font = Font(name='Arial', size=7, color="00B050")
+                else:
+                    cell.font = Font(name='Arial', size=7)
+            # Fuente normal para otras columnas
             
-            establecimientos_data.append({
-                'Establecimiento': establecimiento_nombre,
-                'Variable': variable,
-                '1° Trim': row.get('num_1trim', 0),
-                '1T %': f"{row.get('avance_1trim', 0.0):.1f}%",
-                '2° Trim': row.get('num_2trim', 0),
-                '2T %': f"{row.get('avance_2trim', 0.0):.1f}%",
-                '3° Trim': row.get('num_3trim', 0),
-                '3T %': f"{row.get('avance_3trim', 0.0):.1f}%",
-            })
-
-        context = {
-            'establecimientos': establecimientos_data,
-            'microred_codigo': microred,
-            'red_codigo': red
-        }
-
-        return render(request, 's11_captacion_gestante/partials/htmx_establecimientos.html', context)
-
-    except Exception as e:
-        logger.error(f"Error en htmx_get_establecimientos: {e}", exc_info=True)
-        return HttpResponse('<div class="alert alert-danger">Error al cargar los Establecimientos</div>', status=500)
+            # Aplicar color de letra SUB GENERALIDADES
+            elif col in [19]:
+                if value == 0:
+                    cell.value = sub_no_cumple  # Insertar check
+                    cell.font = Font(name='Arial', size=7, color="FF0000") 
+                    cell.fill = PatternFill(patternType='solid', fgColor='FFEDEDED')  
+                    cell.fill = gray_fill # Letra roja
+                elif value == 1:
+                    cell.value = sub_cumple # Insertar check
+                    cell.font = Font(name='Arial', size=7, color="00B050")
+                    cell.fill = PatternFill(patternType='solid', fgColor='FFEDEDED') 
+                    cell.fill = gray_fill# Letra verde
+                else:
+                    cell.font = Font(name='Arial', size=7)
+            # Fuente normal para otras columnas
+            else:
+                cell.font = Font(name='Arial', size=8)  # Fuente normal para otras columnas
+            
+            # Aplicar caracteres especiales check y X
+            if col in [24, 29, 33]:
+                if value == 1:
+                    cell.value = check_mark  # Insertar check
+                    cell.font = Font(name='Arial', size=10, color='00B050')  # Letra verde
+                elif value == 0:
+                    cell.value = x_mark  # Insertar X
+                    cell.font = Font(name='Arial', size=10, color='FF0000')  # Letra roja
+                else:
+                    cell.font = Font(name='Arial', size=8)  # Fuente normal si no es 1 o 0
+            
+            cell.border = border
 
