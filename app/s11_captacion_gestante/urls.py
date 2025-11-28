@@ -54,7 +54,11 @@ urlpatterns = [
     path('p_establecimientos_s11_captacion_gestante/', 
          p_establecimientos_s11_captacion_gestante, 
          name='p_establecimientos_s11_captacion_gestante'),
+    
+    # REPORTE EXCEL
     path('rpt_s11_captacion_gestante_establec_excel/', 
          RptCaptacionGestante.as_view(), 
          name='rpt_s11_captacion_gestante_establecimiento_xls'),
+    
+    
 ]

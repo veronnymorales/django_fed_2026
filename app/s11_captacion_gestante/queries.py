@@ -652,3 +652,52 @@ def obtener_grafico_por_establecimientos(
     except Exception as e:
         logger.error(f"Error al obtener datos de variables detallado: {e}", exc_info=True)
         return [DEFAULT_VARIABLES_GRAFICO_ESTABLECIMIENTOS]
+
+
+
+#######################
+# Funciones para Seguimiento Nominal
+#######################
+from django.db import connection
+
+def obtener_seguimiento_s11_captacion_gestante(
+    anio=None,
+    mes_inicio=None,
+    mes_fin=None,
+    provincia='',
+    distrito='',
+    red='',
+    microredes='',
+    establecimiento='',
+    cumple=''
+):
+    """
+    Obtiene datos de captación nominal de gestantes.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT * FROM fn_seg_captacion_gestante(
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
+                """,
+                [
+                    anio,
+                    mes_inicio,
+                    mes_fin,
+                    provincia or '',
+                    distrito or '',
+                    red or '',
+                    microredes or '',
+                    establecimiento or '',
+                    cumple or ''
+                ]
+            )
+            
+            columns = [desc[0] for desc in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+    except Exception as e:
+        print(f"Error: {e}")
+        return []

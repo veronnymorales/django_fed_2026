@@ -127,29 +127,6 @@
 </div>
 <!-- /.content-header -->
 
-<!-- Modal para Seguimiento Nominal -->
-<div class="modal fade" id="modalSeguimientoNominal">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title"><i class="fas fa-user-check"></i> SEGUIMIENTO NOMINAL</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                {% include "s11_captacion_gestante/_seguimiento_nominal_s11_captacion_gestante.html" %}
-            </div>
-            <div class="modal-footer right">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-        <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-</div>
-
-
 
 
 <!-- Main content -->
@@ -260,6 +237,29 @@
 
     </div>
 </section>
+
+
+<!-- Modal para Seguimiento Nominal -->
+<div class="modal fade" id="modalSeguimientoNominal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><i class="fas fa-user-check"></i>SEGUIMIENTO NOMINAL CAPTACION DE LA GESTANTE</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                {% include "s11_captacion_gestante/_seguimiento_nominal_s11_captacion_gestante.html" %}
+            </div>
+            <div class="modal-footer right">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
 
 
 <script>
