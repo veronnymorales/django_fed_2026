@@ -10,7 +10,9 @@ from .views import (
     p_microredes_s11_captacion_gestante,
     p_microredes_establec_s11_captacion_gestante,
     p_establecimientos_s11_captacion_gestante,
-    RptCaptacionGestante
+    RptCaptacionGestante,
+    RptCaptacionGestanteMicroRed,
+    RptCaptacionGestanteEstablec
 )
 
 urlpatterns = [
@@ -41,7 +43,7 @@ urlpatterns = [
          p_microredes_s11_captacion_gestante, 
          name='p_microredes_s11_captacion_gestante'),
     path('rpt_s11_captacion_gestante_microred_excel/', 
-         RptCaptacionGestante.as_view(), 
+         RptCaptacionGestanteMicroRed.as_view(), 
          name='rpt_s11_captacion_gestante_microred_xls'),
     
     # ESTABLECIMIENTOS
@@ -57,7 +59,7 @@ urlpatterns = [
     
     # REPORTE EXCEL
     path('rpt_s11_captacion_gestante_establec_excel/', 
-         RptCaptacionGestante.as_view(), 
+         RptCaptacionGestanteEstablec.as_view(), 
          name='rpt_s11_captacion_gestante_establecimiento_xls'),
     
     

@@ -1338,17 +1338,25 @@ class RptCaptacionGestanteMicroRed(BaseExcelReportView):
     
     def get_query_params(self, request):
         return {
-            'departamento': 'JUNIN',
+            'anio': request.GET.get('anio', '2025'),
+            'mes_inicio': request.GET.get('fecha_inicio', ''),
+            'mes_fin': request.GET.get('fecha_fin', ''),
+           # 'provincia': request.GET.get('provincia', ''),
+           # 'distrito': request.GET.get('distrito', ''),
             'red': request.GET.get('red', ''),
-            'microred': request.GET.get('microredes', ''),
-            'edades': request.GET.get('edades', ''),
+            'microredes': request.GET.get('p_microredes', ''),
+           # 'establecimiento': request.GET.get('p_establecimiento', ''),
             'cumple': request.GET.get('cumple', ''),
         }
     
     def get_data(self, params):
         return obtener_seguimiento_s11_captacion_gestante(
-            params['departamento'], params['red'], params['microred'],
-            params['edades'], params['cumple']
+            params['anio'], params['mes_inicio'], params['mes_fin'],
+            '',  # provincia (vacío para microred)
+            '',  # distrito (vacío para microred)
+            params['red'],params['microredes'], 
+              '',  # establecimiento (vacío para microred)
+            params['cumple']
         )
 
 
@@ -1360,19 +1368,22 @@ class RptCaptacionGestanteEstablec(BaseExcelReportView):
     
     def get_query_params(self, request):
         return {
-            'departamento': 'JUNIN',
+            'anio': request.GET.get('anio', '2025'),
+            'mes_inicio': request.GET.get('fecha_inicio', ''),
+            'mes_fin': request.GET.get('fecha_fin', ''),
+            'provincia': request.GET.get('provincia', ''),
+            'distrito': request.GET.get('distrito', ''),
             'red': request.GET.get('red', ''),
-            'microred': request.GET.get('p_microredes_establec', ''),
-            'establecimiento': request.GET.get('p_establecimiento', ''),
-            'mes': request.GET.get('mes', ''),
-            'edades': request.GET.get('edades', ''),
+            'microredes': request.GET.get('microred', ''),
+            'establecimiento': request.GET.get('establecimiento', ''),
             'cumple': request.GET.get('cumple', ''),
         }
     
     def get_data(self, params):
         return obtener_seguimiento_s11_captacion_gestante(
-            params['departamento'], params['establecimiento'],
-            params['edades'], params['cumple']
+            params['anio'], params['mes_inicio'], params['mes_fin'],
+            params['provincia'], params['distrito'], params['red'],
+            params['microredes'], params['establecimiento'], params['cumple']
         )
 
 
