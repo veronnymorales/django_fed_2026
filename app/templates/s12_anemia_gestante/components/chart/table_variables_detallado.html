@@ -153,6 +153,8 @@
             <th>MicroRed</th>
             <th>Establecimiento</th>
             <th>Den</th>
+            <th class="text-center">Num</th>
+            <th class="text-center">Avance %</th>
             <th class="text-center">1° Entrega</th>
             <th class="text-center">1E %</th>
             <th class="text-center">2° Entrega</th>
@@ -186,22 +188,24 @@
         LOW: 20, // < 20% = Verde (mejor)
         HIGH: 50, // >= 50% = Rojo, entre 20-50 = Naranja
       },
-      // Índices de columnas
+      // Índices de columnas (actualizados con nueva columna Numerador)
       COLUMNS: {
         RED: 0,
         MICRORED: 1,
         ESTABLECIMIENTO: 2,
         DENOMINADOR: 3,
-        NUM_1T: 4,
-        PCT_1T: 5,
-        NUM_2T: 6,
-        PCT_2T: 7,
-        NUM_3T: 8,
-        PCT_3T: 9,
-        AVG_1T_NUM: 10, // Valor numérico del porcentaje 1T
-        RED_AVG_NUM: 11, // Promedio de RED para ordenamiento
-        DEN_RAW: 12, // Denominador raw para cálculos
-        NUM_1T_RAW: 13, // Numerador 1T raw para cálculos
+        NUMERADOR: 4,
+        PCT_AVANCE: 5, // Porcentaje numerador/denominador (para ranking)
+        NUM_1E: 6,
+        PCT_1E: 7,
+        NUM_2E: 8,
+        PCT_2E: 9,
+        NUM_3E: 10,
+        PCT_3E: 11,
+        AVANCE_NUM: 12, // Valor numérico del porcentaje avance (oculto)
+        RED_AVG_NUM: 13, // Promedio de RED para ordenamiento
+        DEN_RAW: 14, // Denominador raw para cálculos
+        NUM_RAW: 15, // Numerador raw para cálculos
       },
     };
 
@@ -294,8 +298,8 @@
     }
 
     /**
-     * Aplica colores SOLO TEXTO según el porcentaje (para 2T % y 3T %)
-     * LÓGICA INVERSA: Menor porcentaje = Verde (mejor)
+     * Aplica colores SOLO TEXTO según el porcentaje
+     * Misma lógica que fondo: Mayor porcentaje = Verde (mejor)
      * @param {HTMLElement} td - Celda de la tabla
      * @param {string} cellData - Valor de la celda
      */
@@ -306,13 +310,13 @@
       const $td = $(td);
       $td.removeClass("percent-text-low percent-text-medium percent-text-high");
 
-      // Lógica inversa: menor es mejor
-      if (percentValue < CONFIG.THRESHOLD_TEXT.LOW) {
-        $td.addClass("percent-text-high"); // Verde
-      } else if (percentValue < CONFIG.THRESHOLD_TEXT.HIGH) {
+      // Misma lógica que fondo: mayor es mejor
+      if (percentValue < CONFIG.THRESHOLD_BG.LOW) {
+        $td.addClass("percent-text-low"); // Rojo
+      } else if (percentValue < CONFIG.THRESHOLD_BG.HIGH) {
         $td.addClass("percent-text-medium"); // Naranja
       } else {
-        $td.addClass("percent-text-low"); // Rojo
+        $td.addClass("percent-text-high"); // Verde
       }
     }
 
@@ -333,8 +337,15 @@
       for (let i = 0; i < dataLength; i++) {
         if (!data.d_anio[i]) continue;
 
+        // Filtrar solo establecimientos que tienen datos en denominador
+        const denominadorValue = toNumber(safeGet(data.d_den_variable, i, 0));
+        if (denominadorValue <= 0) {
+          continue;
+        }
+
         // Obtener valores numéricos raw
         const denominador = toNumber(safeGet(data.d_den_variable, i, 0));
+        const numerador = toNumber(safeGet(data.d_num_variable, i, 0));
         const d_num_hb2_trat2 = toNumber(safeGet(data.d_num_hb2_trat2, i, 0));
         const d_num_hb3_trat3 = toNumber(safeGet(data.d_num_hb3_trat3, i, 0));
         const d_num_hb3_trat4 = toNumber(safeGet(data.d_num_hb3_trat4, i, 0));
@@ -342,6 +353,7 @@
         // ═══════════════════════════════════════════════════════════
         // CÁLCULO DE PORCENTAJES: (numerador / denominador) * 100
         // ═══════════════════════════════════════════════════════════
+        const d_avance_numerador = calcularPorcentaje(numerador, denominador);
         const d_avance_hb2_trat2 = calcularPorcentaje(
           d_num_hb2_trat2,
           denominador
@@ -360,16 +372,18 @@
           safeGet(data.d_microred, i), // 1: MicroRed
           safeGet(data.d_nombre_establecimiento, i), // 2: Establecimiento
           denominador, // 3: Denominador
-          d_num_hb2_trat2, // 4: Num 1° Trim
-          formatPercent(d_avance_hb2_trat2), // 5: 1T % (string formateado)
-          d_num_hb3_trat3, // 6: Num 2° Trim
-          formatPercent(d_avance_hb3_trat3), // 7: 2T % (string formateado)
-          d_num_hb3_trat4, // 8: Num 3° Trim
-          formatPercent(d_avance_hb3_trat4), // 9: 3T % (string formateado)
-          d_avance_hb2_trat2, // 10: Valor numérico 1T% (oculto)
-          0, // 11: Promedio RED (se llenará después)
-          denominador, // 12: Denominador raw (oculto)
-          d_num_hb2_trat2, // 13: Num 1T raw (oculto)
+          numerador, // 4: Numerador
+          formatPercent(d_avance_numerador), // 5: Avance % (numerador/denominador)
+          d_num_hb2_trat2, // 6: Num 1° Entrega
+          formatPercent(d_avance_hb2_trat2), // 7: 1E % (string formateado)
+          d_num_hb3_trat3, // 8: Num 2° Entrega
+          formatPercent(d_avance_hb3_trat3), // 9: 2E % (string formateado)
+          d_num_hb3_trat4, // 10: Num 3° Entrega
+          formatPercent(d_avance_hb3_trat4), // 11: 3E % (string formateado)
+          d_avance_numerador, // 12: Valor numérico del Avance % (oculto, para ranking)
+          0, // 13: Promedio RED (se llenará después)
+          denominador, // 14: Denominador raw (oculto)
+          numerador, // 15: Numerador raw (oculto)
         ]);
       }
 
@@ -377,8 +391,8 @@
     }
 
     /**
-     * Calcula los promedios de 1T% por RED usando suma de numeradores / suma de denominadores
-     * FÓRMULA: (Σ num_1trim de RED / Σ denominador de RED) * 100
+     * Calcula los promedios de avance por RED
+     * FÓRMULA: (Σ numerador de RED / Σ denominador de RED) * 100
      * @param {Array} tableData - Datos de la tabla
      * @returns {Object} - Objeto con estadísticas por RED
      */
@@ -389,7 +403,7 @@
       tableData.forEach((row) => {
         const red = row[CONFIG.COLUMNS.RED];
         const denominador = row[CONFIG.COLUMNS.DEN_RAW];
-        const numerador = row[CONFIG.COLUMNS.NUM_1T_RAW];
+        const numerador = row[CONFIG.COLUMNS.NUM_RAW];
 
         if (!redStats[red]) {
           redStats[red] = {
@@ -421,13 +435,13 @@
         row[CONFIG.COLUMNS.RED_AVG_NUM] = redStats[red].avgPercent;
       });
 
-      console.log("📊 Estadísticas por RED calculadas:");
+      console.log("📊 Estadísticas por RED (Avance Num/Den):");
       Object.keys(redStats).forEach((red) => {
         const s = redStats[red];
         console.log(
           `   RED "${red}": Σnum=${s.sumNumerador}, Σden=${
             s.sumDenominador
-          }, %=${s.avgPercent.toFixed(2)}%`
+          }, Avance=${s.avgPercent.toFixed(2)}%`
         );
       });
 
@@ -435,7 +449,7 @@
     }
 
     /**
-     * Ordena los datos por promedio de RED (desc) y luego por 1T% individual (desc)
+     * Ordena los datos por promedio de RED (desc) y luego por porcentaje de avance individual (desc)
      * @param {Array} tableData - Datos de la tabla
      * @returns {Array} - Datos ordenados
      */
@@ -447,8 +461,8 @@
         if (Math.abs(redAvgDiff) > 0.001) {
           return redAvgDiff;
         }
-        // Luego ordenar por 1T% individual (descendente)
-        return b[CONFIG.COLUMNS.AVG_1T_NUM] - a[CONFIG.COLUMNS.AVG_1T_NUM];
+        // Luego ordenar por porcentaje de avance individual (descendente)
+        return b[CONFIG.COLUMNS.AVANCE_NUM] - a[CONFIG.COLUMNS.AVANCE_NUM];
       });
     }
 
@@ -496,7 +510,7 @@
 
           <!-- Barra de progreso con porcentaje calculado -->
           <div class="d-flex align-items-center" style="width: 350px;">
-            <small class="text-dark mr-2 text-nowrap"><strong>Promedio 1T:</strong></small>
+            <small class="text-dark mr-2 text-nowrap"><strong>Avance Ind:</strong></small>
             <div class="progress flex-fill mx-2" style="height: 22px; background-color: rgba(0,0,0,0.1);">
               <div 
                 class="progress-bar ${progressColor}"
@@ -532,31 +546,38 @@
         { title: "MicroRed" }, // 1
         { title: "Establecimiento" }, // 2
         { title: "Den", className: "number-cell" }, // 3
-        { title: "1° Entrega al mes", className: "number-cell" }, // 4
+        { title: "Num", className: "number-cell" }, // 4
         {
           // 5
-          title: "1°E %",
+          title: "Avance %",
           className: "percent-cell",
           createdCell: applyPercentColorWithBackground,
         },
-        { title: "2° Entrega", className: "number-cell" }, // 6
+        { title: "1° Entrega", className: "number-cell" }, // 6
         {
           // 7
+          title: "1°E %",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        },
+        { title: "2° Entrega", className: "number-cell" }, // 8
+        {
+          // 9
           title: "2°E %",
           className: "percent-cell",
           createdCell: applyPercentColorTextOnly,
         },
-        { title: "3° Entrega", className: "number-cell" }, // 8
+        { title: "3° Entrega", className: "number-cell" }, // 10
         {
-          // 9
+          // 11
           title: "3°E %",
           className: "percent-cell",
           createdCell: applyPercentColorTextOnly,
         },
-        { title: "Avg1T_Num", visible: false, searchable: false }, // 10
-        { title: "RedAvg_Num", visible: false, searchable: false }, // 11
-        { title: "Den_Raw", visible: false, searchable: false }, // 12
-        { title: "Num1T_Raw", visible: false, searchable: false }, // 13
+        { title: "Avance_Num", visible: false, searchable: false }, // 12
+        { title: "RedAvg_Num", visible: false, searchable: false }, // 13
+        { title: "Den_Raw", visible: false, searchable: false }, // 14
+        { title: "Num_Raw", visible: false, searchable: false }, // 15
       ];
     }
 

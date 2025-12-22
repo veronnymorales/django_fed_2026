@@ -367,6 +367,7 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
         'd_nombre_establecimiento': [],
         'd_ubigueo_establecimiento': [],
         'd_den_variable': [],
+        'd_num_variable': [],
         'd_num_hb2_trat2': [],
         'd_avance_hb2_trat2': [],
         'd_num_hb3_trat3': [],
@@ -377,7 +378,7 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
     for index, row in enumerate(resultados_variables_detallado_s12_anemia_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento','d_den_variable',
+            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento','d_den_variable','d_num_variable',
             'd_num_hb2_trat2','d_avance_hb2_trat2','d_num_hb3_trat3','d_avance_hb3_trat3','d_num_hb3_trat4','d_avance_hb3_trat4'}
             
             if not required_keys.issubset(row.keys()):
@@ -395,6 +396,7 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
             d_nombre_establecimiento = row['d_nombre_establecimiento']
             d_ubigueo_establecimiento = row['d_ubigueo_establecimiento']
             d_den_variable = row['d_den_variable']
+            d_num_variable = row['d_num_variable']
             d_num_hb2_trat2 = row['d_num_hb2_trat2']
             d_avance_hb2_trat2 = row['d_avance_hb2_trat2']
             d_num_hb3_trat3 = row['d_num_hb3_trat3']
@@ -414,6 +416,7 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
             data['d_nombre_establecimiento'].append(d_nombre_establecimiento)
             data['d_ubigueo_establecimiento'].append(d_ubigueo_establecimiento)
             data['d_den_variable'].append(d_den_variable)
+            data['d_num_variable'].append(d_num_variable)
             data['d_num_hb2_trat2'].append(d_num_hb2_trat2)
             data['d_avance_hb2_trat2'].append(d_avance_hb2_trat2)
             data['d_num_hb3_trat3'].append(d_num_hb3_trat3)

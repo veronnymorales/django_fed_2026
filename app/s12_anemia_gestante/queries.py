@@ -384,7 +384,7 @@ def obtener_variables_detallado_s12_anemia_gestante(
             if rows:
                 resultados = []
                 for row in rows:
-                    if len(row) >= 17:
+                    if len(row) >= 18:
                         resultados.append({
                             'd_anio': str(row[0]) if row[0] is not None else '',
                             'd_mes': str(row[1]) if row[1] is not None else '',
@@ -397,15 +397,16 @@ def obtener_variables_detallado_s12_anemia_gestante(
                             'd_nombre_establecimiento': str(row[8]) if row[8] is not None else '',
                             'd_ubigueo_establecimiento': str(row[9]) if row[9] is not None else '',
                             'd_den_variable': int(row[10]) if row[10] is not None else 0,
-                            'd_num_hb2_trat2': int(row[11]) if row[11] is not None else 0,
-                            'd_avance_hb2_trat2': float(row[12]) if row[12] is not None else 0.0,
-                            'd_num_hb3_trat3': int(row[13]) if row[13] is not None else 0,
-                            'd_avance_hb3_trat3': float(row[14]) if row[14] is not None else 0.0,
-                            'd_num_hb3_trat4': int(row[15]) if row[15] is not None else 0,
-                            'd_avance_hb3_trat4': float(row[16]) if row[16] is not None else 0.0,
+                            'd_num_variable': int(row[11]) if row[11] is not None else 0,
+                            'd_num_hb2_trat2': int(row[12]) if row[12] is not None else 0,
+                            'd_avance_hb2_trat2': float(row[13]) if row[13] is not None else 0.0,
+                            'd_num_hb3_trat3': int(row[14]) if row[14] is not None else 0,
+                            'd_avance_hb3_trat3': float(row[15]) if row[15] is not None else 0.0,
+                            'd_num_hb3_trat4': int(row[16]) if row[16] is not None else 0,
+                            'd_avance_hb3_trat4': float(row[17]) if row[17] is not None else 0.0,
                         })
                     else:
-                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 17, omitiendo...")
+                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 18, omitiendo...")
                 
                 if resultados:
                     logger.info(f"Se obtuvieron {len(resultados)} establecimientos para variables detallado")
