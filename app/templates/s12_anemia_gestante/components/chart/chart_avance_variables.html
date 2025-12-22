@@ -2,7 +2,7 @@
   <div class="card-header">
     <h3 class="card-title">
       <i class="fas fa-female mr-1"></i>
-      N° GESTANTES CON 1RA APN
+      Adherencia al Tratamiento con Hierro
     </h3>
     <div class="card-tools">
       <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -101,32 +101,32 @@
       // Logs detallados de los datos recibidos
       console.log("🔍 Valores brutos recibidos:");
       console.log(
-        "  - num_1trim:",
-        data.num_1trim,
+        "  - num_hb2_trat2:",
+        data.num_hb2_trat2,
         "tipo:",
-        typeof data.num_1trim,
+        typeof data.num_hb2_trat2,
         "es array:",
-        Array.isArray(data.num_1trim)
+        Array.isArray(data.num_hb2_trat2)
       );
       console.log(
-        "  - num_2trim:",
-        data.num_2trim,
+        "  - num_hb3_trat3:",
+        data.num_hb3_trat3,
         "tipo:",
-        typeof data.num_2trim,
+        typeof data.num_hb3_trat3,
         "es array:",
-        Array.isArray(data.num_2trim)
+        Array.isArray(data.num_hb3_trat3)
       );
       console.log(
-        "  - num_3trim:",
-        data.num_3trim,
+        "  - num_hb3_trat4:",
+        data.num_hb3_trat4,
         "tipo:",
-        typeof data.num_3trim,
+        typeof data.num_hb3_trat4,
         "es array:",
-        Array.isArray(data.num_3trim)
+        Array.isArray(data.num_hb3_trat4)
       );
-      console.log("  - avance_1trim:", data.avance_1trim);
-      console.log("  - avance_2trim:", data.avance_2trim);
-      console.log("  - avance_3trim:", data.avance_3trim);
+      console.log("  - avance_hb2_trat2:", data.avance_hb2_trat2);
+      console.log("  - avance_hb3_trat3:", data.avance_hb3_trat3);
+      console.log("  - avance_hb3_trat4:", data.avance_hb3_trat4);
 
       const extractValue = (rawValue) => {
         if (rawValue == null) return 0;
@@ -139,24 +139,24 @@
       const indicatorGroups = {
         trimestre: [
           {
-            title: "1° TRIM",
-            avance_key: "avance_1trim",
-            num_key: "num_1trim",
+            title: "Al mes",
+            avance_key: "avance_hb2_trat2",
+            num_key: "num_hb2_trat2",
           },
           {
-            title: "2° TRIM",
-            avance_key: "avance_2trim",
-            num_key: "num_2trim",
+            title: "A los 2 meses",
+            avance_key: "avance_hb3_trat3",
+            num_key: "num_hb3_trat3",
           },
           {
-            title: "3° TRIM",
-            avance_key: "avance_3trim",
-            num_key: "num_3trim",
+            title: "A los 3 meses",
+            avance_key: "avance_hb3_trat4",
+            num_key: "num_hb3_trat4",
           },
         ],
       };
 
-      const specialColor = "#505372";
+      const specialColor = "#5070dd";
 
       for (const group in indicatorGroups) {
         const labels = indicatorGroups[group].map((item) => item.title);

@@ -114,7 +114,7 @@
   <div class="card-header">
     <h3 class="card-title">
       <i class="fas fa-layer-group mr-2"></i>
-      RANKING POR ESTABLECIMIENTO
+      RANKING POR RED / MICRORED / ESTABLECIMIENTO
     </h3>
 
     <div class="card-tools">
@@ -153,12 +153,12 @@
             <th>MicroRed</th>
             <th>Establecimiento</th>
             <th>Den</th>
-            <th class="text-center">1° Trim</th>
-            <th class="text-center">1T %</th>
-            <th class="text-center">2° Trim</th>
-            <th class="text-center">2T %</th>
-            <th class="text-center">3° Trim</th>
-            <th class="text-center">3T %</th>
+            <th class="text-center">1° Entrega</th>
+            <th class="text-center">1E %</th>
+            <th class="text-center">2° Entrega</th>
+            <th class="text-center">2E %</th>
+            <th class="text-center">3° Entrega</th>
+            <th class="text-center">3E %</th>
           </tr>
         </thead>
         <tbody id="tabla-body"></tbody>
@@ -335,32 +335,41 @@
 
         // Obtener valores numéricos raw
         const denominador = toNumber(safeGet(data.d_den_variable, i, 0));
-        const num1trim = toNumber(safeGet(data.d_num_1trim, i, 0));
-        const num2trim = toNumber(safeGet(data.d_num_2trim, i, 0));
-        const num3trim = toNumber(safeGet(data.d_num_3trim, i, 0));
+        const d_num_hb2_trat2 = toNumber(safeGet(data.d_num_hb2_trat2, i, 0));
+        const d_num_hb3_trat3 = toNumber(safeGet(data.d_num_hb3_trat3, i, 0));
+        const d_num_hb3_trat4 = toNumber(safeGet(data.d_num_hb3_trat4, i, 0));
 
         // ═══════════════════════════════════════════════════════════
         // CÁLCULO DE PORCENTAJES: (numerador / denominador) * 100
         // ═══════════════════════════════════════════════════════════
-        const avance1trim = calcularPorcentaje(num1trim, denominador);
-        const avance2trim = calcularPorcentaje(num2trim, denominador);
-        const avance3trim = calcularPorcentaje(num3trim, denominador);
+        const d_avance_hb2_trat2 = calcularPorcentaje(
+          d_num_hb2_trat2,
+          denominador
+        );
+        const d_avance_hb3_trat3 = calcularPorcentaje(
+          d_num_hb3_trat3,
+          denominador
+        );
+        const d_avance_hb3_trat4 = calcularPorcentaje(
+          d_num_hb3_trat4,
+          denominador
+        );
 
         tableData.push([
           safeGet(data.d_red, i), // 0: Red
           safeGet(data.d_microred, i), // 1: MicroRed
           safeGet(data.d_nombre_establecimiento, i), // 2: Establecimiento
           denominador, // 3: Denominador
-          num1trim, // 4: Num 1° Trim
-          formatPercent(avance1trim), // 5: 1T % (string formateado)
-          num2trim, // 6: Num 2° Trim
-          formatPercent(avance2trim), // 7: 2T % (string formateado)
-          num3trim, // 8: Num 3° Trim
-          formatPercent(avance3trim), // 9: 3T % (string formateado)
-          avance1trim, // 10: Valor numérico 1T% (oculto)
+          d_num_hb2_trat2, // 4: Num 1° Trim
+          formatPercent(d_avance_hb2_trat2), // 5: 1T % (string formateado)
+          d_num_hb3_trat3, // 6: Num 2° Trim
+          formatPercent(d_avance_hb3_trat3), // 7: 2T % (string formateado)
+          d_num_hb3_trat4, // 8: Num 3° Trim
+          formatPercent(d_avance_hb3_trat4), // 9: 3T % (string formateado)
+          d_avance_hb2_trat2, // 10: Valor numérico 1T% (oculto)
           0, // 11: Promedio RED (se llenará después)
           denominador, // 12: Denominador raw (oculto)
-          num1trim, // 13: Num 1T raw (oculto)
+          d_num_hb2_trat2, // 13: Num 1T raw (oculto)
         ]);
       }
 
@@ -523,24 +532,24 @@
         { title: "MicroRed" }, // 1
         { title: "Establecimiento" }, // 2
         { title: "Den", className: "number-cell" }, // 3
-        { title: "1° Trim", className: "number-cell" }, // 4
+        { title: "1° Entrega al mes", className: "number-cell" }, // 4
         {
           // 5
-          title: "1T %",
+          title: "1°E %",
           className: "percent-cell",
           createdCell: applyPercentColorWithBackground,
         },
-        { title: "2° Trim", className: "number-cell" }, // 6
+        { title: "2° Entrega", className: "number-cell" }, // 6
         {
           // 7
-          title: "2T %",
+          title: "2°E %",
           className: "percent-cell",
           createdCell: applyPercentColorTextOnly,
         },
-        { title: "3° Trim", className: "number-cell" }, // 8
+        { title: "3° Entrega", className: "number-cell" }, // 8
         {
           // 9
-          title: "3T %",
+          title: "3°E %",
           className: "percent-cell",
           createdCell: applyPercentColorTextOnly,
         },
@@ -681,11 +690,11 @@
         console.log("🔍 Muestra de datos (primer registro):", {
           red: data.d_red?.[0],
           denominador: data.d_den_variable?.[0],
-          num_1trim: data.d_num_1trim?.[0],
-          calculo_manual: `(${data.d_num_1trim?.[0]} / ${
+          num_1trim: data.d_num_hb2_trat2?.[0],
+          calculo_manual: `(${data.d_num_hb2_trat2?.[0]} / ${
             data.d_den_variable?.[0]
           }) * 100 = ${(
-            (data.d_num_1trim?.[0] / data.d_den_variable?.[0]) *
+            (data.d_num_hb2_trat2?.[0] / data.d_den_variable?.[0]) *
             100
           ).toFixed(2)}%`,
         });

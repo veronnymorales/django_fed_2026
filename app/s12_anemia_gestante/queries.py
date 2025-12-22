@@ -297,7 +297,7 @@ def obtener_variables_s12_anemia_gestante(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_obtener_variables', [
+            cursor.callproc('fn_obtener_variables_s12_anemia_gestante', [
                 anio,
                 mes_inicio,
                 mes_fin,
@@ -314,12 +314,12 @@ def obtener_variables_s12_anemia_gestante(
             if row and len(row) >= 7:
                 return [{
                     'den_variable': int(row[0]) if row[0] is not None else 0,
-                    'num_1trim': int(row[1]) if row[1] is not None else 0,
-                    'avance_1trim': float(row[2]) if row[2] is not None else 0.0,
-                    'num_2trim': int(row[3]) if row[3] is not None else 0,
-                    'avance_2trim': float(row[4]) if row[4] is not None else 0.0,
-                    'num_3trim': int(row[5]) if row[5] is not None else 0,
-                    'avance_3trim': float(row[6]) if row[6] is not None else 0.0
+                    'num_hb2_trat2': int(row[1]) if row[1] is not None else 0,
+                    'avance_hb2_trat2': float(row[2]) if row[2] is not None else 0.0,
+                    'num_hb3_trat3': int(row[3]) if row[3] is not None else 0,
+                    'avance_hb3_trat3': float(row[4]) if row[4] is not None else 0.0,
+                    'num_hb3_trat4': int(row[5]) if row[5] is not None else 0,
+                    'avance_hb3_trat4': float(row[6]) if row[6] is not None else 0.0
                 }]
             else:
                 # Sin datos en la tabla o número incorrecto de columnas
@@ -367,7 +367,7 @@ def obtener_variables_detallado_s12_anemia_gestante(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_obtener_variables_detallado', [
+            cursor.callproc('fn_obtener_variables_detallado_s12_anemia_gestante', [
                 anio,
                 mes_inicio,
                 mes_fin,
@@ -397,12 +397,12 @@ def obtener_variables_detallado_s12_anemia_gestante(
                             'd_nombre_establecimiento': str(row[8]) if row[8] is not None else '',
                             'd_ubigueo_establecimiento': str(row[9]) if row[9] is not None else '',
                             'd_den_variable': int(row[10]) if row[10] is not None else 0,
-                            'd_num_1trim': int(row[11]) if row[11] is not None else 0,
-                            'd_avance_1trim': float(row[12]) if row[12] is not None else 0.0,
-                            'd_num_2trim': int(row[13]) if row[13] is not None else 0,
-                            'd_avance_2trim': float(row[14]) if row[14] is not None else 0.0,
-                            'd_num_3trim': int(row[15]) if row[15] is not None else 0,
-                            'd_avance_3trim': float(row[16]) if row[16] is not None else 0.0
+                            'd_num_hb2_trat2': int(row[11]) if row[11] is not None else 0,
+                            'd_avance_hb2_trat2': float(row[12]) if row[12] is not None else 0.0,
+                            'd_num_hb3_trat3': int(row[13]) if row[13] is not None else 0,
+                            'd_avance_hb3_trat3': float(row[14]) if row[14] is not None else 0.0,
+                            'd_num_hb3_trat4': int(row[15]) if row[15] is not None else 0,
+                            'd_avance_hb3_trat4': float(row[16]) if row[16] is not None else 0.0,
                         })
                     else:
                         logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 17, omitiendo...")

@@ -314,38 +314,38 @@ def process_variables_s12_anemia_gestante(resultados_variables_s12_anemia_gestan
     """Procesa los resultados de las variables"""
     data = {
         'den_variable': [],
-        'num_1trim': [],
-        'avance_1trim': [],
-        'num_2trim': [],
-        'avance_2trim': [],
-        'num_3trim': [],
-        'avance_3trim': []
+        'num_hb2_trat2': [],
+        'avance_hb2_trat2': [],
+        'num_hb3_trat3': [],
+        'avance_hb3_trat3': [],
+        'num_hb3_trat4': [],
+        'avance_hb3_trat4': []
     }
     for index, row in enumerate(resultados_variables_s12_anemia_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'den_variable','num_1trim','avance_1trim','num_2trim','avance_2trim','num_3trim','avance_3trim'}
+            required_keys = {'den_variable','num_hb2_trat2','avance_hb2_trat2','num_hb3_trat3','avance_hb3_trat3','num_hb3_trat4','avance_hb3_trat4'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
             
             # Extrae los valores
             den_variable = row['den_variable']
-            num_1trim = row['num_1trim']
-            avance_1trim = row['avance_1trim']
-            num_2trim = row['num_2trim']
-            avance_2trim = row['avance_2trim']
-            num_3trim = row['num_3trim']
-            avance_3trim = row['avance_3trim']
+            num_hb2_trat2 = row['num_hb2_trat2']
+            avance_hb2_trat2 = row['avance_hb2_trat2']
+            num_hb3_trat3 = row['num_hb3_trat3']
+            avance_hb3_trat3 = row['avance_hb3_trat3']
+            num_hb3_trat4 = row['num_hb3_trat4']
+            avance_hb3_trat4 = row['avance_hb3_trat4']
             
             # Agrega los valores a la lista
             data['den_variable'].append(den_variable)
-            data['num_1trim'].append(num_1trim)
-            data['avance_1trim'].append(avance_1trim)
-            data['num_2trim'].append(num_2trim)
-            data['avance_2trim'].append(avance_2trim)
-            data['num_3trim'].append(num_3trim)
-            data['avance_3trim'].append(avance_3trim)
+            data['num_hb2_trat2'].append(num_hb2_trat2)
+            data['avance_hb2_trat2'].append(avance_hb2_trat2)
+            data['num_hb3_trat3'].append(num_hb3_trat3)
+            data['avance_hb3_trat3'].append(avance_hb3_trat3)
+            data['num_hb3_trat4'].append(num_hb3_trat4)
+            data['avance_hb3_trat4'].append(avance_hb3_trat4)
             
         except KeyError as e:
             logger.error(f"Error procesando la fila {index}: {str(e)}")
@@ -367,17 +367,18 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
         'd_nombre_establecimiento': [],
         'd_ubigueo_establecimiento': [],
         'd_den_variable': [],
-        'd_num_1trim': [],
-        'd_avance_1trim': [],
-        'd_num_2trim': [],
-        'd_avance_2trim': [],
-        'd_num_3trim': [],
-        'd_avance_3trim': []
+        'd_num_hb2_trat2': [],
+        'd_avance_hb2_trat2': [],
+        'd_num_hb3_trat3': [],
+        'd_avance_hb3_trat3': [],
+        'd_num_hb3_trat4': [],
+        'd_avance_hb3_trat4': []
     }
     for index, row in enumerate(resultados_variables_detallado_s12_anemia_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento','d_den_variable','d_num_1trim','d_avance_1trim','d_num_2trim','d_avance_2trim','d_num_3trim','d_avance_3trim'}
+            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento','d_den_variable',
+            'd_num_hb2_trat2','d_avance_hb2_trat2','d_num_hb3_trat3','d_avance_hb3_trat3','d_num_hb3_trat4','d_avance_hb3_trat4'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
@@ -394,12 +395,12 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
             d_nombre_establecimiento = row['d_nombre_establecimiento']
             d_ubigueo_establecimiento = row['d_ubigueo_establecimiento']
             d_den_variable = row['d_den_variable']
-            d_num_1trim = row['d_num_1trim']
-            d_avance_1trim = row['d_avance_1trim']
-            d_num_2trim = row['d_num_2trim']
-            d_avance_2trim = row['d_avance_2trim']
-            d_num_3trim = row['d_num_3trim']
-            d_avance_3trim = row['d_avance_3trim']
+            d_num_hb2_trat2 = row['d_num_hb2_trat2']
+            d_avance_hb2_trat2 = row['d_avance_hb2_trat2']
+            d_num_hb3_trat3 = row['d_num_hb3_trat3']
+            d_avance_hb3_trat3 = row['d_avance_hb3_trat3']
+            d_num_hb3_trat4 = row['d_num_hb3_trat4']
+            d_avance_hb3_trat4 = row['d_avance_hb3_trat4']
             
             # Agrega los valores a la lista CON PREFIJO
             data['d_anio'].append(d_anio)
@@ -413,12 +414,12 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
             data['d_nombre_establecimiento'].append(d_nombre_establecimiento)
             data['d_ubigueo_establecimiento'].append(d_ubigueo_establecimiento)
             data['d_den_variable'].append(d_den_variable)
-            data['d_num_1trim'].append(d_num_1trim)
-            data['d_avance_1trim'].append(d_avance_1trim)
-            data['d_num_2trim'].append(d_num_2trim)
-            data['d_avance_2trim'].append(d_avance_2trim)
-            data['d_num_3trim'].append(d_num_3trim)
-            data['d_avance_3trim'].append(d_avance_3trim)
+            data['d_num_hb2_trat2'].append(d_num_hb2_trat2)
+            data['d_avance_hb2_trat2'].append(d_avance_hb2_trat2)
+            data['d_num_hb3_trat3'].append(d_num_hb3_trat3)
+            data['d_avance_hb3_trat3'].append(d_avance_hb3_trat3)
+            data['d_num_hb3_trat4'].append(d_num_hb3_trat4)
+            data['d_avance_hb3_trat4'].append(d_avance_hb3_trat4)
             
         except KeyError as e:
             logger.error(f"Error procesando la fila {index}: {str(e)}")
