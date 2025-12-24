@@ -457,7 +457,7 @@ def obtener_grafico_por_redes_s12_anemia_gestante(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_grafico_redes', [
+            cursor.callproc('fn_grafico_redes_S12_gestante_anemia', [
                 anio,
                 mes_inicio,
                 mes_fin,
@@ -534,7 +534,7 @@ def obtener_grafico_por_microredes_s12_anemia_gestante(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_grafico_microredes', [
+            cursor.callproc('fn_grafico_microredes_s12_anemia_gestante', [
                 anio,
                 mes_inicio,
                 mes_fin,
@@ -611,7 +611,7 @@ def obtener_grafico_por_establecimientos_s12_anemia_gestante(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_grafico_establecimientos', [
+            cursor.callproc('fn_grafico_establecimientos_s12_anemia_gestante', [
                 anio,
                 mes_inicio,
                 mes_fin,
@@ -679,7 +679,7 @@ def obtener_seguimiento_s12_anemia_gestante(
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT * FROM fn_seg_captacion_gestante(
+                SELECT * FROM fn_seg_anemia_gestante(
                     %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
                 """,

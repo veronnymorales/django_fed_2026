@@ -1178,41 +1178,63 @@ COLORS = {
 
 # Anchos de columnas
 COLUMN_WIDTHS = {
-    'A': 1, 'B': 9, 'C': 20, 'D': 9, 'E': 10, 'F': 10, 'G': 10, 'H': 10,
-    'I': 10, 'J': 5, 'K': 20, 'L': 5, 'M':25, 'N': 9, 'O': 28,
+    'A': 1, 'B': 9, 'C': 20, 'D': 9, 'E': 10, 'F': 6, 'G': 10, 'H': 6,
+    'I': 6, 'J': 6, 'K': 10, 'L': 10, 'M':10, 'N': 9, 'O': 9, 'AE':20, 'AG':20, 'AI':20
 }
 
 # Alturas de filas
-ROW_HEIGHTS = {1: 14, 2: 14, 3: 12, 4: 25, 5: 18, 6: 12, 7: 30, 8: 30}
+ROW_HEIGHTS = {1: 14, 2: 14, 3: 12, 4: 25, 5: 27, 6: 39, 7: 30, 8: 30}
 
 # Configuración de cabeceras
 HEADERS_CONFIG = [
     ('B9', 'NUM DOC', 'cyan'),
     ('C9', 'NOMBRE', 'cyan'),
-    ('D9', '1° APN', 'cyan'),
-    ('E9', '1 TRIM', 'green'),
-    ('F9', '2 TRIM', 'green_2'),
-    ('G9', '3 TRIM', 'yellow'),
-    ('H9', 'IND','blue'),
-    ('I9', 'MES','blue'),
-    ('J9', 'COD RED', 'orange'),
-    ('K9', 'RED', 'orange'),
-    ('L9', 'COD MICRO', 'orange'),
-    ('M9', 'MICRORED',  'orange'),
-    ('N9', 'COD EESS', 'orange'),
-    ('O9', 'ESTABLECIMIENTO', 'orange')
+    ('D9', 'PARTO', 'cyan'),
+    ('E9', 'CODIGO', 'cyan'),
+    ('F9', 'ENTR', 'cyan'),
+    ('G9', 'APN', 'cyan'),
+    ('H9', 'DEN APN','cyan'),
+    ('I9', '1° HB','cyan'),
+    ('J9', 'VAL','cyan'),
+    ('K9', 'DX','cyan'),
+    ('L9', 'TRAT','cyan'),        
+    ('M9', 'DEN','blue'),  
+    ('N9', '2° HB','blue'),
+    ('O9', 'VAL','blue'),  
+    ('P9', 'IND','blue'),
+    ('Q9', '2° TRAT','blue'),
+    ('R9', 'IND','blue'),
+    ('S9', '2° HB + TRAT','blue'),
+    ('T9', '3° HB','blue'),
+    ('U9', 'VAL','blue'),
+    ('V9', 'IND','blue'),
+    ('W9', '3° TRAT','blue'),
+    ('X9', 'IND','blue'),
+    ('Y9', '3° HB + TRAT','blue'),
+    ('Z9', '4° TRAT','blue'),
+    ('AA9', 'IND 4°','blue'),
+    ('AB9', 'IND','blue'),
+    ('AC9', 'MES','blue'),
+    ('AD9', 'COD RED', 'orange'),
+    ('AE9', 'RED', 'orange'),
+    ('AF9', 'COD MICRO', 'orange'),
+    ('AG9', 'MICRORED',  'orange'),
+    ('AH9', 'COD EESS', 'orange'),
+    ('AI9', 'ESTABLECIMIENTO', 'orange')
 ]
 
 # Celdas combinadas
 MERGE_CELLS_CONFIG = [
     # Fila 5
-    ('B5', 'D5'), ('E5', 'O5'),
+    ('B5', 'M5'), ('N5', 'AA5'),
     # Fila 6
-    ('B6', 'O6'), 
+    ('B6', 'M6'), ('N6', 'S6'),('T6','Y6'),('Z6','AA6'), 
     # Fila 7
-    ('B7', 'D7'),('H7','O7'),
+    ('B7', 'D7'),('E7','H7'),('I7','J7'),('N7','P7'),('Q7','R7'),('T7','V7'),('W7','X7'),
     # Fila 8
-    ('C8','D8'),('H8','O8')
+    ('B8','D8'),('E8','H8'),('I8','J8'),('N8','P8'),('Q8','R8'),('T8','V8'),('W8','X8'),
+    # Columnas 
+    ('M7','M8'),('S7','S8'),('Y7','Y8'),('AA7','AA8')
 ]
 
 # ============================================================================
@@ -1307,7 +1329,7 @@ class BaseExcelReportView(LoginRequiredMixin, View):
 # VISTAS DE REPORTES
 # ============================================================================
 
-class RptCaptacionGestante(BaseExcelReportView):
+class RptAnemiaGestante(BaseExcelReportView):
     """Reporte de captación de gestantes."""
     
     filename = "rpt_s12_anemia_gestante.xlsx"
@@ -1334,7 +1356,7 @@ class RptCaptacionGestante(BaseExcelReportView):
         )
 
 
-class RptCaptacionGestanteMicroRed(BaseExcelReportView):
+class RptAnemiaGestanteMicroRed(BaseExcelReportView):
     """Reporte de población por microred."""
     
     filename = "rpt_s12_anemia_gestante_microred.xlsx"
@@ -1364,7 +1386,7 @@ class RptCaptacionGestanteMicroRed(BaseExcelReportView):
         )
 
 
-class RptCaptacionGestanteEstablec(BaseExcelReportView):
+class RptAnemiaGestanteEstablec(BaseExcelReportView):
     """Reporte de población por establecimiento."""
     
     filename = "rpt_s12_anemia_gestante_establecimiento.xlsx"
@@ -1459,20 +1481,45 @@ def _style_header_sections(ws, style_mgr):
     border_negro = style_mgr.get_border('000000')
     
     # Configuración de secciones con sus textos y estilos
+    # NOTA: Solo incluir la celda INICIAL de cada rango combinado (MergedCell)
+    # Las celdas dentro de un rango combinado que no son la inicial son read-only
     sections_config = {
+        # Fila 5: B5:M5 y N5:AA5 son rangos combinados
         'B5': ('META (DENOMINADOR)', 'gray', 10, True),
-        'E5': ('AVANCE (NUMERADOR)', 'naranja_claro', 10, True),
-        'B6': ('INFORMACION DEL SISTEMA HIS MINSA', 'gray', 10, True),
-        'B7': ('1° APN en cualquier momento de la gestación, en el mes de medición', 'plomo_claro', 7, True),
-        'E7': ('1° APN en el primer trimestre', 'plomo_claro', 7, False),
-        'F7': ('1° APN en el segundo trimestre', 'plomo_claro', 7, False),
-        'G7': ('1° APN en el tercer trimestre', 'plomo_claro', 7, False),
-        'H7': ('INFORMACION TERRITORIAL', 'plomo_claro', 7, False),
+        'N5': ('Gestantes del denominador que recibien al menos tres (03) entregas de tratamiento de hierro más ácido fólico,  y dos (02) dosajes de hemoglobina de control', 'naranja_claro', 10, True),
+        # Fila 6: B6:M6, N6:S6, T6:Y6, Z6:AA6 son rangos combinados
+        'B6': ('Gestantes atendidas en establecimientos de salud del primer nivel de atención, que cuentan con diagnóstico de anemia en cualquier momento de la gestación y primera entrega de tratamiento con  hierro, en el mes o meses previos al mes de medición', 'gray', 10, True),
+        'N6': ('Entrega al MES de iniciado el tratamiento', 'gray', 10, True),
+        'T6': ('Entrega a los 2 MESES de iniciado el tratamiento', 'gray', 10, True),
+        'Z6': ('Entrega a los 3 MESES', 'gray', 10, True),
+        # Fila 7: B7:D7, E7:H7, I7:J7, N7:P7, Q7:R7, T7:V7, W7:X7 son rangos combinados
+        # NOTA: K7, L7 NO están combinadas (son celdas individuales)
+        'B7': ('Gestantes atendidas en establecimientos de salud del primer nivel de atención', 'plomo_claro', 7, True),
+        'E7': ('En cualquier momento de la gestación, en establecimientos de salud', 'plomo_claro', 7, False),
+        'I7': ('Cuentan con dosaje de hemoglobina', 'plomo_claro', 7, False),
+        'K7': ('Cuentan Dx Anemia', 'plomo_claro', 7, False),
+        'L7': ('Cuentan con inicio de Tratamiento', 'plomo_claro', 7, False),  # M7 no está combinada
+        'M7': ('Denominador', 'plomo_claro', 7, False),
+        'N7': ('Cuentan con 2° dosaje de hemoglobina', 'plomo_claro', 7, False),
+        'Q7': ('Cuentan con 2° entrega de hierro', 'plomo_claro', 7, False),
+        'S7': ('Cuentan con 2° Dosaje y 2° entrega de hierro (tratamiento)', 'plomo_claro', 7, False),
+        'T7': ('Cuentan con 3° dosaje hemoglobina', 'plomo_claro', 7, False),
+        'W7': ('Cuentan con 3° entrega de hierro', 'plomo_claro', 7, False),
+        'Y7': ('Cuentan con 3° Dosaje y 3° entrega de hierro (tratamiento)', 'plomo_claro', 7, False),
+        'Z7': ('Cuentan con 4° entrega de hierro', 'plomo_claro', 7, False),
+        'AA7': ('Cuentan con 3° Dosaje y 4° entrega de hierro (tratamiento)', 'plomo_claro', 7, False),  # Z7 no está combinada
+        # Fila 8: B8:D8, E8:H8, I8:J8, N8:P8, Q8:R8, T8:V8, W8:X8 son rangos combinados
+        # NOTA: K8, L8, M8, S8, Y8, Z8, AA8 NO están combinadas
         'B8': ('COD HIS', 'azul_claro', 7, True),
-        'C8': ('DX = Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
-        'E8': ('DX = Z3491 ó Z3591 + LAB=1', 'azul_claro', 7, False),      
-        'F8': ('DX = Z3492 ó Z3592 + LAB=1', 'azul_claro', 7, False),
-        'G8': ('DX = Z3493 ó Z3593 + LAB=1', 'azul_claro', 7, False),
+        'E8': ('DX = Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
+        'I8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),      
+        'K8': ('DX=O990 ó D509', 'azul_claro', 7, False),
+        'L8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'N8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),
+        'Q8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'T8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),
+        'W8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'Z8': ('DX = 99199.26', 'azul_claro', 7, False),
     }
     
     for cell_ref, (text, fill_color, font_size, bold) in sections_config.items():
@@ -1484,7 +1531,7 @@ def _style_header_sections(ws, style_mgr):
         cell.border = border_negro
     
     # Aplicar bordes a las filas de cabecera
-    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'O', border_negro)
+    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'AA', border_negro)
 
 
 def _apply_row_borders(ws, rows, start_col, end_col, border):
@@ -1559,11 +1606,11 @@ def _write_data(ws, results, style_mgr):
     x_mark = '✗'
     
     # Columnas con alineación izquierda
-    left_align_cols = {3, 13, 15}
+    left_align_cols = {31, 33, 35}
     # Columnas con check/x marks
-    check_cols = {6, 7}
+    check_cols = {8, 9,11,12,16,18,22,24}
     # Columnas de sub-indicadores
-    sub_indicator_cols = {5}
+    sub_indicator_cols = {13,19,25,27}
     
     for row_idx, record in enumerate(results, start=10):
         for col_idx, value in enumerate(record.values(), start=2):
@@ -1577,7 +1624,7 @@ def _write_data(ws, results, style_mgr):
                 cell.alignment = style_mgr.get_alignment()
             
             # Aplicar formato según columna
-            if col_idx == 8:  # Columna INDICADOR
+            if col_idx == 28:  # Columna INDICADOR
                 _format_indicator_cell(cell, value, style_mgr)
             elif col_idx in check_cols:
                 _format_check_cell(cell, value, check_mark, x_mark, style_mgr)
@@ -1622,6 +1669,6 @@ def _format_sub_indicator_cell(cell, value, style_mgr):
     elif value == 1:
         cell.value = 'CUMPLE'
         cell.font = style_mgr.get_font(size=7, color='00B050')
-        cell.fill = style_mgr.get_fill('gray')
+        cell.fill = style_mgr.get_fill('gray')  
     else:
         cell.font = style_mgr.get_font(size=7)

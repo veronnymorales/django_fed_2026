@@ -10,9 +10,9 @@ from .views import (
     p_microredes_s12_anemia_gestante,
     p_microredes_establec_s12_anemia_gestante,
     p_establecimientos_s12_anemia_gestante,
-    RptCaptacionGestante,
-    RptCaptacionGestanteMicroRed,
-    RptCaptacionGestanteEstablec
+    RptAnemiaGestante,
+    RptAnemiaGestanteMicroRed,
+    RptAnemiaGestanteEstablec
 )
 
 urlpatterns = [
@@ -32,7 +32,7 @@ urlpatterns = [
          get_redes_s12_anemia_gestante, 
          name='get_redes_s12_anemia_gestante'),
     path('rpt_s12_anemia_gestante_red_excel/', 
-         RptCaptacionGestante.as_view(), 
+         RptAnemiaGestante.as_view(), 
          name='rpt_s12_anemia_gestante_red_xls'),
     
     # MICROREDES
@@ -43,7 +43,7 @@ urlpatterns = [
          p_microredes_s12_anemia_gestante, 
          name='p_microredes_s12_anemia_gestante'),
     path('rpt_s12_anemia_gestante_microred_excel/', 
-         RptCaptacionGestanteMicroRed.as_view(), 
+         RptAnemiaGestanteMicroRed.as_view(), 
          name='rpt_s12_anemia_gestante_microred_xls'),
     
     # ESTABLECIMIENTOS
@@ -59,7 +59,7 @@ urlpatterns = [
     
     # REPORTE EXCEL
     path('rpt_s12_anemia_gestante_establec_excel/', 
-         RptCaptacionGestanteEstablec.as_view(), 
+         RptAnemiaGestanteEstablec.as_view(), 
          name='rpt_s12_anemia_gestante_establecimiento_xls'),
     
     
