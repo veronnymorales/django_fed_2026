@@ -1,0 +1,252 @@
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-female mr-1"></i>
+      ESQUEMA DE SUPLEMENTACIÓN Y DOSAJES DE HB
+    </h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="chart-trimestre" style="min-height: 250px"></div>
+  </div>
+</div>
+
+<script>
+  window.renderChartAvanceVariables = function (data, params) {
+    if (typeof echarts === "undefined") {
+      console.error("ECharts no está cargado.");
+      return;
+    }
+
+    const chartDOMElements = {
+      trimestre: document.getElementById("chart-trimestre"),
+    };
+
+    const charts = {};
+
+    function createOrUpdateChart(chartKey, labels, chartData) {
+      const chartDOMElement = chartDOMElements[chartKey];
+      if (!chartDOMElement) return;
+
+      let chartInstance = echarts.getInstanceByDom(chartDOMElement);
+      if (chartInstance) {
+        chartInstance.dispose();
+      }
+      chartInstance = echarts.init(chartDOMElement);
+      charts[chartKey] = chartInstance;
+
+      const option = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          formatter: function (params) {
+            const dataItem = params[0].data;
+            return `Alcanzado: ${
+              dataItem.numerator
+            }<br/>Avance: ${dataItem.value.toFixed(1)}%`;
+          },
+        },
+        toolbox: { feature: { saveAsImage: {} } },
+        xAxis: {
+          type: "category",
+          data: labels,
+          axisLabel: { rotate: 45, fontSize: 8 },
+        },
+        yAxis: {
+          type: "value",
+          max: 100,
+          axisLabel: { formatter: "{value}%", fontSize: 8 },
+        },
+        series: [
+          {
+            name: "Avance",
+            type: "bar",
+            data: chartData,
+            itemStyle: { color: "#5070dd" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: function (params) {
+                return params.data.numerator;
+              },
+              fontSize: 8,
+              color: "black",
+              fontWeight: "bold",
+            },
+            markLine: {
+              symbol: "none",
+              lineStyle: { type: "dashed", color: "red" },
+              data: [{ yAxis: 75, name: "M" }],
+              label: {
+                show: true,
+                formatter: `M: 75%`,
+                position: "end",
+                offset: [0, -14],
+                textStyle: { fontSize: 8 },
+              },
+            },
+          },
+        ],
+      };
+      chartInstance.setOption(option);
+    }
+
+    try {
+      console.log("📊 Datos recibidos en renderChartAvanceVariables:", data);
+
+      // Logs detallados de los datos recibidos
+      console.log("🔍 Valores brutos recibidos:");
+      console.log(
+        "  - num_suple1:",
+        data.num_suple1,
+        "tipo:",
+        typeof data.num_suple1,
+        "es array:",
+        Array.isArray(data.num_suple1)
+      );
+      console.log(
+        "  - num_suple2:",
+        data.num_suple2,
+        "tipo:",
+        typeof data.num_suple2,
+        "es array:",
+        Array.isArray(data.num_suple2)
+      );
+      console.log(
+        "  - num_suple3:",
+        data.num_suple3,
+        "tipo:",
+        typeof data.num_suple3,
+        "es array:",
+        Array.isArray(data.num_suple3)
+      );
+      console.log(
+        "  - num_suple4:",
+        data.num_suple4,
+        "tipo:",
+        typeof data.num_suple4,
+        "es array:",
+        Array.isArray(data.num_suple4)
+      );
+      console.log(
+        "  - num_suple5:",
+        data.num_suple5,
+        "tipo:",
+        typeof data.num_suple5,
+        "es array:",
+        Array.isArray(data.num_suple5)
+      );
+      console.log(
+        "  - num_hb2:",
+        data.num_hb2,
+        "tipo:",
+        typeof data.num_hb2,
+        "es array:",
+        Array.isArray(data.num_hb2)
+      );
+      console.log(
+        "  - num_hb3:",
+        data.num_hb3,
+        "tipo:",
+        typeof data.num_hb3,
+        "es array:",
+        Array.isArray(data.num_hb3)
+      );
+      console.log("  - avance_suple1:", data.avance_suple1);
+      console.log("  - avance_suple2:", data.avance_suple2);
+      console.log("  - avance_suple3:", data.avance_suple3);
+      console.log("  - avance_suple4:", data.avance_suple4);
+      console.log("  - avance_suple5:", data.avance_suple5);
+      console.log("  - avance_hb2:", data.avance_hb2);
+      console.log("  - avance_hb3:", data.avance_hb3);
+
+      const extractValue = (rawValue) => {
+        if (rawValue == null) return 0;
+        // Si es un array, tomar el primer elemento
+        const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+        const numValue = parseFloat(value) || 0;
+        return numValue;
+      };
+
+      const indicatorGroups = {
+        trimestre: [
+          {
+            title: "1° suple",
+            avance_key: "avance_suple1",
+            num_key: "num_suple1",
+          },
+          {
+            title: "2° suple",
+            avance_key: "avance_suple2",
+            num_key: "num_suple2",
+          },
+          {
+            title: "3° suple",
+            avance_key: "avance_suple3",
+            num_key: "num_suple3",
+          },
+          {
+            title: "4° suple",
+            avance_key: "avance_suple4",
+            num_key: "num_suple4",
+          },
+          {
+            title: "5° suple",
+            avance_key: "avance_suple5",
+            num_key: "num_suple5",
+          },
+          {
+            title: "2° HB",
+            avance_key: "avance_hb2",
+            num_key: "num_hb2",
+          },
+          {
+            title: "3° HB",
+            avance_key: "avance_hb3",
+            num_key: "num_hb3",
+          },
+        ],
+      };
+
+      const specialColor = "#5070dd";
+
+      for (const group in indicatorGroups) {
+        const labels = indicatorGroups[group].map((item) => item.title);
+        const chartData = indicatorGroups[group].map((item, index) => {
+          const value = extractValue(data[item.avance_key]);
+          const numerator = extractValue(data[item.num_key]);
+
+          console.log(
+            `📈 ${item.title}: numerador=${numerator}, avance=${value}%`
+          );
+
+          const dataItem = { value: value, numerator: numerator };
+          if (index === 0) {
+            dataItem.itemStyle = { color: specialColor };
+          }
+          if (item.title === "2° HB" || item.title === "3° HB") {
+            dataItem.itemStyle = { color: "#0ca8df" };
+          }
+          return dataItem;
+        });
+
+        console.log("✅ Datos del gráfico procesados:", chartData);
+        createOrUpdateChart(group, labels, chartData);
+      }
+    } catch (error) {
+      console.error("❌ Error al renderizar los gráficos de variables:", error);
+    }
+
+    window.addEventListener("resize", function () {
+      for (const key in charts) {
+        if (charts[key]) {
+          charts[key].resize();
+        }
+      }
+    });
+  };
+</script>

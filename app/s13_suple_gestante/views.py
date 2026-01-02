@@ -33,9 +33,9 @@ import getpass
 
 # Local imports
 from base.models import MAESTRO_HIS_ESTABLECIMIENTO, DimPeriodo, Actualizacion
-from .queries import obtener_velocimetro_s12_anemia_gestante, obtener_grafico_mensual_s12_anemia_gestante, obtener_variables_s12_anemia_gestante, obtener_variables_detallado_s12_anemia_gestante, obtener_grafico_por_redes_s12_anemia_gestante
-from .queries import obtener_grafico_por_microredes_s12_anemia_gestante, obtener_grafico_por_establecimientos_s12_anemia_gestante
-from .queries import obtener_seguimiento_s12_anemia_gestante
+from .queries import obtener_velocimetro_s13_suple_gestante, obtener_grafico_mensual_s13_suple_gestante, obtener_variables_s13_suple_gestante, obtener_variables_detallado_s13_suple_gestante, obtener_grafico_por_redes_s13_suple_gestante
+from .queries import obtener_grafico_por_microredes_s13_suple_gestante, obtener_grafico_por_establecimientos_s13_suple_gestante
+from .queries import obtener_seguimiento_s13_suple_gestante
 
 # Initialize logger and user model
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ def _get_provincias_queryset():
 ## PROCESOS DE COMPONENTES Y GRAFICOS 
 ######################################
 ## VELOCIMETRO
-def process_velocimetro_s12_anemia_gestante(resultados_velocimetro_s12_anemia_gestante: List[Dict]) -> Dict[str, List]:
+def process_velocimetro_s13_suple_gestante(resultados_velocimetro_s13_suple_gestante: List[Dict]) -> Dict[str, List]:
     """
     Procesa los resultados del velocímetro para el formato del frontend.
     Args:
@@ -114,12 +114,12 @@ def process_velocimetro_s12_anemia_gestante(resultados_velocimetro_s12_anemia_ge
         Diccionario con listas de numerador, denominador y avance
     """
     # Validar entrada
-    if not resultados_velocimetro_s12_anemia_gestante or len(resultados_velocimetro_s12_anemia_gestante) == 0:
+    if not resultados_velocimetro_s13_suple_gestante or len(resultados_velocimetro_s13_suple_gestante) == 0:
         logger.warning("Sin datos de velocímetro, usando valores por defecto")
         return _get_default_velocimetro_data()
     
     # Procesar el primer (y único) registro
-    row = resultados_velocimetro_s12_anemia_gestante[0]
+    row = resultados_velocimetro_s13_suple_gestante[0]
     
     try:
         numerador, denominador, avance = _extract_velocimetro_values(row)
@@ -137,11 +137,11 @@ def process_velocimetro_s12_anemia_gestante(resultados_velocimetro_s12_anemia_ge
         return _get_default_velocimetro_data()
 
 ## RESUMEN NUMERADOR Y DENOMINADOR 
-def obtener_resumen_indicador_s12_anemia_gestante(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia=None, distrito=None):
+def obtener_resumen_indicador_s13_suple_gestante(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia=None, distrito=None):
     """
     Obtiene un resumen detallado del indicador 
     """
-    datos_base = obtener_velocimetro_s12_anemia_gestante(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia, distrito)
+    datos_base = obtener_velocimetro_s13_suple_gestante(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia, distrito)
     
     if not datos_base:
         return None
@@ -183,7 +183,7 @@ def obtener_resumen_indicador_s12_anemia_gestante(anio, mes_inicio, mes_fin, red
     return resumen
 
 ## GRAFICO MENSUALIZADO 
-def process_avance_mensual_s12_anemia_gestante(resultados_avance_mensual_s12_anemia_gestante: List[Dict]) -> Dict[str, List]:
+def process_avance_mensual_s13_suple_gestante(resultados_avance_mensual_s13_suple_gestante: List[Dict]) -> Dict[str, List]:
     """Procesa los resultados del graficos"""
     data = {
         'num_1': [],
@@ -223,7 +223,7 @@ def process_avance_mensual_s12_anemia_gestante(resultados_avance_mensual_s12_ane
         'den_12': [],
         'cob_12': [],
     }
-    for index, row in enumerate(resultados_avance_mensual_s12_anemia_gestante):
+    for index, row in enumerate(resultados_avance_mensual_s13_suple_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
             required_keys = {'num_1','den_1','cob_1','num_2','den_2','cob_2','num_3','den_3','cob_3','num_4','den_4','cob_4','num_5','den_5','cob_5','num_6','den_6','cob_6','num_7','den_7','cob_7','num_8','den_8','cob_8','num_9','den_9','cob_9','num_10','den_10','cob_10','num_11','den_11','cob_11','num_12','den_12','cob_12'}
@@ -310,49 +310,73 @@ def process_avance_mensual_s12_anemia_gestante(resultados_avance_mensual_s12_ane
     return data
 
 ## GRAFICO VARIABLES 
-def process_variables_s12_anemia_gestante(resultados_variables_s12_anemia_gestante: List[Dict]) -> Dict[str, List]:
+def process_variables_s13_suple_gestante(resultados_variables_s13_suple_gestante: List[Dict]) -> Dict[str, List]:
     """Procesa los resultados de las variables"""
     data = {
         'den_variable': [],
-        'num_hb2_trat2': [],
-        'avance_hb2_trat2': [],
-        'num_hb3_trat3': [],
-        'avance_hb3_trat3': [],
-        'num_hb3_trat4': [],
-        'avance_hb3_trat4': []
+        'num_suple1': [],
+        'avance_suple1': [],
+        'num_suple2': [],
+        'avance_suple2': [],
+        'num_suple3': [],
+        'avance_suple3': [],
+        'num_suple4': [],
+        'avance_suple4': [],
+        'num_suple5': [],
+        'avance_suple5': [],
+        'num_hb2': [],
+        'avance_hb2': [],
+        'num_hb3': [],
+        'avance_hb3': []
     }
-    for index, row in enumerate(resultados_variables_s12_anemia_gestante):
+    for index, row in enumerate(resultados_variables_s13_suple_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'den_variable','num_hb2_trat2','avance_hb2_trat2','num_hb3_trat3','avance_hb3_trat3','num_hb3_trat4','avance_hb3_trat4'}
+            required_keys = {'den_variable','num_suple1','avance_suple1','num_suple2','avance_suple2','num_suple3','avance_suple3','num_suple4','avance_suple4','num_suple5','avance_suple5','num_hb2','avance_hb2','num_hb3','avance_hb3'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
             
             # Extrae los valores
             den_variable = row['den_variable']
-            num_hb2_trat2 = row['num_hb2_trat2']
-            avance_hb2_trat2 = row['avance_hb2_trat2']
-            num_hb3_trat3 = row['num_hb3_trat3']
-            avance_hb3_trat3 = row['avance_hb3_trat3']
-            num_hb3_trat4 = row['num_hb3_trat4']
-            avance_hb3_trat4 = row['avance_hb3_trat4']
+            num_suple1 = row['num_suple1']
+            avance_suple1 = row['avance_suple1']
+            num_suple2 = row['num_suple2']
+            avance_suple2 = row['avance_suple2']
+            num_suple3 = row['num_suple3']
+            avance_suple3 = row['avance_suple3']
+            num_suple4 = row['num_suple4']
+            avance_suple4 = row['avance_suple4']
+            num_suple5 = row['num_suple5']
+            avance_suple5 = row['avance_suple5']
+            num_hb2 = row['num_hb2']
+            avance_hb2 = row['avance_hb2']
+            num_hb3 = row['num_hb3']
+            avance_hb3 = row['avance_hb3']
             
             # Agrega los valores a la lista
             data['den_variable'].append(den_variable)
-            data['num_hb2_trat2'].append(num_hb2_trat2)
-            data['avance_hb2_trat2'].append(avance_hb2_trat2)
-            data['num_hb3_trat3'].append(num_hb3_trat3)
-            data['avance_hb3_trat3'].append(avance_hb3_trat3)
-            data['num_hb3_trat4'].append(num_hb3_trat4)
-            data['avance_hb3_trat4'].append(avance_hb3_trat4)
+            data['num_suple1'].append(num_suple1)
+            data['avance_suple1'].append(avance_suple1)
+            data['num_suple2'].append(num_suple2)
+            data['avance_suple2'].append(avance_suple2)
+            data['num_suple3'].append(num_suple3)
+            data['avance_suple3'].append(avance_suple3)
+            data['num_suple4'].append(num_suple4)
+            data['avance_suple4'].append(avance_suple4)
+            data['num_suple5'].append(num_suple5)
+            data['avance_suple5'].append(avance_suple5)
+            data['num_hb2'].append(num_hb2)
+            data['avance_hb2'].append(avance_hb2)
+            data['num_hb3'].append(num_hb3)
+            data['avance_hb3'].append(avance_hb3)
             
         except KeyError as e:
             logger.error(f"Error procesando la fila {index}: {str(e)}")
     return data
 
 ## TABLLA VARIABLES DETALLADOS
-def process_variables_detallado_s12_anemia_gestante(resultados_variables_detallado_s12_anemia_gestante: List[Dict]) -> Dict[str, List]:
+def process_variables_detallado_s13_suple_gestante(resultados_variables_detallado_s13_suple_gestante: List[Dict]) -> Dict[str, List]:
     """Procesa los resultados de las variables detalladas
     NOTA: Usa prefijo 'detallado_' para las claves para NO sobrescribir los datos agregados"""
     data = {
@@ -368,18 +392,26 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
         'd_ubigueo_establecimiento': [],
         'd_den_variable': [],
         'd_num_variable': [],
-        'd_num_hb2_trat2': [],
-        'd_avance_hb2_trat2': [],
-        'd_num_hb3_trat3': [],
-        'd_avance_hb3_trat3': [],
-        'd_num_hb3_trat4': [],
-        'd_avance_hb3_trat4': []
+        'd_num_suple1': [],
+        'd_avance_suple1': [],
+        'd_num_suple2': [],
+        'd_avance_suple2': [],
+        'd_num_suple3': [],
+        'd_avance_suple3': [],
+        'd_num_suple4': [],
+        'd_avance_suple4': [],
+        'd_num_suple5': [],
+        'd_avance_suple5': [],
+        'd_num_hb2': [],
+        'd_avance_hb2': [],
+        'd_num_hb3': [],
+        'd_avance_hb3': []
     }
-    for index, row in enumerate(resultados_variables_detallado_s12_anemia_gestante):
+    for index, row in enumerate(resultados_variables_detallado_s13_suple_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
             required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento','d_den_variable','d_num_variable',
-            'd_num_hb2_trat2','d_avance_hb2_trat2','d_num_hb3_trat3','d_avance_hb3_trat3','d_num_hb3_trat4','d_avance_hb3_trat4'}
+            'd_num_suple1','d_avance_suple1','d_num_suple2','d_avance_suple2','d_num_suple3','d_avance_suple3','d_num_suple4','d_avance_suple4','d_num_suple5','d_avance_suple5','d_num_hb2','d_avance_hb2','d_num_hb3','d_avance_hb3'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
@@ -397,12 +429,20 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
             d_ubigueo_establecimiento = row['d_ubigueo_establecimiento']
             d_den_variable = row['d_den_variable']
             d_num_variable = row['d_num_variable']
-            d_num_hb2_trat2 = row['d_num_hb2_trat2']
-            d_avance_hb2_trat2 = row['d_avance_hb2_trat2']
-            d_num_hb3_trat3 = row['d_num_hb3_trat3']
-            d_avance_hb3_trat3 = row['d_avance_hb3_trat3']
-            d_num_hb3_trat4 = row['d_num_hb3_trat4']
-            d_avance_hb3_trat4 = row['d_avance_hb3_trat4']
+            d_num_suple1 = row['d_num_suple1']
+            d_avance_suple1 = row['d_avance_suple1']
+            d_num_suple2 = row['d_num_suple2']
+            d_avance_suple2 = row['d_avance_suple2']
+            d_num_suple3 = row['d_num_suple3']
+            d_avance_suple3 = row['d_avance_suple3']
+            d_num_suple4 = row['d_num_suple4']
+            d_avance_suple4 = row['d_avance_suple4']
+            d_num_suple5 = row['d_num_suple5']
+            d_avance_suple5 = row['d_avance_suple5']
+            d_num_hb2 = row['d_num_hb2']
+            d_avance_hb2 = row['d_avance_hb2']
+            d_num_hb3 = row['d_num_hb3']
+            d_avance_hb3 = row['d_avance_hb3']
             
             # Agrega los valores a la lista CON PREFIJO
             data['d_anio'].append(d_anio)
@@ -417,19 +457,27 @@ def process_variables_detallado_s12_anemia_gestante(resultados_variables_detalla
             data['d_ubigueo_establecimiento'].append(d_ubigueo_establecimiento)
             data['d_den_variable'].append(d_den_variable)
             data['d_num_variable'].append(d_num_variable)
-            data['d_num_hb2_trat2'].append(d_num_hb2_trat2)
-            data['d_avance_hb2_trat2'].append(d_avance_hb2_trat2)
-            data['d_num_hb3_trat3'].append(d_num_hb3_trat3)
-            data['d_avance_hb3_trat3'].append(d_avance_hb3_trat3)
-            data['d_num_hb3_trat4'].append(d_num_hb3_trat4)
-            data['d_avance_hb3_trat4'].append(d_avance_hb3_trat4)
+            data['d_num_suple1'].append(d_num_suple1)
+            data['d_avance_suple1'].append(d_avance_suple1)
+            data['d_num_suple2'].append(d_num_suple2)
+            data['d_avance_suple2'].append(d_avance_suple2)
+            data['d_num_suple3'].append(d_num_suple3)
+            data['d_avance_suple3'].append(d_avance_suple3)
+            data['d_num_suple4'].append(d_num_suple4)
+            data['d_avance_suple4'].append(d_avance_suple4)
+            data['d_num_suple5'].append(d_num_suple5)
+            data['d_avance_suple5'].append(d_avance_suple5)
+            data['d_num_hb2'].append(d_num_hb2)
+            data['d_avance_hb2'].append(d_avance_hb2)
+            data['d_num_hb3'].append(d_num_hb3)
+            data['d_avance_hb3'].append(d_avance_hb3)
             
         except KeyError as e:
             logger.error(f"Error procesando la fila {index}: {str(e)}")
     return data
 
 ## GRAFICO DE RANKING POR REDES
-def process_grafico_por_redes_s12_anemia_gestante(resultados_grafico_por_redes_s12_anemia_gestante: List[Dict]) -> Dict[str, List]:
+def process_grafico_por_redes_s13_suple_gestante(resultados_grafico_por_redes_s13_suple_gestante: List[Dict]) -> Dict[str, List]:
     """Procesa los resultados del graficos por redes"""
     data = {
             'red_r': [],
@@ -438,7 +486,7 @@ def process_grafico_por_redes_s12_anemia_gestante(resultados_grafico_por_redes_s
             'avance_r': [],
             'brecha_r': [],
     }   
-    for index, row in enumerate(resultados_grafico_por_redes_s12_anemia_gestante):
+    for index, row in enumerate(resultados_grafico_por_redes_s13_suple_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
             required_keys = {'red_r','den_r','num_r','avance_r','brecha_r'}
@@ -465,7 +513,7 @@ def process_grafico_por_redes_s12_anemia_gestante(resultados_grafico_por_redes_s
     return data
 
 ## GRAFICO DE RANKING POR MICROREDES
-def process_grafico_por_microredes_s12_anemia_gestante(resultados_grafico_por_microredes_s12_anemia_gestante: List[Dict]) -> Dict[str, List]:
+def process_grafico_por_microredes_s13_suple_gestante(resultados_grafico_por_microredes_s13_suple_gestante: List[Dict]) -> Dict[str, List]:
     """Procesa los resultados del graficos por microredes"""
     data = {
             'microred_mr': [],
@@ -474,7 +522,7 @@ def process_grafico_por_microredes_s12_anemia_gestante(resultados_grafico_por_mi
             'avance_mr': [],
             'brecha_mr': [],
     }   
-    for index, row in enumerate(resultados_grafico_por_microredes_s12_anemia_gestante):
+    for index, row in enumerate(resultados_grafico_por_microredes_s13_suple_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
             required_keys = {'microred_mr','den_mr','num_mr','avance_mr','brecha_mr'}
@@ -501,7 +549,7 @@ def process_grafico_por_microredes_s12_anemia_gestante(resultados_grafico_por_mi
     return data
 
 ## GRAFICO DE RANKING POR ESTABLECIMIENTOS
-def process_grafico_por_establecimientos_s12_anemia_gestante(resultados_grafico_por_establecimientos_s12_anemia_gestante: List[Dict]) -> Dict[str, List]:
+def process_grafico_por_establecimientos_s13_suple_gestante(resultados_grafico_por_establecimientos_s13_suple_gestante: List[Dict]) -> Dict[str, List]:
     """Procesa los resultados del graficos por establecimientos"""
     data = {
             'establecimiento_e': [],
@@ -510,7 +558,7 @@ def process_grafico_por_establecimientos_s12_anemia_gestante(resultados_grafico_
             'avance_e': [],
             'brecha_e': [],
     }   
-    for index, row in enumerate(resultados_grafico_por_establecimientos_s12_anemia_gestante):
+    for index, row in enumerate(resultados_grafico_por_establecimientos_s13_suple_gestante):
         try:
             # Verifica que el diccionario tenga las claves necesarias
             required_keys = {'establecimiento_e','den_e','num_e','avance_e','brecha_e'}
@@ -540,7 +588,7 @@ def process_grafico_por_establecimientos_s12_anemia_gestante(resultados_grafico_
 ## PANTALLA PRINCIPAL
 #######################
 
-def index_s12_anemia_gestante(request):
+def index_s13_suple_gestante(request):
     """
     Vista principal para la pantalla de captación de gestantes.
 
@@ -568,7 +616,7 @@ def index_s12_anemia_gestante(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         try:
             # Obtener datos del velocímetro con los filtros aplicados
-            resultados_velocimetro_s12_anemia_gestante = obtener_velocimetro_s12_anemia_gestante(
+            resultados_velocimetro_s13_suple_gestante = obtener_velocimetro_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,
                 mes_fin=mes_seleccionado_fin,
@@ -580,7 +628,7 @@ def index_s12_anemia_gestante(request):
             )
 
             # Obtener resumen del indicador
-            resumen_s12_anemia_gestante = obtener_resumen_indicador_s12_anemia_gestante(
+            resumen_s13_suple_gestante = obtener_resumen_indicador_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,
                 mes_fin=mes_seleccionado_fin,
@@ -591,7 +639,7 @@ def index_s12_anemia_gestante(request):
                 distrito=distrito_seleccionado
             )
 
-            resultados_grafico_mensual_s12_anemia_gestante = obtener_grafico_mensual_s12_anemia_gestante(
+            resultados_grafico_mensual_s13_suple_gestante = obtener_grafico_mensual_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,  # Siempre desde Enero,  # Usa el mes de inicio seleccionado
                 mes_fin=mes_seleccionado_fin,      # Usa el mes de fin seleccionado
@@ -604,7 +652,7 @@ def index_s12_anemia_gestante(request):
             
             # Obtener datos del grafico mensualizado - SIEMPRE todos los meses del año
             # Los filtros de mes NO afectan el gráfico mensual, solo el velocímetro y resumen
-            resultados_variables_s12_anemia_gestante = obtener_variables_s12_anemia_gestante(
+            resultados_variables_s13_suple_gestante = obtener_variables_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,
                 mes_fin=mes_seleccionado_fin, # Siempre hasta Diciembre
@@ -616,7 +664,7 @@ def index_s12_anemia_gestante(request):
             )
 
             # Obtener datos de variables por trimestre - RESPETA los filtros de mes
-            resultados_variables_detallado_s12_anemia_gestante = obtener_variables_detallado_s12_anemia_gestante(
+            resultados_variables_detallado_s13_suple_gestante = obtener_variables_detallado_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
                 mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
@@ -627,7 +675,7 @@ def index_s12_anemia_gestante(request):
                 distrito=distrito_seleccionado
             )
             
-            resultados_grafico_por_redes_s12_anemia_gestante = obtener_grafico_por_redes_s12_anemia_gestante(
+            resultados_grafico_por_redes_s13_suple_gestante = obtener_grafico_por_redes_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
                 mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
@@ -638,7 +686,7 @@ def index_s12_anemia_gestante(request):
                 distrito=distrito_seleccionado
             )
             
-            resultados_grafico_por_microredes_s12_anemia_gestante = obtener_grafico_por_microredes_s12_anemia_gestante(
+            resultados_grafico_por_microredes_s13_suple_gestante = obtener_grafico_por_microredes_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
                 mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
@@ -649,7 +697,7 @@ def index_s12_anemia_gestante(request):
                 distrito=distrito_seleccionado
             )
             
-            resultados_grafico_por_establecimientos_s12_anemia_gestante = obtener_grafico_por_establecimientos_s12_anemia_gestante(
+            resultados_grafico_por_establecimientos_s13_suple_gestante = obtener_grafico_por_establecimientos_s13_suple_gestante(
                 anio=anio,
                 mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
                 mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
@@ -662,24 +710,24 @@ def index_s12_anemia_gestante(request):
 
             # Procesar datos del velocímetro
             data = {
-               **process_velocimetro_s12_anemia_gestante(resultados_velocimetro_s12_anemia_gestante),
-               **process_avance_mensual_s12_anemia_gestante(resultados_grafico_mensual_s12_anemia_gestante),
-               **process_variables_s12_anemia_gestante(resultados_variables_s12_anemia_gestante),
-               **process_variables_detallado_s12_anemia_gestante(resultados_variables_detallado_s12_anemia_gestante),
-               **process_grafico_por_redes_s12_anemia_gestante(resultados_grafico_por_redes_s12_anemia_gestante),
-               **process_grafico_por_microredes_s12_anemia_gestante(resultados_grafico_por_microredes_s12_anemia_gestante),
-               **process_grafico_por_establecimientos_s12_anemia_gestante(resultados_grafico_por_establecimientos_s12_anemia_gestante)
+               **process_velocimetro_s13_suple_gestante(resultados_velocimetro_s13_suple_gestante),
+               **process_avance_mensual_s13_suple_gestante(resultados_grafico_mensual_s13_suple_gestante),
+               **process_variables_s13_suple_gestante(resultados_variables_s13_suple_gestante),
+               **process_variables_detallado_s13_suple_gestante(resultados_variables_detallado_s13_suple_gestante),
+               **process_grafico_por_redes_s13_suple_gestante(resultados_grafico_por_redes_s13_suple_gestante),
+               **process_grafico_por_microredes_s13_suple_gestante(resultados_grafico_por_microredes_s13_suple_gestante),
+               **process_grafico_por_establecimientos_s13_suple_gestante(resultados_grafico_por_establecimientos_s13_suple_gestante)
             }
 
             # Agregar datos del resumen a la respuesta
-            if resumen_s12_anemia_gestante:
-                data['r_numerador_resumen'] = resumen_s12_anemia_gestante['numerador']
-                data['r_denominador_resumen'] = resumen_s12_anemia_gestante['denominador']
-                data['r_avance_resumen'] = resumen_s12_anemia_gestante['avance']
-                data['r_brecha'] = resumen_s12_anemia_gestante['brecha']
-                data['r_clasificacion'] = resumen_s12_anemia_gestante['clasificacion']
-                data['r_color'] = resumen_s12_anemia_gestante['color']
-                data['r_icono'] = resumen_s12_anemia_gestante['icono']
+            if resumen_s13_suple_gestante:
+                data['r_numerador_resumen'] = resumen_s13_suple_gestante['numerador']
+                data['r_denominador_resumen'] = resumen_s13_suple_gestante['denominador']
+                data['r_avance_resumen'] = resumen_s13_suple_gestante['avance']
+                data['r_brecha'] = resumen_s13_suple_gestante['brecha']
+                data['r_clasificacion'] = resumen_s13_suple_gestante['clasificacion']
+                data['r_color'] = resumen_s13_suple_gestante['color']
+                data['r_icono'] = resumen_s13_suple_gestante['icono']
             
             return JsonResponse(data)
             
@@ -701,14 +749,14 @@ def index_s12_anemia_gestante(request):
         'redes_h': _get_redes_queryset(),
     }
     
-    return render(request, 's12_anemia_gestante/index_s12_anemia_gestante.html', context)
+    return render(request, 's13_suple_gestante/index_s13_suple_gestante.html', context)
 
 
 ############################
 ## FILTROS HORIZONTAL
 ############################
 
-def get_establecimientos_s12_anemia_gestante_h(request, establecimiento_id):
+def get_establecimientos_s13_suple_gestante_h(request, establecimiento_id):
     """
     Vista para renderizar la página de establecimientos con filtros horizontales.
     
@@ -725,10 +773,10 @@ def get_establecimientos_s12_anemia_gestante_h(request, establecimiento_id):
     # Obtener el contexto completo de filtros usando la función reutilizable
     context = build_filtro_context(anio='2024')
     
-    return render(request, 's12_anemia_gestante/establecimientos_h.html', context)
+    return render(request, 's13_suple_gestante/establecimientos_h.html', context)
 
 
-def p_microredes_establec_s12_anemia_gestante_h(request):
+def p_microredes_establec_s13_suple_gestante_h(request):
     """
     Vista parcial HTMX para cargar microredes según la red seleccionada.
     
@@ -750,10 +798,10 @@ def p_microredes_establec_s12_anemia_gestante_h(request):
         'is_htmx': True
     }
     
-    return render(request, 's12_anemia_gestante/partials/p_microredes_establec_h.html', context)
+    return render(request, 's13_suple_gestante/partials/p_microredes_establec_h.html', context)
 
 
-def p_establecimientos_s12_anemia_gestante_h(request):
+def p_establecimientos_s13_suple_gestante_h(request):
     """
     Vista parcial HTMX para cargar establecimientos según microred o red seleccionada.
     Args:
@@ -781,10 +829,10 @@ def p_establecimientos_s12_anemia_gestante_h(request):
         'establec': establecimientos_list
     }
     
-    return render(request, 's12_anemia_gestante/partials/p_establecimientos_h.html', context)
+    return render(request, 's13_suple_gestante/partials/p_establecimientos_h.html', context)
 
 
-def p_distritos_s12_anemia_gestante_h(request):
+def p_distritos_s13_suple_gestante_h(request):
     """
     Vista parcial HTMX para cargar distritos según la provincia seleccionada.
     
@@ -809,7 +857,7 @@ def p_distritos_s12_anemia_gestante_h(request):
         'provincias_h': provincias
     }
     
-    return render(request, 's12_anemia_gestante/partials/p_distritos.html', context)
+    return render(request, 's13_suple_gestante/partials/p_distritos.html', context)
 
 
 ###########################################
@@ -950,37 +998,37 @@ def _get_context_base_con_filtros(include_meses=True, anio_meses=None):
 # VISTAS PRINCIPALES - FORMULARIOS
 # ============================================
 
-def get_redes_s12_anemia_gestante(request, redes_id):
+def get_redes_s13_suple_gestante(request, redes_id):
     """
     Renderiza el formulario de reportes por REDES.
     """
     context = _get_context_base_con_filtros(include_meses=True)
-    return render(request, 's12_anemia_gestante/components/salud/redes.html', context)
+    return render(request, 's13_suple_gestante/components/salud/redes.html', context)
 
 
-def get_microredes_s12_anemia_gestante(request, microredes_id):
+def get_microredes_s13_suple_gestante(request, microredes_id):
     """
     Renderiza el formulario de reportes por MICROREDES.
     """
     context = _get_context_base_con_filtros(include_meses=True, anio_meses='2024')
-    return render(request, 's12_anemia_gestante/components/salud/microredes.html', context)
+    return render(request, 's13_suple_gestante/components/salud/microredes.html', context)
 
 
-def get_establecimientos_s12_anemia_gestante(request, establecimiento_id):
+def get_establecimientos_s13_suple_gestante(request, establecimiento_id):
     """Renderiza el formulario de reportes por ESTABLECIMIENTO."""
     context = {
         'redes': _get_redes_queryset(),
         'mes_inicio': _get_meses_queryset(),
         'mes_fin': _get_meses_queryset(),
     }
-    return render(request, 's12_anemia_gestante/components/salud/establecimientos.html', context)
+    return render(request, 's13_suple_gestante/components/salud/establecimientos.html', context)
 
 
 # ============================================
 # VISTAS PARTIALS - HTMX
 # ============================================
 
-def p_microredes_s12_anemia_gestante(request):
+def p_microredes_s13_suple_gestante(request):
     """
     Partial HTMX: Carga microredes según la red seleccionada.
     Usado en el formulario de MICROREDES (sin encadenamiento).
@@ -996,10 +1044,10 @@ def p_microredes_s12_anemia_gestante(request):
         'red': red,
     }
     
-    return render(request, 's12_anemia_gestante/partials/p_microredes.html', context)
+    return render(request, 's13_suple_gestante/partials/p_microredes.html', context)
 
 
-def p_microredes_establec_s12_anemia_gestante(request):
+def p_microredes_establec_s13_suple_gestante(request):
     """
     HTMX Partial: Carga microredes según la red seleccionada.
     Se encadena con el select de establecimientos.
@@ -1020,7 +1068,7 @@ def p_microredes_establec_s12_anemia_gestante(request):
         )
         print(f"[p_microredes_establec] Microredes encontradas: {len(microredes)}")
     
-    return render(request, 's12_anemia_gestante/partials/p_microredes_establec.html', {
+    return render(request, 's13_suple_gestante/partials/p_microredes_establec.html', {
         'microredes': microredes,
         'red': red,
     })
@@ -1028,7 +1076,7 @@ def p_microredes_establec_s12_anemia_gestante(request):
 # ============================================
 # PARTIAL: ESTABLECIMIENTOS
 # ============================================
-def p_establecimientos_s12_anemia_gestante(request):
+def p_establecimientos_s13_suple_gestante(request):
     """
     HTMX Partial: Carga establecimientos según la microred seleccionada.
     """
@@ -1053,7 +1101,7 @@ def p_establecimientos_s12_anemia_gestante(request):
         )
         print(f"[p_establecimientos] Establecimientos encontrados: {len(establecimientos)}")
     
-    return render(request, 's12_anemia_gestante/partials/p_establecimientos.html', {
+    return render(request, 's13_suple_gestante/partials/p_establecimientos.html', {
         'establecimientos': establecimientos,
     })
 ######################---------------------------
@@ -1061,7 +1109,7 @@ def p_establecimientos_s12_anemia_gestante(request):
 ######################-------------------------------
 
 ## SEGUIMIENTO POR PROVINCIA
-def get_provincias_s12_anemia_gestante(request, provincia_id):
+def get_provincias_s13_suple_gestante(request, provincia_id):
     provincias = (
                 MAESTRO_HIS_ESTABLECIMIENTO
                 .objects.filter(Descripcion_Sector='GOBIERNO REGIONAL')
@@ -1092,10 +1140,10 @@ def get_provincias_s12_anemia_gestante(request, provincia_id):
                 'mes_fin':mes_fin,
             }
     
-    return render(request, 's12_anemia_gestante/components/municipio/provincias.html', context)
+    return render(request, 's13_suple_gestante/components/municipio/provincias.html', context)
 
 ## SEGUIMIENTO POR DISTRITOS
-def get_distritos_s12_anemia_gestante(request, distrito_id):
+def get_distritos_s13_suple_gestante(request, distrito_id):
     provincias = (
                 MAESTRO_HIS_ESTABLECIMIENTO
                 .objects.filter(Descripcion_Sector='GOBIERNO REGIONAL')
@@ -1125,10 +1173,10 @@ def get_distritos_s12_anemia_gestante(request, distrito_id):
                 'mes_inicio':mes_inicio,
                 'mes_fin':mes_fin,
     }
-    return render(request, 's12_anemia_gestante/components/municipio/distritos.html', context)
+    return render(request, 's13_suple_gestante/components/municipio/distritos.html', context)
 
 
-def p_distrito_s12_anemia_gestante(request):
+def p_distrito_s13_suple_gestante(request):
     provincia_param = request.GET.get('provincia', '')
 
     # Filtra los establecimientos por sector "GOBIERNO REGIONAL"
@@ -1144,7 +1192,7 @@ def p_distrito_s12_anemia_gestante(request):
         'provincia': provincia_param,
         'distritos': distritos
     }
-    return render(request, 's12_anemia_gestante/partials/p_distritos.html', context)
+    return render(request, 's13_suple_gestante/partials/p_distritos.html', context)
 
 
 ########################################
@@ -1179,8 +1227,10 @@ COLORS = {
 
 # Anchos de columnas
 COLUMN_WIDTHS = {
-    'A': 1, 'B': 9, 'C': 20, 'D': 9, 'E': 10, 'F': 6, 'G': 10, 'H': 6,
-    'I': 6, 'J': 6, 'K': 10, 'L': 10, 'M':10, 'N': 9, 'O': 9, 'AE':20, 'AG':20, 'AI':20
+    'A': 1, 'B': 9, 'C': 20, 'D': 9, 'E': 5, 'F': 10, 'G': 10, 'H': 10,
+    'I': 6, 'J': 6, 'K': 10, 'L': 10, 'M':5, 'N': 10, 'O': 5, 'P': 10,'Q': 5,
+    'R': 10,'S': 5, 'T': 10, 'U':5, 'V':10, 'W':8, 'X':6, 'Y':10, 'Z':8,'AA':6, 
+    'AB':10, 'AC':5, 'AD':10, 'AE':20, 'AF':10,'AG':20, 'AH':10, 'AI':25
 }
 
 # Alturas de filas
@@ -1191,29 +1241,29 @@ HEADERS_CONFIG = [
     ('B9', 'NUM DOC', 'cyan'),
     ('C9', 'NOMBRE', 'cyan'),
     ('D9', 'PARTO', 'cyan'),
-    ('E9', 'CODIGO', 'cyan'),
-    ('F9', 'ENTR', 'cyan'),
-    ('G9', 'APN', 'cyan'),
-    ('H9', 'DAPN','cyan'),
-    ('I9', '1° HB','cyan'),
-    ('J9', 'VAL','cyan'),
-    ('K9', 'DX','cyan'),
-    ('L9', 'TRAT','cyan'),        
-    ('M9', 'DEN','blue'),  
-    ('N9', '2° HB','green'),
-    ('O9', 'VAL','green'),  
-    ('P9', 'IND','green'),
-    ('Q9', '2° TRAT','green'),
-    ('R9', 'IND','green'),
-    ('S9', '2° HB + TRAT','green'),
-    ('T9', '3° HB','dark_green'),
-    ('U9', 'VAL','dark_green'),
-    ('V9', 'IND','dark_green'),
-    ('W9', '3° TRAT','dark_green'),
+    ('E9', 'SEM', 'cyan'),
+    ('F9', 'INICIO GEST', 'cyan'),
+    ('G9', 'SEM 14', 'cyan'),
+    ('H9', '1° HB','cyan'),
+    ('I9', 'HB','cyan'),
+    ('J9', 'DX','cyan'),
+    ('K9', 'DEN','blue'),
+    ('L9', '1° SUP','green'),        
+    ('M9', '1°S','green'),  
+    ('N9', '2° SUP','green'),
+    ('O9', '2°S','green'),  
+    ('P9', '3° SUP','green'),
+    ('Q9', '3°S','green'),
+    ('R9', '4° SUP','green'),
+    ('S9', '4°S','green'),
+    ('T9', '5° SUP','green'),
+    ('U9', '5°S','green'),
+    ('V9', '2° HB','dark_green'),
+    ('W9', 'VAL','dark_green'),
     ('X9', 'IND','dark_green'),
-    ('Y9', '3° HB + TRAT','dark_green'),
-    ('Z9', '4° TRAT','yellow'),
-    ('AA9', 'IND 4°','yellow'),
+    ('Y9', '3° HB','yellow'),
+    ('Z9', 'VAL','yellow'),
+    ('AA9', 'IND','yellow'),
     ('AB9', 'IND','blue'),
     ('AC9', 'MES','blue'),
     ('AD9', 'COD RED', 'orange'),
@@ -1229,13 +1279,13 @@ MERGE_CELLS_CONFIG = [
     # Fila 5
     ('B5', 'M5'), ('N5', 'AA5'),
     # Fila 6
-    ('B6', 'M6'), ('N6', 'S6'),('T6','Y6'),('Z6','AA6'), 
+    ('B6', 'K6'), ('L6', 'U6'),('V6','AA6'), 
     # Fila 7
-    ('B7', 'D7'),('E7','H7'),('I7','J7'),('N7','P7'),('Q7','R7'),('T7','V7'),('W7','X7'),
+    ('B7','D7'),('E7','G7'),('H7','J7'),('L7','M7'),('N7','O7'),('P7','Q7'),('R7','S7'),('T7','U7'),('V7','X7'),('Y7','AA7'),
     # Fila 8
-    ('B8','D8'),('E8','H8'),('I8','J8'),('N8','P8'),('Q8','R8'),('T8','V8'),('W8','X8'),
+    ('B8','D8'),('E8','G8'),('H8','J8'),('L8','M8'),('N8','O8'),('P8','Q8'),('R8','S8'),('T8','U8'),('V8','X8'),('Y8','AA8'),
     # Columnas 
-    ('M7','M8'),('S7','S8'),('Y7','Y8'),('AA7','AA8')
+    #('M7','M8'),('S7','S8'),('Y7','Y8'),('AA7','AA8')
 ]
 
 # ============================================================================
@@ -1330,10 +1380,10 @@ class BaseExcelReportView(LoginRequiredMixin, View):
 # VISTAS DE REPORTES
 # ============================================================================
 
-class RptAnemiaGestante(BaseExcelReportView):
+class RptSupleGestante(BaseExcelReportView):
     """Reporte de captación de gestantes."""
     
-    filename = "rpt_s12_anemia_gestante.xlsx"
+    filename = "rpt_s13_suple_gestante.xlsx"
     sheet_name = "Seguimiento"
     
     def get_query_params(self, request):
@@ -1350,17 +1400,17 @@ class RptAnemiaGestante(BaseExcelReportView):
         }
     
     def get_data(self, params):
-        return obtener_seguimiento_s12_anemia_gestante(
+        return obtener_seguimiento_s13_suple_gestante(
             params['anio'], params['mes_inicio'], params['mes_fin'],
             params['provincia'], params['distrito'], params['red'],
             params['microredes'], params['establecimiento'], params['cumple']
         )
 
 
-class RptAnemiaGestanteMicroRed(BaseExcelReportView):
+class RptSupleGestanteMicroRed(BaseExcelReportView):
     """Reporte de población por microred."""
     
-    filename = "rpt_s12_anemia_gestante_microred.xlsx"
+    filename = "rpt_s13_suple_gestante_microred.xlsx"
     sheet_name = "Seguimiento"
     
     def get_query_params(self, request):
@@ -1377,7 +1427,7 @@ class RptAnemiaGestanteMicroRed(BaseExcelReportView):
         }
     
     def get_data(self, params):
-        return obtener_seguimiento_s12_anemia_gestante(
+        return obtener_seguimiento_s13_suple_gestante(
             params['anio'], params['mes_inicio'], params['mes_fin'],
             '',  # provincia (vacío para microred)
             '',  # distrito (vacío para microred)
@@ -1387,10 +1437,10 @@ class RptAnemiaGestanteMicroRed(BaseExcelReportView):
         )
 
 
-class RptAnemiaGestanteEstablec(BaseExcelReportView):
+class RptSupleGestanteEstablec(BaseExcelReportView):
     """Reporte de población por establecimiento."""
     
-    filename = "rpt_s12_anemia_gestante_establecimiento.xlsx"
+    filename = "rpt_s13_suple_gestante_establecimiento.xlsx"
     sheet_name = "Seguimiento"
     
     def get_query_params(self, request):
@@ -1407,7 +1457,7 @@ class RptAnemiaGestanteEstablec(BaseExcelReportView):
         }
     
     def get_data(self, params):
-        return obtener_seguimiento_s12_anemia_gestante(
+        return obtener_seguimiento_s13_suple_gestante(
             params['anio'], params['mes_inicio'], params['mes_fin'],
             params['provincia'], params['distrito'], params['red'],
             params['microredes'], params['establecimiento'], params['cumple']
@@ -1487,40 +1537,37 @@ def _style_header_sections(ws, style_mgr):
     sections_config = {
         # Fila 5: B5:M5 y N5:AA5 son rangos combinados
         'B5': ('META (DENOMINADOR)', 'gray', 10, True),
-        'N5': ('Gestantes del denominador que recibien al menos tres (03) entregas de tratamiento de hierro más ácido fólico,  y dos (02) dosajes de hemoglobina de control', 'naranja_claro', 10, True),
+        'N5': ('Gestantes del denominador que recibien al menos tres (03) entregas de tratamiento de hierro más ácido fólico, y dos (02) dosajes de hemoglobina de control', 'naranja_claro', 10, True),
         # Fila 6: B6:M6, N6:S6, T6:Y6, Z6:AA6 son rangos combinados
-        'B6': ('Gestantes atendidas en establecimientos de salud del primer nivel de atención, que cuentan con diagnóstico de anemia en cualquier momento de la gestación y primera entrega de tratamiento con  hierro, en el mes o meses previos al mes de medición', 'gray', 10, True),
-        'N6': ('Entrega al MES de iniciado el tratamiento', 'gray', 10, True),
-        'T6': ('Entrega a los 2 MESES de iniciado el tratamiento', 'gray', 10, True),
-        'Z6': ('Entrega a los 3 MESES', 'gray', 10, True),
+        'B6': ('Mujeres con parto institucional, sin diagnóstico de anemia, según la base de datos del CNV en línea, en el mes de medición', 'gray', 10, True),
+        'L6': ('Recibieron 5 entregas de suplementacion con Hierro mas Acido Folico', 'gray', 10, True),
+        'V6': ('Entrega a los 2 dosajes de hemoglobina', 'gray', 10, True),
         # Fila 7: B7:D7, E7:H7, I7:J7, N7:P7, Q7:R7, T7:V7, W7:X7 son rangos combinados
         # NOTA: K7, L7 NO están combinadas (son celdas individuales)
-        'B7': ('Gestantes atendidas en establecimientos de salud del primer nivel de atención', 'plomo_claro', 7, True),
+        'B7': ('Mujeres con parto institucional sin anemia', 'plomo_claro', 7, True),
         'E7': ('En cualquier momento de la gestación, en establecimientos de salud', 'plomo_claro', 7, False),
-        'I7': ('Cuentan con dosaje de hemoglobina', 'plomo_claro', 7, False),
+        'H7': ('Dosaje de hemoglobina sin Anemia', 'plomo_claro', 7, False),
         'K7': ('Cuentan Dx Anemia', 'plomo_claro', 7, False),
-        'L7': ('Cuentan con inicio de Tratamiento', 'plomo_claro', 7, False),  # M7 no está combinada
-        'M7': ('Denominador', 'plomo_claro', 7, False),
-        'N7': ('Cuentan con 2° dosaje de hemoglobina', 'plomo_claro', 7, False),
-        'Q7': ('Cuentan con 2° entrega de hierro', 'plomo_claro', 7, False),
-        'S7': ('Cuentan con 2° Dosaje y 2° entrega de hierro (tratamiento)', 'plomo_claro', 7, False),
-        'T7': ('Cuentan con 3° dosaje hemoglobina', 'plomo_claro', 7, False),
-        'W7': ('Cuentan con 3° entrega de hierro', 'plomo_claro', 7, False),
-        'Y7': ('Cuentan con 3° Dosaje y 3° entrega de hierro (tratamiento)', 'plomo_claro', 7, False),
-        'Z7': ('Cuentan con 4° entrega de hierro', 'plomo_claro', 7, False),
-        'AA7': ('Cuentan con 3° Dosaje y 4° entrega de hierro (tratamiento)', 'plomo_claro', 7, False),  # Z7 no está combinada
+        'L7': ('1° Suplementacion', 'plomo_claro', 7, False),  # M7 no está combinada
+        'N7': ('2° Suplementacion', 'plomo_claro', 7, False),
+        'P7': ('3° Suplementacion', 'plomo_claro', 7, False),
+        'R7': ('4° Suplementacion', 'plomo_claro', 7, False),
+        'T7': ('5° Suplementacion', 'plomo_claro', 7, False),
+        'V7': ('2° dosaje en la semana de gestación 25 a 28', 'plomo_claro', 7, False),
+        'Y7': ('3° dosaje en la semana de gestación 37 a 40', 'plomo_claro', 7, False),
         # Fila 8: B8:D8, E8:H8, I8:J8, N8:P8, Q8:R8, T8:V8, W8:X8 son rangos combinados
         # NOTA: K8, L8, M8, S8, Y8, Z8, AA8 NO están combinadas
         'B8': ('COD HIS', 'azul_claro', 7, True),
         'E8': ('DX = Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
-        'I8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),      
+        'H8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),      
         'K8': ('DX=O990 ó D509', 'azul_claro', 7, False),
         'L8': ('DX = 99199.26', 'azul_claro', 7, False),
-        'N8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),
-        'Q8': ('DX = 99199.26', 'azul_claro', 7, False),
-        'T8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),
-        'W8': ('DX = 99199.26', 'azul_claro', 7, False),
-        'Z8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'N8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'P8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'R8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'T8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'V8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),
+        'Y8': ('DX= 85018 ó 85018.01 ó 85031 ó 80055.01', 'azul_claro', 7, False),
     }
     
     for cell_ref, (text, fill_color, font_size, bold) in sections_config.items():
@@ -1609,9 +1656,9 @@ def _write_data(ws, results, style_mgr):
     # Columnas con alineación izquierda
     left_align_cols = {31, 33, 35}
     # Columnas con check/x marks
-    check_cols = {8, 9,11,12,16,18,22,24}
+    check_cols = {9,10,13,15,17,19,21,24,27}
     # Columnas de sub-indicadores
-    sub_indicator_cols = {13,19,25,27}
+    sub_indicator_cols = {11}
     
     for row_idx, record in enumerate(results, start=10):
         for col_idx, value in enumerate(record.values(), start=2):
