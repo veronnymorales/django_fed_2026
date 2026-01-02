@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('s11_captacion_gestante.urls')),
     path('', include('s12_anemia_gestante.urls')),
     path('', include('s13_suple_gestante.urls')),
+    path('', include('s21_suple_nino.urls')),
     # path('', include('discapacidad.padron_urls')),
 ]
 

@@ -1,0 +1,5 @@
+<!-- establecimiento_options.html -->
+<option value="">Seleccionar Establecimiento</option>
+{% for establecimiento in establecimientos %}
+    <option value="{{ establecimiento.Codigo_Unico }}">{{ establecimiento.Nombre_Establecimiento }}</option>
+{% endfor %}
