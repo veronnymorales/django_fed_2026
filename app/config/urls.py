@@ -11,6 +11,7 @@ urlpatterns = [
     path('', include('s13_suple_gestante.urls')),
     path('', include('s21_suple_nino.urls')),
     path('', include('s22_sin_anemia_nino.urls')),
+    path('', include('s23_12m_anemia_nino.urls')),
     # path('', include('discapacidad.padron_urls')),
 ]
 
