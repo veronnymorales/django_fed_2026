@@ -1,0 +1,22 @@
+{% if establecimientos %}
+<!-- Select HABILITADO con datos -->
+<select class="form-control" name="establecimiento" id="establecimiento">
+  <option value="">
+    --- SELECCIONAR ESTABLECIMIENTO ({{ establecimientos|length }} disponibles)
+    ---
+  </option>
+  {% for e in establecimientos %}
+  <option value="{{ e.Codigo_Unico }}">{{ e.Nombre_Establecimiento }}</option>
+  {% endfor %}
+</select>
+{% else %}
+<!-- Select DESHABILITADO sin datos -->
+<select
+  class="form-control"
+  name="establecimiento"
+  id="establecimiento"
+  disabled
+>
+  <option value="">--- No hay establecimientos para esta MICRORED ---</option>
+</select>
+{% endif %}
