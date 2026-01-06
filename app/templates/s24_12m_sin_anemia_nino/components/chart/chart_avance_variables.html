@@ -1,0 +1,249 @@
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-child mr-1"></i>
+      NIÑOS SIN ANEMIA, QUE RECIBEN SUPLEMENTACIÓN Y DOSAJES
+    </h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="chart-trimestre" style="min-height: 250px"></div>
+  </div>
+</div>
+
+<script>
+  window.renderChartAvanceVariables = function (data, params) {
+    if (typeof echarts === "undefined") {
+      console.error("ECharts no está cargado.");
+      return;
+    }
+
+    const chartDOMElements = {
+      trimestre: document.getElementById("chart-trimestre"),
+    };
+
+    const charts = {};
+
+    function createOrUpdateChart(chartKey, labels, chartData) {
+      const chartDOMElement = chartDOMElements[chartKey];
+      if (!chartDOMElement) return;
+
+      let chartInstance = echarts.getInstanceByDom(chartDOMElement);
+      if (chartInstance) {
+        chartInstance.dispose();
+      }
+      chartInstance = echarts.init(chartDOMElement);
+      charts[chartKey] = chartInstance;
+
+      const option = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          formatter: function (params) {
+            const dataItem = params[0].data;
+            return `Alcanzado: ${
+              dataItem.numerator
+            }<br/>Avance: ${dataItem.value.toFixed(1)}%`;
+          },
+        },
+        toolbox: { feature: { saveAsImage: {} } },
+        xAxis: {
+          type: "category",
+          data: labels,
+          axisLabel: { rotate: 45, fontSize: 8 },
+        },
+        yAxis: {
+          type: "value",
+          max: 100,
+          axisLabel: { formatter: "{value}%", fontSize: 8 },
+        },
+        series: [
+          {
+            name: "Avance",
+            type: "bar",
+            data: chartData,
+            itemStyle: { color: "#5070dd" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: function (params) {
+                return params.data.numerator;
+              },
+              fontSize: 8,
+              color: "black",
+              fontWeight: "bold",
+            },
+            markLine: {
+              symbol: "none",
+              lineStyle: { type: "dashed", color: "red" },
+              data: [{ yAxis: 75, name: "M" }],
+              label: {
+                show: true,
+                formatter: `M: 75%`,
+                position: "end",
+                offset: [0, -14],
+                textStyle: { fontSize: 8 },
+              },
+            },
+          },
+        ],
+      };
+      chartInstance.setOption(option);
+    }
+
+    try {
+      console.log("📊 Datos recibidos en renderChartAvanceVariables:", data);
+
+      // Logs detallados de los datos recibidos
+      console.log("🔍 Valores brutos recibidos:");
+      console.log(
+        "  - den_variable:",
+        data.den_variable,
+        "tipo:",
+        typeof data.den_variable,
+        "es array:",
+        Array.isArray(data.den_variable)
+      );
+      console.log(
+        "  - num_suple_inicio:",
+        data.num_suple_inicio,
+        "tipo:",
+        typeof data.num_suple_inicio,
+        "es array:",
+        Array.isArray(data.num_suple_inicio)
+      );
+      console.log(
+        "  - num_suple_continuacion:",
+        data.num_suple_continuacion,
+        "tipo:",
+        typeof data.num_suple_continuacion,
+        "es array:",
+        Array.isArray(data.num_suple_continuacion)
+      );
+      console.log(
+        "  - num_hb9m:",
+        data.num_hb9m,
+        "tipo:",
+        typeof data.num_hb9m,
+        "es array:",
+        Array.isArray(data.num_hb9m)
+      );
+      console.log(
+        "  - num_hb12m:",
+        data.num_hb12m,
+        "tipo:",
+        typeof data.num_hb12m,
+        "es array:",
+        Array.isArray(data.num_hb12m)
+      );
+      console.log(
+        "  - avance_suple_inicio:",
+        data.avance_suple_inicio,
+        "tipo:",
+        typeof data.avance_suple_inicio,
+        "es array:",
+        Array.isArray(data.avance_suple_inicio)
+      );
+      console.log(
+        "  - avance_suple_continuacion:",
+        data.avance_suple_continuacion,
+        "tipo:",
+        typeof data.avance_suple_continuacion,
+        "es array:",
+        Array.isArray(data.avance_suple_continuacion)
+      );
+      console.log(
+        "  - avance_hb9m:",
+        data.avance_hb9m,
+        "tipo:",
+        typeof data.avance_hb9m,
+        "es array:",
+        Array.isArray(data.avance_hb9m)
+      );
+      console.log(
+        "  - avance_hb12m:",
+        data.avance_hb12m,
+        "tipo:",
+        typeof data.avance_hb12m,
+        "es array:",
+        Array.isArray(data.avance_hb12m)
+      );
+
+      const extractValue = (rawValue) => {
+        if (rawValue == null) return 0;
+        // Si es un array, tomar el primer elemento
+        const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+        const numValue = parseFloat(value) || 0;
+        return numValue;
+      };
+
+      const indicatorGroups = {
+        trimestre: [
+          {
+            title: "Inicio Suple",
+            avance_key: "avance_suple_inicio",
+            num_key: "num_suple_inicio",
+          },
+          {
+            title: "Continuacion Suple",
+            avance_key: "avance_suple_continuacion",
+            num_key: "num_suple_continuacion",
+          },
+          {
+            title: "HB 9m",
+            avance_key: "avance_hb9m",
+            num_key: "num_hb9m",
+          },
+          {
+            title: "HB 12m",
+            avance_key: "avance_hb12m",
+            num_key: "num_hb12m",
+          },
+        ],
+      };
+
+      // Colores para las barras: entregas (azul) y dosajes (tonos verdes/turquesa/violeta/naranja)
+      const barColors = {
+        entrega: "#5070dd", // Azul para entregas
+        dosaje1: "#06b6d4", // Verde esmeralda para 1° dosaje
+      };
+
+      for (const group in indicatorGroups) {
+        const labels = indicatorGroups[group].map((item) => item.title);
+        const chartData = indicatorGroups[group].map((item, index) => {
+          const value = extractValue(data[item.avance_key]);
+          const numerator = extractValue(data[item.num_key]);
+
+          const dataItem = { value: value, numerator: numerator };
+          // Asignar colores según el tipo de barra
+          if (index <= 2) {
+            // Entregas (índices 0, 1, 2)
+            dataItem.itemStyle = { color: barColors.entrega };
+          } else if (index === 3) {
+            dataItem.itemStyle = { color: barColors.entrega };
+          } else if (index === 4) {
+            dataItem.itemStyle = { color: barColors.dosaje };
+          }
+          return dataItem;
+        });
+
+        console.log("✅ Datos del gráfico procesados:", chartData);
+        createOrUpdateChart(group, labels, chartData);
+      }
+    } catch (error) {
+      console.error("❌ Error al renderizar los gráficos de variables:", error);
+    }
+
+    window.addEventListener("resize", function () {
+      for (const key in charts) {
+        if (charts[key]) {
+          charts[key].resize();
+        }
+      }
+    });
+  };
+</script>

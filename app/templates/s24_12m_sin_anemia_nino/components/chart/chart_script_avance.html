@@ -1,0 +1,98 @@
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chartRegionalMensual = document.getElementById('chart_regional_mensual');
+    const filtroForm = document.querySelector('form'); // Selecciona el formulario de filtros
+
+    function actualizarDashboard(params) {
+        const queryString = new URLSearchParams(params).toString();
+        fetch(`{% url "index_pn_poblacion" %}?${queryString}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos recibidos:', data); // Imprime los datos en la consola
+            // Actualizar gráfico de avance mensual
+            if (data && !data.error) {
+                const months = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SET','OCT','NOV','DIC'];
+                const seriesData = [
+                    { value: data.cob_1[0], num: data.num_1[0], den: data.den_1[0] },
+                    { value: data.cob_2[0], num: data.num_2[0], den: data.den_2[0] },
+                    { value: data.cob_3[0], num: data.num_3[0], den: data.den_3[0] },
+                    { value: data.cob_4[0], num: data.num_4[0], den: data.den_4[0] },
+                    { value: data.cob_5[0], num: data.num_5[0], den: data.den_5[0] },
+                    { value: data.cob_6[0], num: data.num_6[0], den: data.den_6[0] },
+                    { value: data.cob_7[0], num: data.num_7[0], den: data.den_7[0] },
+                    { value: data.cob_8[0], num: data.num_8[0], den: data.den_8[0] },
+                    { value: data.cob_9[0], num: data.num_9[0], den: data.den_9[0] },
+                    { value: data.cob_10[0], num: data.num_10[0], den: data.den_10[0] },
+                    { value: data.cob_11[0], num: data.num_11[0], den: data.den_11[0] },
+                    { value: data.cob_12[0], num: data.num_12[0], den: data.den_12[0] }
+                ];
+                const myChartRegionalMensual = echarts.init(chartRegionalMensual);
+                myChartRegionalMensual.setOption({
+                    title: { text: `Avance Regional Mensual (${params.anio || '2024'})`, left: 'center' },
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function (params) {
+                            let tooltip = `${params[0].axisValue}<br/>`;
+                            params.forEach(param => {
+                                tooltip += `${param.seriesName}: ${param.data.value.toFixed(0)}%<br/>`;
+                                tooltip += `Numerador: ${param.data.num.toFixed(0)}<br/>`;
+                                tooltip += `Denominador: ${param.data.den.toFixed(0)}`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    legend: { data: ['Avance'], left: 'left' },
+                    xAxis: { type: 'category', data: months },
+                    yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%' } },
+                    series: [{
+                        name: 'Avance',
+                        type: 'line',
+                        data: seriesData,
+                        areaStyle: {},
+                        label: {
+                            show: true,
+                            position: 'top',
+                            formatter: function (p) {
+                                return `${p.data.value.toFixed(1)}%`;
+                            }
+                        },
+                        markLine: {
+                            symbol: 'none',
+                            lineStyle: { type: 'dash', color: 'red' },
+                            data: [{ yAxis: 70, name: 'Meta' }],
+                            label: { show: true, formatter: 'Meta: 70%', position: 'end', offset: [0, -14] }
+                        }
+                    }]
+                });
+            }
+
+        })
+        .catch(error => {
+            console.error('Error al cargar el dashboard:', error.message);
+            // Llama a la función para manejar el error en la tabla de ranking
+            if (typeof manejarErrorTablaRanking === 'function') {
+                manejarErrorTablaRanking();
+            }
+        });
+    }
+
+    filtroForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(filtroForm);
+        const params = {};
+        for (const [key, value] of formData.entries()) {
+            params[key] = value;
+        }
+        actualizarDashboard(params);
+    });
+
+    const initialFormData = new FormData(filtroForm);
+    const initialParams = {};
+    for (const [key, value] of initialFormData.entries()) {
+        initialParams[key] = value;
+    }
+    actualizarDashboard(initialParams);
+});
+</script>

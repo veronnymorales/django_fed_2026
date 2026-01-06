@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block header %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- Apply AdminLTE card or typical header styling -->
+        <h6 class="m-1 text-dark">
+            <strong>SI-02.04: PORCENTAJE DE NIÑAS Y NIÑOS DE DOCE (12) MESES DE EDAD DEL DEPARTAMENTO, SIN ANEMIA, QUE RECIBEN SUPLEMENTACIÓN PREVENTIVA CON HIERRO Y DOSAJES DE HEMOGLOBINA</strong>
+        </br>
+        </h6>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Estilos para los graficos -->
+<style>
+    #chart_regional {
+        width: 100%;
+        height: 280px;
+        max-width: 600px; /* Ancho máximo opcional */
+        margin: 0 auto; /* Centrar horizontalmente */
+    }
+    
+    #chart_regional_mensual {
+        width: 100%;
+        height: 280px;
+        max-width: 1300px; /* Ancho máximo opcional */
+        margin: 0 auto; /* Centrar horizontalmente */
+    }
+
+    /* Estilos para los modales AdminLTE 3 */
+    .modal-xl {
+        max-width: 95%;
+    }
+    
+    #modalTablaCobertura .modal-body,
+    #modalSeguimientoNominal .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+        padding: 15px;
+    }
+    
+    #modalTablaCobertura .table {
+        margin-bottom: 0;
+    }
+    
+    #modalTablaCobertura .table th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 10;
+    }
+
+    /* Estilos específicos para el modal de seguimiento nominal */
+    #modalSeguimientoNominal .list-group-item {
+        border-radius: 0;
+    }
+    
+    #modalSeguimientoNominal .card {
+        border-radius: 0.375rem;
+    }
+
+    /* Ajustes para AdminLTE 3 modal footer */
+    .modal-footer.justify-content-between {
+        display: flex !important;
+        justify-content: space-between !important;
+    }
+</style>
+
+<div class="content">
+    <div class="container-fluid">
+        <!-- ROW 1: Filters -->
+        <div class="row">
+            <div class="col-md-10">
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h4 class="card-title"><i class="fas fa-filter"></i> FILTROS DE BUSQUEDA </h4>
+                        <div class="card-tools">
+                            <button  type="button" class="btn btn-tool btn-sm ml-1" id="clear-btn" data-toggle="tooltip" title="Limpiar Filtros">
+                                <i class="fa fa-eraser"></i> Limpiar filtros
+                            </button>
+                            <button type="button"
+                                    class="btn btn-tool"
+                                    data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="display: block;">
+                        <div class="tab-pane fade show active">
+                            {% include "s24_12m_sin_anemia_nino/establecimientos_h.html" %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="card card-outline card-secondary">
+                    <div class="card-header">
+                        <h4 class="card-title"><i class="fas fa-tools"></i> ANALISIS DETALLADO </h4>
+                        <div class="card-tools">
+                            <button type="button"
+                                    class="btn btn-tool"
+                                    data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="btn-group-vertical w-100" role="group">
+                            <!--
+                            <button type="button" class="btn btn-sm btn-primary mb-2" data-toggle="modal" data-target="#modalTablaCobertura">
+                                <i class="fas fa-table"></i> RANKING POR DISTRITO
+                            </button>
+                            -->
+                            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#modalSeguimientoNominal">
+                                <i class="fas fa-user-check"></i> SEGUIMIENTO NOMINAL
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /.row 1 -->
+    </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+
+
+
+<!-- Main content -->
+<section class="content" id="main-content">
+    <div class="container-fluid">
+        <!-- Card avance regional -->
+        <div class="row">
+            <!-- Card velocimetro -->
+            <div class="col-md-2" id="componente-velocimetro">
+                {% include "s24_12m_sin_anemia_nino/components/chart/chart_velocimetro.html" %}
+            </div>
+            <!-- Card resumen -->
+            <div class="col-md-2" id="detalle-avance-numden-container">
+                {% include "s24_12m_sin_anemia_nino/components/chart/chart_avance_numden.html" %}
+            </div>
+            <!-- Card avance mensual -->
+            <div class="col-md-8" id="detalle-avance-mensual-container">
+                {% include "s24_12m_sin_anemia_nino/components/chart/chart_avance_mensual.html" %}
+            </div>
+        </div>
+        <!-- Card variables -->
+        <div class="row">
+            <!-- Card  variables  detallados-->
+            <div class="col-md-6" id="detalle-avance-variables-container">
+                {% include "s24_12m_sin_anemia_nino/components/chart/chart_avance_variables.html" %}
+            </div>
+        </div>
+        <div class="row">
+            <!-- Card  variables  detallados-->
+            <div class="col-md-12" id="detalle-avance-variables-detallado-container">
+                {% include "s24_12m_sin_anemia_nino/components/chart/table_variables_detallado.html" %}
+            </div>
+        </div>
+        
+        <!-- GRAFICOS DE RANKING Y AVANCES POR RED, MICRORED Y ESTABLECIMIENTO -->
+        <div class="row">
+            <!-- RED: ranking del Indicador -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            AVANCE POR REDES
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div id="chart_red_ranking" style="height: 400px;">
+                                {% include 's24_12m_sin_anemia_nino/components/chart/chart_grafico_red.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Microred: ranking del Indicador -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            AVANCE POR MICRORED
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div id="chart_microred_ranking" style="height: 400px;">
+                                 {% include 's24_12m_sin_anemia_nino/components/chart/chart_grafico_microred.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Establecimiento: ranking del Indicador -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            AVANCE POR ESTABLECIMIENTO
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div id="chart_establecimiento_ranking" style="height: 400px;">
+                                 {% include 's24_12m_sin_anemia_nino/components/chart/chart_grafico_establecimiento.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</section>
+
+
+<!-- Modal para Seguimiento Nominal -->
+<div class="modal fade" id="modalSeguimientoNominal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><i class="fas fa-user-check"></i>SEGUIMIENTO NOMINAL DE NIÑ@S DE 12 MESES DE EDAD, SIN ANEMIA, QUE RECIBEN SUPLEMENTACION CON HIERRO Y DOSAJES DE HEMOGLOBINA</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                {% include "s24_12m_sin_anemia_nino/_seguimiento_nominal_s24_12m_sin_anemia_nino.html" %}
+            </div>
+            <div class="modal-footer right">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">CERRAR</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filtroForm = document.querySelector('form');
+
+    function actualizarDashboard(params) {
+        const queryString = new URLSearchParams(params).toString();
+        
+        console.log('🔍 FILTROS APLICADOS:', params);
+        console.log('📋 Query String:', queryString);
+        
+        fetch(`{% url "index_s24_12m_sin_anemia_nino" %}?${queryString}`, {
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error en la respuesta del servidor: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Datos recibidos del servidor:', data);
+            console.log('📊 Datos del gráfico de variables:');
+            console.log('  - den_variable:', data.den_variable);
+            console.log('  - num_1trim:', data.num_1trim);
+            console.log('  - avance_1trim:', data.avance_1trim);
+            console.log('  - num_2trim:', data.num_2trim);
+            console.log('  - avance_2trim:', data.avance_2trim);
+            console.log('  - num_3trim:', data.num_3trim);
+            console.log('  - avance_3trim:', data.avance_3trim);
+            
+            // Llama a las funciones de renderizado de cada componente
+            // pasando los datos correspondientes.
+            if (window.renderChartVelocimetro) window.renderChartVelocimetro(data, params);
+            if (window.renderChartAvanceNumDen) window.renderChartAvanceNumDen(data, params);
+            if (window.renderChartAvanceMensual) window.renderChartAvanceMensual(data, params);
+            if (window.renderChartAvanceVariables) window.renderChartAvanceVariables(data, params);
+            if (window.renderTablaVariablesDetallado) window.renderTablaVariablesDetallado(data, params);
+            if (window.renderChartRedRanking) window.renderChartRedRanking(data, params);
+            if (window.renderChartMicroredRanking) window.renderChartMicroredRanking(data, params);
+            if (window.renderChartEstablecimiento) window.renderChartEstablecimiento(data, params);
+        })
+        .catch(error => {
+            console.error("❌ Error al cargar datos del dashboard:", error);
+        });
+    }
+
+    if (filtroForm) {
+        filtroForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(filtroForm);
+            const params = {};
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    params[key] = value;
+                }
+            }
+            actualizarDashboard(params);
+        });
+
+        // Carga inicial de datos
+        filtroForm.dispatchEvent(new Event('submit'));
+    }
+});
+</script>
+{% endblock %}
