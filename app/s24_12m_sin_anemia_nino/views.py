@@ -1194,9 +1194,11 @@ COLORS = {
 COLUMN_WIDTHS = {
     'A': 1, 'B': 9, 'C': 9, 'D': 20, 'E': 9, 'F': 9, 'G': 7, 'H': 34,
     'I': 7, 'J': 9, 'K': 5, 'L': 9, 'M':5, 'N': 4, 'O': 9, 'P': 5,'Q': 9,
-    'R': 10,'S': 5, 'T': 10, 'U':5, 'V':10, 'W':5, 'X':10, 'Y':8, 'Z':5,
-    'AA':10,'AB':8,'AC':5,'AD':10,'AE':8, 'AF':5,'AG':10,'AH':8,'AI':5,
-    'AJ':10,'AK':9,'AL':10,'AM':20,'AN':10,'AO':20,'AP':10,'AQ':25
+    'R': 5,'S': 10, 'T': 10, 'U':10, 'V':5, 'W':10, 'X':5, 'Y':10, 'Z':5,
+    'AA':10,'AB':5,'AC':10,'AD':5,'AE':10, 'AF':5,'AG':10,'AH':5,'AI':10,'AJ':5,
+    'AK':10,'AL':5,'AM':10,'AN':5,'AO':10, 'AP':10,'AQ':8,'AR':5,'AS':10,'AT':8,'AU':5,
+    'AV':10,'AW':10,'AX':8,'AY':5,'AZ':10, 'BA':8,'BB':5,
+    'BC':10,'BD':10,'BE':10,'BF':10,'BG':20,'BH':10,'BI':20,'BJ':10,'BK':25
 }
 
 # Alturas de filas
@@ -1214,61 +1216,78 @@ HEADERS_CONFIG = [
     ('I9', 'SEGURO','cyan'),
     ('J9', 'FEC NAC','cyan'),
     ('K9', 'SEXO','cyan'),
-
     ('L9', 'HB 6M','cyan'),        
     ('M9', 'VAL','cyan'),  
     ('N9', 'IND','cyan'),
     ('O9', 'DX A','cyan'),  
     ('P9', 'IND','cyan'),
-    ('Q9', 'DEN','cyan'),
+    ('Q9', 'DX 12M','cyan'),
+    ('R9', 'IND','cyan'),
+    ('S9', 'DEN','cyan'),
+    
+    ('T9', 'INICIO SUP','yellow'),
+    ('U9', '1° ENT','green_2'),
+    ('V9', '1°','green_2'),
+    ('W9', '2° ENT','green_2'),
+    ('X9', '2°','green_2'),
+    
+    ('Y9', '1° MULT','green'),
+    ('Z9', '1°','green'),
+    ('AA9', '2° MULT','green'),
+    ('AB9', '2°','green'),
+    ('AC9', '3° MULT','green'),
+    ('AD9', '3°','green'),
+    ('AE9', '4° MULT','green'),
+    ('AF9', '4°','green'),
+    ('AG9', '5° MULT','green'),
+    ('AH9', '5°','green'),
+    ('AI9', '6° MULT','green'),
+    ('AJ9', '6°','green'),
 
-    ('R9', '1° ENT','green'),
-    ('S9', '1°','green'),
-    
-    ('T9', '2° ENT','green_2'),
-    ('U9', '2°','green_2'),
+    ('AK9', '1°M + 2°FH','morado_claro'),
+    ('AL9', 'MFH','morado_claro'),  
+    ('AM9', '1°FH + 2°M','morado_claro'),  
+    ('AN9', 'FHM','morado_claro'),  
+    ('AO9', 'CONTINUO','yellow'),
 
-    ('V9', '3° ENT','green_2'),
-    ('W9', '3°','green_2'),
+    ('AP9', 'HB 9M FH','blue'),  
+    ('AQ9', 'VAL','blue'),  
+    ('AR9', 'FH','blue'),  
+    ('AS9', 'HB 9M MMN','blue'),  
+    ('AT9', 'VAL','blue'),  
+    ('AU9', 'MMN','blue'),  
+    ('AV9', 'HB 9M','yellow'),
     
-    ('X9', '1° HB','yellow'),
-    ('Y9', 'VAL','yellow'),
-    ('Z9', '1°','yellow'),
-    
-    ('AA9', '2° HB','celeste'),
-    ('AB9', 'VAL','celeste'),
-    ('AC9', '2°','celeste'),
-    
-    ('AD9', '3° HB','azul_claro'),
-    ('AE9', 'VAL','azul_claro'),
-    ('AF9', '3°','azul_claro'),
+    ('AW9', 'HB 12M FH','azul_claro'),  
+    ('AX9', 'VAL','azul_claro'),  
+    ('AY9', 'FH','azul_claro'),  
+    ('AZ9', 'HB 12M MMN','azul_claro'),  
+    ('BA9', 'VAL','azul_claro'),  
+    ('BB9', 'MMN','azul_claro'),  
+    ('BC9', 'HB 12M','yellow'),
 
-    ('AG9', '4° HB','morado_claro'),
-    ('AH9', 'VAL','morado_claro'),
-    ('AI9', '4°','morado_claro'),
-    
-    ('AJ9', 'IND','blue'),
-    ('AK9', 'MES','blue'),
-    ('AL9', 'COD RED','orange'),
-    ('AM9', 'RED','orange'),
-    ('AN9', 'COD MICRO','orange'),
-    ('AO9', 'MICRORED','orange'),
-    ('AP9', 'COD EESS','orange'),
-    ('AQ9', 'ESTABLECIMIENTO', 'orange')
+    ('BD9', 'IND','blue'),
+    ('BE9', 'MES','blue'),
+    ('BF9', 'COD RED','orange'),
+    ('BG9', 'RED','orange'),
+    ('BH9', 'COD MICRO','orange'),
+    ('BI9', 'MICRORED','orange'),
+    ('BJ9', 'COD EESS','orange'),
+    ('BK9', 'ESTABLECIMIENTO', 'orange')
 ]
 
 # Celdas combinadas
 MERGE_CELLS_CONFIG = [
     # Fila 5
-    ('B5', 'Q5'), ('R5', 'AK5'),
+    ('B5', 'S5'), ('T5', 'BC5'),
     # Fila 6
-    ('B6', 'Q6'), ('R6', 'W6'),('X6','AI6'), 
+    ('B6', 'S6'), ('U6','X6'),('Y6','AJ6'),('AK6','AL6'), ('AM6','AN6'),('AO6','AO6'),('AP6','AV6'),('AW6','BC6'),
     # Fila 7
-    ('B7','E7'),('F7','K7'),('L7','N7'),('O7','P7'),('R7','S7'),('T7','U7'),('V7','W7'),('X7','Z7'),('AA7','AC7'),('AD7','AF7'),('AG7','AI7'),
+    ('B7','E7'),('F7','K7'),('L7','N7'),('O7','P7'),('Q7','R7'),('U7','X7'),('Y7','AJ7'),('AK7','AL7'),('AM7','AN7'),('AP7','AR7'),('AS7','AU7'),('AW7','AY7'),('AZ7','BB7'),
     # Fila 8
-    ('B8','E8'),('F8','K8'),('L8','N8'),('O8','P8'),('R8','S8'),('T8','U8'),('V8','W8'),('X8','Z8'),('AA8','AC8'),('AD8','AF8'),('AG8','AI8'),
+    ('B8','E8'),('F8','K8'),('L8','N8'),('O8','P8'),('Q8','R8'),('U8','V8'),('W8','X8'),('Y8','Z8'),('AA8','AB8'),('AC8','AD8'),('AE8','AF8'),('AG8','AH8'),('AI8','AJ8'),('AK8','AL8'),('AM8','AN8'),('AP8','AR8'),('AS8','AU8'),('AW8','AY8'),('AZ8','BB8'),
     # Columnas 
-    ('Q7','Q8'),('AJ6','AK8')
+    ('S7','S8'),('AO7','AO8'),('AV7','AV8'),('BC7','BC8')
 ]
 
 # ============================================================================
@@ -1520,36 +1539,56 @@ def _style_header_sections(ws, style_mgr):
     sections_config = {
         # Fila 5: B5:M5 y N5:AA5 son rangos combinados
         'B5': ('META (DENOMINADOR)', 'gray', 10, True),
-        'R5': ('N° de niñas y niños del denominador, con al menos tres (03) entregas de tratamiento con hierro y cuatro (04) dosajes de hemoglobina de control', 'naranja_claro', 10, True),
+        'T5': ('N° de niñas y niños del denominador, con al menos dos (02) entregas de suplementación preventiva con hierro y dos (02) dosajes de hemoglobina', 'naranja_claro', 10, True),
         # Fila 6: B6:M6, N6:S6, T6:Y6, Z6:AA6 son rangos combinados
-        'B6': ('N° de niñas y niños de 12 meses de edad, registrados en el padrón nominal con DNI o CNV en línea, y con anemia, en el mes de medición', 'gray', 10, True),
-        'R6': ('Entrega de Hierro - Tratamiento', 'gray', 10, True),
-        'X6': ('Entrega de Dosaje de Hemoglobina', 'gray', 10, True),
+        'B6': ('N° de niñas y niños de 12 meses de edad, registrados en el padrón nominal con DNI o CNV en línea, y sin anemia, en el mes de medición', 'gray', 10, True),
+        'T6': ('1° Entrega de Hierro', 'gray', 8, True),
+        'U6': ('Sulfato ferroso (SF) o Polimaltosado (HP)', 'gray', 10, True),
+        'Y6': (' Multimicronutriente y continua sólo con Multimicronutriente (MMN)', 'gray', 10, True),
+        'AK6': ('1° MMN + 2° SF/HP', 'gray', 10, True),
+        'AM6': ('1° SF/HP + 2° MMN', 'gray', 10, True),
+        'AP6': ('Entrega de dosaje de hemoglobina a los 3 meses de iniciada la suplementación con hierro', 'gray', 10, True),
+        'AW6': ('Entrega de dosaje de hemoglobina a los 6 meses de iniciada la suplementación de hierro', 'gray', 10, True),
+
+
         # Fila 7: B7:D7, E7:H7, I7:J7, N7:P7, Q7:R7, T7:V7, W7:X7 son rangos combinados
         # NOTA: K7, L7 NO están combinadas (son celdas individuales)
         'B7': ('Padrón nominal de Niñas y niños de 12 meses 29 días de edad (394 días)', 'plomo_claro', 7, True),
         'F7': ('Se excluye las atenciones de telemedicina: 99499 y los registros que cuenten con códigos 99199.17 + LAB TA, en la primera entrega de hierro', 'plomo_claro', 7, False),
         'L7': ('Primer dosaje a los seis (06) meses de edad (se busca el dato entre 170-209 días)', 'plomo_claro', 7, False),
         'O7': ('Dx de anemia definitivo registrado a los seis (06) meses de edad', 'plomo_claro', 7, False),
-        'R7': ('Cuentan con un frascos de Hierro el mismo dia del Dx de anemia', 'plomo_claro', 7, False),
-        'T7': ('Cuentan con dos frascos de Hierro a 25-70 dias despues de la 1° entrega', 'plomo_claro', 7, False),
-        'V7': ('Cuentan con tres frascos de Hierroa 25-70 dias despues de la 2° entrega', 'plomo_claro', 7, False),
-        'X7': ('Cuentan con dosaje de hemoglobina al (01) mes de iniciado el tratamiento', 'plomo_claro', 7, False),
-        'AA7': ('Cuentan con dosaje de hemoglobina a los dos (02) meses de iniciado el tratamiento - vinculado al dosaje anterior', 'plomo_claro', 7, False),
-        'AD7': ('Cuentan con dosaje de hemoglobina a los tres (03) meses de iniciado el tratamiento - vinculado al dosaje anterior', 'plomo_claro', 7, False),
-        'AG7': ('Cuentan con dosaje de hemoglobina a los seis (06) meses de iniciado el tratamiento - vinculado al dosaje anterior', 'plomo_claro', 7, False),
+        'Q7': ('Se excluye los Dx de Anemia (se busca el dato entre 210 - 364 días)', 'plomo_claro', 7, False),
+        'T7': ('Cuentan con 1 frasco de Hierro el mismo dia del Dosaje', 'plomo_claro', 7, False),
+        'U7': ('Sulfato ferroso o Polimaltosado la entrega tiene un intervalo de 25 a 70 días entre cada entrega', 'plomo_claro', 7, False),
+        'Y7': ('Si la primera entrega es, las entregas deberán ser en un número de seis (06) con un intervalo de 25 a 35 entre cada entrega', 'plomo_claro', 7, False),
+        'AK7': ('Intervalo entre cada entrega deberá ser de 25 a 70 días', 'plomo_claro', 7, False),
+        'AM7': ('Cada entrega deberá ser de 25 a 35 días', 'plomo_claro', 7, False),
+        'AP7': ('Se busca el dato entre 85 a 119 días SF/HP', 'plomo_claro', 7, False),
+        'AS7': ('Se busca el dato entre 85 a 119 días MMN', 'plomo_claro', 7, False),
+        'AW7': ('Se busca el dato entre 170 a 209 días MMN', 'plomo_claro', 7, False), 
+        'AZ7': ('Se busca el dato entre 170 a 209 días SF/HP', 'plomo_claro', 7, False),
         # Fila 8: B8:D8, E8:H8, I8:J8, N8:P8, Q8:R8, T8:V8, W8:X8 son rangos combinados
         # NOTA: K8, L8, M8, S8, Y8, Z8, AA8 NO están combinadas
         'B8': ('CODIGO HIS MINSA', 'azul_claro', 7, True),
+        'F8': ('', 'azul_claro', 7, True),
         'L8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),      
-        'O8': ('DX = D509 ó D649', 'azul_claro', 7, False),
-        'R8': ('DX = 99199.17', 'azul_claro', 7, False),
-        'T8': ('DX = 99199.17', 'azul_claro', 7, False),
-        'V8': ('DX = 99199.17', 'azul_claro', 7, False),
-        'X8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
-        'AA8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
-        'AD8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
-        'AG8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
+        'O8': ('DX = D509 ó D649 + TD=D', 'azul_claro', 7, False),
+        'Q8': ('DX = D509 ó D649 + TD=D', 'azul_claro', 7, False),
+        'T8': ('DX = 99199.17 ó 99199.19', 'azul_claro', 7, False),
+        'U8': ('DX = 99199.17', 'azul_claro', 7, False),
+        'W8': ('DX = 99199.17', 'azul_claro', 7, False),
+        'Y8': ('DX = 99199.19', 'azul_claro', 7, False),
+        'AA8': ('DX = 99199.19', 'azul_claro', 7, False),
+        'AC8': ('DX = 99199.19', 'azul_claro', 7, False),
+        'AE8': ('DX = 99199.19', 'azul_claro', 7, False),
+        'AG8': ('DX = 99199.19', 'azul_claro', 7, False),
+        'AI8': ('DX = 99199.19', 'azul_claro', 7, False),
+        'AK8': ('DX = 99199.17 + DX=99199.19', 'azul_claro', 7, False),
+        'AM8': ('DX = 99199.19 + DX=99199.17', 'azul_claro', 7, False),
+        'AP8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
+        'AS8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
+        'AW8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
+        'AZ8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
     
     }
     
@@ -1562,7 +1601,7 @@ def _style_header_sections(ws, style_mgr):
         cell.border = border_negro
     
     # Aplicar bordes a las filas de cabecera
-    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'AK', border_negro)
+    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'BC', border_negro)
 
 
 def _apply_row_borders(ws, rows, start_col, end_col, border):
@@ -1619,7 +1658,7 @@ def _add_titles(ws, style_mgr):
         ('B1', 'OFICINA DE TECNOLOGIAS DE LA INFORMACION', 7, True, '000000'),
         ('B2', 'DIRECCION REGIONAL DE SALUD JUNIN', 7, True, '000000'),
         ('B3', 'El usuario se compromete a mantener la confidencialidad de los datos personales que conozca como resultado del reporte realizado, cumpliendo con lo establecido en la Ley N° 29733 - Ley de Protección de Datos Personales y sus normas complementarias.', 7, True, '0000CC'),
-        ('B4', 'SEGUIMIENTO NOMINAL:SI-02.03: PORCENTAJE DE NIÑAS Y NIÑOS DE DOCE (12) MESES DE EDAD, CON ANEMIA, QUE RECIBEN TRATAMIENTO CON HIERRO Y DOSAJES DE HEMOGLOBINA', 12, True, '000000'),
+        ('B4', 'SEGUIMIENTO NOMINAL:SI-02.04: PORCENTAJE DE NIÑAS Y NIÑOS DE DOCE (12) MESES DE EDAD DEL DEPARTAMENTO, SIN ANEMIA, QUE RECIBEN SUPLEMENTACIÓN PREVENTIVA CON HIERRO Y DOSAJES DE HEMOGLOBINA', 12, True, '000000'),
     ]
     
     for cell_ref, text, size, bold, color in titles:
@@ -1637,11 +1676,11 @@ def _write_data(ws, results, style_mgr):
     x_mark = '✗'
     
     # Columnas con alineación izquierda
-    left_align_cols = {8, 41, 43}
+    left_align_cols = {8, 61, 63}
     # Columnas con check/x marks
-    check_cols = {14,16,19,21,23,26,29,32,35}
+    check_cols = {14,16,18,22,24,26,28,30,32,34,36,38,40,44,47,51,54}
     # Columnas de sub-indicadores
-    sub_indicator_cols = {17}
+    sub_indicator_cols = {19,20,41,48,55}
     
     for row_idx, record in enumerate(results, start=10):
         for col_idx, value in enumerate(record.values(), start=2):
@@ -1655,7 +1694,7 @@ def _write_data(ws, results, style_mgr):
                 cell.alignment = style_mgr.get_alignment()
             
             # Aplicar formato según columna
-            if col_idx == 36:  # Columna INDICADOR
+            if col_idx == 56:  # Columna INDICADOR
                 _format_indicator_cell(cell, value, style_mgr)
             elif col_idx in check_cols:
                 _format_check_cell(cell, value, check_mark, x_mark, style_mgr)
