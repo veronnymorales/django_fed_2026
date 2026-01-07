@@ -1,0 +1,41 @@
+{% if microredes %}
+<!-- Select HABILITADO con datos -->
+<select
+  class="form-control"
+  name="microred"
+  id="microred"
+  hx-get="{% url 'p_establecimientos_sv11_adole_dosaje' %}"
+  hx-trigger="change"
+  hx-target="#container-establecimientos"
+  hx-swap="innerHTML"
+  hx-include="[name='red']"
+  hx-indicator="#loading-establecimientos"
+>
+  <option value="">
+    --- SELECCIONAR MICRORED ({{ microredes|length }} disponibles) ---
+  </option>
+  {% for m in microredes %}
+  <option value="{{ m.Codigo_MicroRed }}">{{ m.MicroRed }}</option>
+  {% endfor %}
+</select>
+<small id="loading-establecimientos" class="htmx-indicator text-info">
+  <i class="fas fa-spinner fa-spin"></i> Cargando establecimientos...
+</small>
+
+<!-- Resetear establecimientos -->
+<script>
+  (function () {
+    var container = document.getElementById("container-establecimientos");
+    if (container) {
+      container.innerHTML =
+        '<select class="form-control" name="establecimiento" id="establecimiento" disabled><option value="">--- Seleccione una MICRORED ---</option></select>';
+    }
+  })();
+</script>
+
+{% else %}
+<!-- Select DESHABILITADO sin datos -->
+<select class="form-control" name="microred" id="microred" disabled>
+  <option value="">--- No hay microredes para esta RED ---</option>
+</select>
+{% endif %}

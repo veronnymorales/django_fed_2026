@@ -13,11 +13,10 @@ urlpatterns = [
     path('', include('s22_sin_anemia_nino.urls')),
     path('', include('s23_12m_anemia_nino.urls')),
     path('', include('s24_12m_sin_anemia_nino.urls')),
+    path('', include('sv11_adole_dosaje.urls')),
     # path('', include('discapacidad.padron_urls')),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    
-    
