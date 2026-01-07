@@ -1,0 +1,262 @@
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-child mr-1"></i>
+      ADOLESCENTES MUJERES, SIN ANEMIA, RECIBEN PRESTACIONES PRIORITARIAS
+    </h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="chart-trimestre" style="min-height: 250px"></div>
+  </div>
+</div>
+
+<script>
+  window.renderChartAvanceVariables = function (data, params) {
+    if (typeof echarts === "undefined") {
+      console.error("ECharts no está cargado.");
+      return;
+    }
+
+    const chartDOMElements = {
+      trimestre: document.getElementById("chart-trimestre"),
+    };
+
+    const charts = {};
+
+    function createOrUpdateChart(chartKey, labels, chartData) {
+      const chartDOMElement = chartDOMElements[chartKey];
+      if (!chartDOMElement) return;
+
+      let chartInstance = echarts.getInstanceByDom(chartDOMElement);
+      if (chartInstance) {
+        chartInstance.dispose();
+      }
+      chartInstance = echarts.init(chartDOMElement);
+      charts[chartKey] = chartInstance;
+
+      const option = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          formatter: function (params) {
+            const dataItem = params[0].data;
+            return `Alcanzado: ${
+              dataItem.numerator
+            }<br/>Avance: ${dataItem.value.toFixed(1)}%`;
+          },
+        },
+        toolbox: { feature: { saveAsImage: {} } },
+        xAxis: {
+          type: "category",
+          data: labels,
+          axisLabel: { rotate: 45, fontSize: 8 },
+        },
+        yAxis: {
+          type: "value",
+          max: 100,
+          axisLabel: { formatter: "{value}%", fontSize: 8 },
+        },
+        series: [
+          {
+            name: "Avance",
+            type: "bar",
+            data: chartData,
+            itemStyle: { color: "#5070dd" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: function (params) {
+                return params.data.numerator;
+              },
+              fontSize: 8,
+              color: "black",
+              fontWeight: "bold",
+            },
+            markLine: {
+              symbol: "none",
+              lineStyle: { type: "dashed", color: "red" },
+              data: [{ yAxis: 75, name: "M" }],
+              label: {
+                show: true,
+                formatter: `M: 75%`,
+                position: "end",
+                offset: [0, -14],
+                textStyle: { fontSize: 8 },
+              },
+            },
+          },
+        ],
+      };
+      chartInstance.setOption(option);
+    }
+
+    try {
+      console.log("📊 Datos recibidos en renderChartAvanceVariables:", data);
+
+      // Logs detallados de los datos recibidos
+      console.log("🔍 Valores brutos recibidos:");
+      console.log(
+        "  - num_suple:",
+        data.num_suple,
+        "tipo:",
+        typeof data.num_suple,
+        "es array:",
+        Array.isArray(data.num_suple)
+      );
+      console.log(
+        "  - avance_num_suple:",
+        data.avance_num_suple,
+        "tipo:",
+        typeof data.avance_num_suple,
+        "es array:",
+        Array.isArray(data.avance_num_suple)
+      );
+      console.log(
+        "  - num_consejeria:",
+        data.num_consejeria,
+        "tipo:",
+        typeof data.num_consejeria,
+        "es array:",
+        Array.isArray(data.num_consejeria)
+      );
+      console.log(
+        "  - avance_num_consejeria:",
+        data.avance_num_consejeria,
+        "tipo:",
+        typeof data.avance_num_consejeria,
+        "es array:",
+        Array.isArray(data.avance_num_consejeria)
+      );
+      console.log(
+        "  - num_con_ali:",
+        data.num_con_ali,
+        "tipo:",
+        typeof data.num_con_ali,
+        "es array:",
+        Array.isArray(data.num_con_ali)
+      );
+      console.log(
+        "  - avance_num_con_ali:",
+        data.avance_num_con_ali,
+        "tipo:",
+        typeof data.avance_num_con_ali,
+        "es array:",
+        Array.isArray(data.avance_num_con_ali)
+      );
+      console.log(
+        "  - num_con_nutri:",
+        data.num_con_nutri,
+        "tipo:",
+        typeof data.num_con_nutri,
+        "es array:",
+        Array.isArray(data.num_con_nutri)
+      );
+      console.log(
+        "  - avance_num_con_nutri:",
+        data.avance_num_con_nutri,
+        "tipo:",
+        typeof data.avance_num_con_nutri,
+        "es array:",
+        Array.isArray(data.avance_num_con_nutri)
+      );
+      console.log(
+        "  - num_dosaje:",
+        data.num_dosaje,
+        "tipo:",
+        typeof data.num_dosaje,
+        "es array:",
+        Array.isArray(data.num_dosaje)
+      );
+      console.log(
+        "  - avance_num_dosaje:",
+        data.avance_num_dosaje,
+        "tipo:",
+        typeof data.avance_num_dosaje,
+        "es array:",
+        Array.isArray(data.avance_num_dosaje)
+      );
+
+      const extractValue = (rawValue) => {
+        if (rawValue == null) return 0;
+        // Si es un array, tomar el primer elemento
+        const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+        const numValue = parseFloat(value) || 0;
+        return numValue;
+      };
+
+      const indicatorGroups = {
+        trimestre: [
+          {
+            title: "Suplementacion",
+            avance_key: "avance_num_suple",
+            num_key: "num_suple",
+          },
+          {
+            title: "Consejeria",
+            avance_key: "avance_num_consejeria",
+            num_key: "num_consejeria",
+          },
+          {
+            title: "Alimentacion",
+            avance_key: "avance_num_con_ali",
+            num_key: "num_con_ali",
+          },
+          {
+            title: "Nutricional",
+            avance_key: "avance_num_con_nutri",
+            num_key: "num_con_nutri",
+          },
+          {
+            title: "Dosaje HB",
+            avance_key: "avance_num_dosaje",
+            num_key: "num_dosaje",
+          },
+        ],
+      };
+
+      // Colores para las barras
+      const barColors = {
+        suplementacion: "#5070dd", // Azul
+        consejeria: "#5070dd", // Azul
+        alimentacion: "#10B981", // Verde esmeralda
+        nutricional: "#10B981", // Verde esmeralda
+        dosaje: "#5070dd", // Azul
+      };
+
+      for (const group in indicatorGroups) {
+        const labels = indicatorGroups[group].map((item) => item.title);
+        const chartData = indicatorGroups[group].map((item, index) => {
+          const value = extractValue(data[item.avance_key]);
+          const numerator = extractValue(data[item.num_key]);
+
+          const dataItem = { value: value, numerator: numerator };
+          // Asignar colores según el título de la barra
+          const colorKey = item.title
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+          dataItem.itemStyle = { color: barColors[colorKey] || "#5070dd" };
+          return dataItem;
+        });
+
+        console.log("✅ Datos del gráfico procesados:", chartData);
+        createOrUpdateChart(group, labels, chartData);
+      }
+    } catch (error) {
+      console.error("❌ Error al renderizar los gráficos de variables:", error);
+    }
+
+    window.addEventListener("resize", function () {
+      for (const key in charts) {
+        if (charts[key]) {
+          charts[key].resize();
+        }
+      }
+    });
+  };
+</script>

@@ -1,0 +1,20 @@
+<select
+  class="form-control"
+  name="p_microredes"
+  id="microred"
+  {%
+  if
+  not
+  microredes
+  %}disabled{%
+  endif
+  %}
+>
+  {% if microredes %}
+  <option value="">--- SELECCIONAR MICRORED ---</option>
+  {% for m in microredes %}
+  <option value="{{ m.Codigo_MicroRed }}">{{ m.MicroRed }}</option>
+  {% endfor %} {% else %}
+  <option value="">--- Primero seleccione una RED ---</option>
+  {% endif %}
+</select>
