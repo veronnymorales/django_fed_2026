@@ -1501,7 +1501,7 @@ def _style_header_sections(ws, style_mgr):
         'L5': ('', 'naranja_claro', 10, True),  # Celda individual para continuidad visual
         # Fila 6: B6:G6, H6:K6 son rangos combinados, L6 es celda individual
         'B6': ('N° de adolescentes mujeres del primer nivel de atención de salud,  y sin anemia, al mes de medición', 'gray', 10, True),
-        'H6': ('En la misma fecha del primer dosaje de hemoglobina', 'gray', 8, True),
+        'H6': ('En la mismo dia del primer dosaje de hemoglobina', 'gray', 8, True),
         'L6': ('A los 3 meses de atencion', 'gray', 8, True),
         # Fila 7: B7:D7, E7:H7, I7:J7, N7:P7, Q7:R7, T7:V7, W7:X7 son rangos combinados
         # NOTA: K7, L7 NO están combinadas (son celdas individuales)
