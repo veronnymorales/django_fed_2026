@@ -379,6 +379,7 @@ def process_variables_detallado_s32_adole_sin_anemia(resultados_variables_detall
         'd_nombre_establecimiento': [],
         'd_ubigueo_establecimiento': [],
         'd_den_variable': [],
+        'd_num_variable': [],  # Numerador del indicador principal
         'd_num_suple': [],
         'd_avance_num_suple': [],
         'd_num_consejeria': [],
@@ -394,7 +395,7 @@ def process_variables_detallado_s32_adole_sin_anemia(resultados_variables_detall
         try:
             # Verifica que el diccionario tenga las claves necesarias
             required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento',
-            'd_den_variable','d_num_suple','d_avance_num_suple','d_num_consejeria','d_avance_num_consejeria','d_num_con_ali','d_avance_num_con_ali','d_num_con_nutri','d_avance_num_con_nutri','d_num_dosaje','d_avance_num_dosaje'}
+            'd_den_variable','d_num_variable','d_num_suple','d_avance_num_suple','d_num_consejeria','d_avance_num_consejeria','d_num_con_ali','d_avance_num_con_ali','d_num_con_nutri','d_avance_num_con_nutri','d_num_dosaje','d_avance_num_dosaje'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
@@ -411,6 +412,7 @@ def process_variables_detallado_s32_adole_sin_anemia(resultados_variables_detall
             d_nombre_establecimiento = row['d_nombre_establecimiento']
             d_ubigueo_establecimiento = row['d_ubigueo_establecimiento']
             d_den_variable = row['d_den_variable']
+            d_num_variable = row['d_num_variable']  # Numerador del indicador principal
             d_num_suple = row['d_num_suple']
             d_avance_num_suple = row['d_avance_num_suple']
             d_num_consejeria = row['d_num_consejeria']
@@ -434,6 +436,7 @@ def process_variables_detallado_s32_adole_sin_anemia(resultados_variables_detall
             data['d_nombre_establecimiento'].append(d_nombre_establecimiento)
             data['d_ubigueo_establecimiento'].append(d_ubigueo_establecimiento)
             data['d_den_variable'].append(d_den_variable)
+            data['d_num_variable'].append(d_num_variable)  # Numerador del indicador principal
             data['d_num_suple'].append(d_num_suple)
             data['d_avance_num_suple'].append(d_avance_num_suple)
             data['d_num_consejeria'].append(d_num_consejeria)
@@ -1200,8 +1203,9 @@ COLORS = {
 
 # Anchos de columnas
 COLUMN_WIDTHS = {
-    'A': 1, 'B': 9, 'C': 9, 'D': 20, 'E': 9, 'F': 5, 'G': 10, 'H': 10,
-    'I':10,'J':10,'K':20,'L':10,'M':20,'N':10,'O':25
+    'A': 1, 'B': 9, 'C': 9, 'D': 20, 'E': 10, 'F': 5, 'G': 10, 'H': 12,
+    'I':12,'J':10,'K':10,'L':12,
+    'M':10,'N':10,'O':10,'P':20,'Q':10,'R':20,'S':10,'T':25
 }
 
 # Alturas de filas
@@ -1215,28 +1219,34 @@ HEADERS_CONFIG = [
     ('E9', 'FEC ATE', 'cyan'),
     ('F9', 'EDAD', 'cyan'),
     ('G9', 'DEN', 'cyan'),
-    ('H9', 'IND','blue'),
-    ('I9', 'MES','blue'),
-    ('J9', 'COD RED','orange'),
-    ('K9', 'RED','orange'),
-    ('L9', 'COD MICRO','orange'),
-    ('M9', 'MICRORED','orange'),
-    ('N9', 'COD EESS','orange'),
-    ('O9', 'ESTABLECIMIENTO', 'orange')
+    ('H9', 'SUPLE', 'yellow'),
+    ('I9', 'CONSEJERIA', 'yellow'),
+    ('J9', 'ALI', 'green'),
+    ('K9', 'NUTRI', 'green'),
+    ('L9', '2° HB', 'yellow'),
+    ('M9', 'IND','blue'),
+    ('N9', 'MES','blue'),
+    ('O9', 'COD RED','orange'),
+    ('P9', 'RED','orange'),
+    ('Q9', 'COD MICRO','orange'),
+    ('R9', 'MICRORED','orange'),
+    ('S9', 'COD EESS','orange'),
+    ('T9', 'ESTABLECIMIENTO', 'orange')
 ]
 
 # Celdas combinadas
+# NOTA: Solo se puede asignar valor a la celda top-left de cada rango combinado
+# Las demás celdas del rango son read-only en openpyxl
 MERGE_CELLS_CONFIG = [
-    # Fila 5
-    ('B5', 'G5'), ('H5', 'I5'),
-    # Fila 6
-    ('B6', 'G6'), ('H6','I6'),
-    # Fila 7
-    ('B7','G7'),('H7','I7'),
-    # Fila 8
-    ('B8','G8'),('H8','I8'),
-    # Columnas 
-    # ('B8','G8')
+    # Fila 5: B5-G5 para META, H5-K5 para título numerador (L5 queda libre para otro contenido)
+    ('B5', 'G5'), ('H5', 'K5'),
+    # Fila 6: B6-G6 para descripción denominador, H6-K6 para descripción numerador
+    ('B6', 'G6'), ('H6','K6'),
+    # Fila 7: B7-C7 para descripción adolescentes, E7-F7 para descripción anemia
+    ('B7','C7'), ('E7','F7'),
+    # Fila 8: NO se combinan celdas porque cada celda (B8, D8, E8, G8, H8, etc.) 
+    # necesita su propio valor para códigos HIS
+    ('B8','C8'), ('E8','F8')
 ]
 # ============================================================================
 # CLASES DE UTILIDAD PARA ESTILOS
@@ -1485,21 +1495,36 @@ def _style_header_sections(ws, style_mgr):
     # NOTA: Solo incluir la celda INICIAL de cada rango combinado (MergedCell)
     # Las celdas dentro de un rango combinado que no son la inicial son read-only
     sections_config = {
-        # Fila 5: B5:M5 y N5:AA5 son rangos combinados
+        # Fila 5: B5:G5 y H5:K5 son rangos combinados, L5 es celda individual
         'B5': ('META (DENOMINADOR)', 'gray', 10, True),
-        'H5': ('NUMERADOR', 'naranja_claro', 10, True),
-        # Fila 6: B6:M6, N6:S6, T6:Y6, Z6:AA6 son rangos combinados
-        'B6': ('N° de adolescentes mujeres de 12 a 17 años de edad atendidas (Nuevas o Re ingresantes) en establecimientos de salud del primer nivel, en el mes de medición', 'gray', 10, True),
-        'H6': ('Cuentan con dosaje de hemoglobina', 'gray', 8, True),
-
+        'H5': ('NUMERADOR (RECIBEN PRESTACIONES PRIORIZADAS)', 'naranja_claro', 10, True),
+        'L5': ('', 'naranja_claro', 10, True),  # Celda individual para continuidad visual
+        # Fila 6: B6:G6, H6:K6 son rangos combinados, L6 es celda individual
+        'B6': ('N° de adolescentes mujeres del primer nivel de atención de salud,  y sin anemia, al mes de medición', 'gray', 10, True),
+        'H6': ('En la misma fecha del primer dosaje de hemoglobina', 'gray', 8, True),
+        'L6': ('A los 3 meses de atencion', 'gray', 8, True),
         # Fila 7: B7:D7, E7:H7, I7:J7, N7:P7, Q7:R7, T7:V7, W7:X7 son rangos combinados
         # NOTA: K7, L7 NO están combinadas (son celdas individuales)
-        'B7': ('Se excluye: adolescentes gestantes, atenciones de las adolescentes que acuden por vacunas, los Centros Comunitarios de Salud Mental y otros (especializados o que no brinden la atención a las adolescentes),atenciones de telemedicina', 'plomo_claro', 7, True),
-        'H7': ('Por cualquier método en la misma mes de medicion', 'plomo_claro', 7, False),
+        'B7': ('Adolescente de tres (03) meses previos (119 días) al mes de medición', 'plomo_claro', 7, True),
+        'D7': ('Cuentan con 1° dosaje de hemoglobina', 'plomo_claro', 7, True),
+        'E7': ('Sin registro de anemia registrado', 'plomo_claro', 7, False),
+        'G7': ('Se excluye Visita familiar y telemedicina', 'plomo_claro', 7, False),
+        'H7': ('Suplementación (entrega de hierro)', 'plomo_claro', 7, False),
+        'I7': ('Consejeria nutricional o alimentacion', 'plomo_claro', 7, False),
+        'J7': ('Consejeria alimentación', 'plomo_claro', 7, False),
+        'K7': ('Consejeria nutricional', 'plomo_claro', 7, False),
+        'L7': ('Segundo dosaje de hemoglobina', 'plomo_claro', 7, False),
         # Fila 8: B8:D8, E8:H8, I8:J8, N8:P8, Q8:R8, T8:V8, W8:X8 son rangos combinados
         # NOTA: K8, L8, M8, S8, Y8, Z8, AA8 NO están combinadas
         'B8': ('CODIGO HIS MINSA', 'azul_claro', 7, True),
-        'H8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
+        'D8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, True),
+        'E8': ('DX = D509 ó D649', 'azul_claro', 7, False),
+        'G8': ('DX = C0011 ó DX=99499', 'azul_claro', 7, False),
+        'H8': ('DX = 99199.26', 'azul_claro', 7, False),
+        'I8': ('DX = 99403 ó 99403.1', 'azul_claro', 7, False),
+        'J8': ('DX = 99403.1', 'azul_claro', 7, False),
+        'K8': ('DX = 99403', 'azul_claro', 7, False),
+        'L8': ('DX = 85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
     
     }
     
@@ -1512,7 +1537,7 @@ def _style_header_sections(ws, style_mgr):
         cell.border = border_negro
     
     # Aplicar bordes a las filas de cabecera
-    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'I', border_negro)
+    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'L', border_negro)
 
 
 def _apply_row_borders(ws, rows, start_col, end_col, border):
@@ -1569,7 +1594,7 @@ def _add_titles(ws, style_mgr):
         ('B1', 'OFICINA DE TECNOLOGIAS DE LA INFORMACION', 7, True, '000000'),
         ('B2', 'DIRECCION REGIONAL DE SALUD JUNIN', 7, True, '000000'),
         ('B3', 'El usuario se compromete a mantener la confidencialidad de los datos personales que conozca como resultado del reporte realizado, cumpliendo con lo establecido en la Ley N° 29733 - Ley de Protección de Datos Personales y sus normas complementarias.', 7, True, '0000CC'),
-        ('B4', 'SEGUIMIENTO NOMINAL:SI-03.01: PORCENTAJE DE ADOLESCENTES MUJERES DE 12 A 17 AÑOS DE EDAD, CON DOSAJE DE HEMOGLOBINA', 12, True, '000000'),
+        ('B4', 'SEGUIMIENTO NOMINAL:SI-03.02: PORCENTAJE DE ADOLESCENTES MUJERES DE 12 A 17 AÑOS DE EDAD, SIN ANEMIA, QUE RECIBEN PRESTACIONES PRIORIZADAS', 12, True, '000000'),
     ]
     
     for cell_ref, text, size, bold, color in titles:
@@ -1587,11 +1612,11 @@ def _write_data(ws, results, style_mgr):
     x_mark = '✗'
     
     # Columnas con alineación izquierda
-    left_align_cols = {13, 15}
+    left_align_cols = {18, 20}
     # Columnas con check/x marks
-    check_cols = {}
+    check_cols = {7,10,11}
     # Columnas de sub-indicadores
-    sub_indicator_cols = {7}
+    sub_indicator_cols = {8,9,12}
     
     for row_idx, record in enumerate(results, start=10):
         for col_idx, value in enumerate(record.values(), start=2):
@@ -1605,7 +1630,7 @@ def _write_data(ws, results, style_mgr):
                 cell.alignment = style_mgr.get_alignment()
             
             # Aplicar formato según columna
-            if col_idx == 8:  # Columna INDICADOR
+            if col_idx == 13:  # Columna INDICADOR
                 _format_indicator_cell(cell, value, style_mgr)
             elif col_idx in check_cols:
                 _format_check_cell(cell, value, check_mark, x_mark, style_mgr)

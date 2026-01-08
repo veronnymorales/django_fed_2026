@@ -192,7 +192,11 @@
         LOW: 20, // < 20% = Verde (mejor)
         HIGH: 50, // >= 50% = Rojo, entre 20-50 = Naranja
       },
-      // Índices de columnas (Avance + 5 Suplementos + 2 HB)
+      // Índices de columnas (Avance + 5 variables + HB)
+      // El array tableData tiene 18 elementos (índices 0-17):
+      // [0] Red, [1] MicroRed, [2] Establecimiento, [3] Den, [4] Num, [5] Avance%
+      // [6] Suple, [7] S%, [8] Cons, [9] C%, [10] Ali, [11] A%, [12] Nutri, [13] N%
+      // [14] 2°HB, [15] HB%, [16] Avance_Num (oculto), [17] RedAvg_Num (oculto)
       COLUMNS: {
         RED: 0,
         MICRORED: 1,
@@ -210,8 +214,8 @@
         AVANCE_NUTRI: 13,
         NUM_HB_2: 14,
         AVANCE_HB_2: 15,
-        AVANCE_NUM: 24, // Valor numérico del porcentaje avance (oculto, para ordenar)
-        RED_AVG_NUM: 25, // Promedio de RED para ordenamiento
+        AVANCE_NUM: 16, // Valor numérico del porcentaje avance (oculto, para ordenar)
+        RED_AVG_NUM: 17, // Promedio de RED para ordenamiento
         DEN_RAW: 3, // Denominador está en posición 3
         NUM_RAW: 4, // Numerador está en posición 4
       },
@@ -355,6 +359,7 @@
         const denominador = toNumber(safeGet(data.d_den_variable, i, 0));
         const numerador = toNumber(safeGet(data.d_num_variable, i, 0));
 
+        // Valores de las variables
         const d_num_suple = toNumber(safeGet(data.d_num_suple, i, 0));
         const d_num_consejeria = toNumber(safeGet(data.d_num_consejeria, i, 0));
         const d_num_con_ali = toNumber(safeGet(data.d_num_con_ali, i, 0));
@@ -362,23 +367,28 @@
         const d_num_dosaje = toNumber(safeGet(data.d_num_dosaje, i, 0));
 
         // ═══════════════════════════════════════════════════════════
-        // CÁLCULO DE PORCENTAJES: (numerador / denominador) * 100
+        // USAR LOS AVANCES PRE-CALCULADOS DEL BACKEND
+        // El backend ya calcula los porcentajes correctamente
         // ═══════════════════════════════════════════════════════════
+
+        // Solo el avance principal se calcula localmente
         const d_avance_numerador = calcularPorcentaje(numerador, denominador);
 
-        const d_avance_num_sup = calcularPorcentaje(d_num_suple, denominador);
-        const d_avance_num_cons = calcularPorcentaje(
-          d_num_consejeria,
-          denominador
+        // Los demás avances vienen pre-calculados del backend
+        const d_avance_num_sup = toNumber(
+          safeGet(data.d_avance_num_suple, i, 0)
         );
-        const d_avance_num_ali = calcularPorcentaje(d_num_con_ali, denominador);
-        const d_avance_num_nutri = calcularPorcentaje(
-          d_num_con_nutri,
-          denominador
+        const d_avance_num_cons = toNumber(
+          safeGet(data.d_avance_num_consejeria, i, 0)
         );
-        const d_avance_num_dosaje = calcularPorcentaje(
-          d_num_dosaje,
-          denominador
+        const d_avance_num_ali = toNumber(
+          safeGet(data.d_avance_num_con_ali, i, 0)
+        );
+        const d_avance_num_nutri = toNumber(
+          safeGet(data.d_avance_num_con_nutri, i, 0)
+        );
+        const d_avance_num_dosaje = toNumber(
+          safeGet(data.d_avance_num_dosaje, i, 0)
         );
 
         tableData.push([
@@ -388,19 +398,19 @@
           denominador, // 3: Denominador
           numerador, // 4: Numerador
           formatPercent(d_avance_numerador), // 5: Avance % (num/den)
-          d_num_suple, // 6: Denominador
-          formatPercent(d_avance_num_sup), // 6: Avance % (num/den)
-          d_num_consejeria, // 7: Denominador
-          formatPercent(d_avance_num_cons), // 7: Avance % (num/den)
-          d_num_con_nutri, // 9: Denominador
-          formatPercent(d_avance_num_ali), // 8: Avance % (num/den)
-          d_num_con_ali, // 8: Denominador
-          formatPercent(d_avance_num_nutri), // 9: Avance % (num/den)
-          d_num_dosaje, // 10: Denominador
-          formatPercent(d_avance_num_dosaje), // 10: Avance % (num/den)
+          d_num_suple, // 6: Suple
+          formatPercent(d_avance_num_sup), // 7: S%
+          d_num_consejeria, // 8: Cons
+          formatPercent(d_avance_num_cons), // 9: C%
+          d_num_con_ali, // 10: Ali
+          formatPercent(d_avance_num_ali), // 11: A%
+          d_num_con_nutri, // 12: Nutri
+          formatPercent(d_avance_num_nutri), // 13: N%
+          d_num_dosaje, // 14: 2°HB
+          formatPercent(d_avance_num_dosaje), // 15: HB%
 
-          d_avance_numerador, // 20: Valor numérico del Avance % (oculto, para ranking)
-          0, // 21: Promedio RED (se llenará después)
+          d_avance_numerador, // 16: Valor numérico del Avance % (oculto, para ranking)
+          0, // 17: Promedio RED (se llenará después)
         ]);
       }
 
@@ -548,7 +558,7 @@
 
       return $("<tr/>")
         .addClass("dtrg-group dtrg-level-0")
-        .append($('<td colspan="22">').html(contentHTML))
+        .append($('<td colspan="18">').html(contentHTML))
         .attr("data-group", group)
         .attr("data-level", 0);
     }
@@ -569,18 +579,38 @@
           className: "percent-cell",
           createdCell: applyPercentColorWithBackground,
         }, // 5
-        { title: "Suple", visible: false, searchable: false }, // 6
-        { title: "S%", visible: false, searchable: false }, // 7
-        { title: "Cons", visible: false, searchable: false }, // 8
-        { title: "C%", visible: false, searchable: false }, // 9
-        { title: "Ali", visible: false, searchable: false }, // 10
-        { title: "A%", visible: false, searchable: false }, // 11
-        { title: "Nutri", visible: false, searchable: false }, // 12
-        { title: "N%", visible: false, searchable: false }, // 13
-        { title: "2°HB", visible: false, searchable: false }, // 14
-        { title: "2°%", visible: false, searchable: false }, // 15
-        { title: "Avance_Num", visible: false, searchable: false }, // 20
-        { title: "RedAvg_Num", visible: false, searchable: false }, // 21
+        { title: "Suple", className: "number-cell" }, // 6
+        {
+          title: "S%",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 7
+        { title: "Cons", className: "number-cell" }, // 8
+        {
+          title: "C%",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 9
+        { title: "Ali", className: "number-cell" }, // 10
+        {
+          title: "A%",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 11
+        { title: "Nutri", className: "number-cell" }, // 12
+        {
+          title: "N%",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 13
+        { title: "2°HB", className: "number-cell" }, // 14
+        {
+          title: "HB%",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 15
+        { title: "Avance_Num", visible: false, searchable: false }, // 16 - Valor numérico del avance (para ordenar)
+        { title: "RedAvg_Num", visible: false, searchable: false }, // 17 - Promedio de RED
       ];
     }
 

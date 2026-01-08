@@ -397,7 +397,7 @@ def obtener_variables_detallado_s32_adole_sin_anemia(
             if rows:
                 resultados = []
                 for row in rows:
-                    if len(row) >= 21:
+                    if len(row) >= 22:
                         resultados.append({
                             'd_anio': str(row[0]) if row[0] is not None else '',
                             'd_mes': str(row[1]) if row[1] is not None else '',
@@ -417,13 +417,13 @@ def obtener_variables_detallado_s32_adole_sin_anemia(
                             'd_avance_num_consejeria': float(row[15]) if row[15] is not None else 0.0,
                             'd_num_con_ali': int(row[16]) if row[16] is not None else 0,
                             'd_avance_num_con_ali': float(row[17]) if row[17] is not None else 0.0,
-                            'd_num_con_nutri': int(row[17]) if row[17] is not None else 0,
-                            'd_avance_num_con_nutri': float(row[18]) if row[18] is not None else 0.0,
-                            'd_num_dosaje': int(row[19]) if row[19] is not None else 0,
-                            'd_avance_num_dosaje': float(row[20]) if row[20] is not None else 0.0
+                            'd_num_con_nutri': int(row[18]) if row[18] is not None else 0,
+                            'd_avance_num_con_nutri': float(row[19]) if row[19] is not None else 0.0,
+                            'd_num_dosaje': int(row[20]) if row[20] is not None else 0,
+                            'd_avance_num_dosaje': float(row[21]) if row[21] is not None else 0.0
                         })
                     else:
-                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 21, omitiendo...")
+                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 22, omitiendo...")
                 
                 if resultados:
                     logger.info(f"Se obtuvieron {len(resultados)} establecimientos para variables detallado")
