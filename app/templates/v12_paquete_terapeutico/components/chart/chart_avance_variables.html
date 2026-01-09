@@ -1,0 +1,329 @@
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-child mr-1"></i>
+      PAQUETE MINIMO DE INTERVENCIONES TERAPEUTICAS ESPECIALIZADAS
+    </h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="chart-trimestre" style="min-height: 250px"></div>
+  </div>
+</div>
+
+<script>
+  window.renderChartAvanceVariables = function (data, params) {
+    if (typeof echarts === "undefined") {
+      console.error("ECharts no está cargado.");
+      return;
+    }
+
+    const chartDOMElements = {
+      trimestre: document.getElementById("chart-trimestre"),
+    };
+
+    const charts = {};
+
+    function createOrUpdateChart(chartKey, labels, chartData) {
+      const chartDOMElement = chartDOMElements[chartKey];
+      if (!chartDOMElement) return;
+
+      let chartInstance = echarts.getInstanceByDom(chartDOMElement);
+      if (chartInstance) {
+        chartInstance.dispose();
+      }
+      chartInstance = echarts.init(chartDOMElement);
+      charts[chartKey] = chartInstance;
+
+      const option = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          formatter: function (params) {
+            const dataItem = params[0].data;
+            return `Alcanzado: ${
+              dataItem.numerator
+            }<br/>Avance: ${dataItem.value.toFixed(1)}%`;
+          },
+        },
+        toolbox: { feature: { saveAsImage: {} } },
+        xAxis: {
+          type: "category",
+          data: labels,
+          axisLabel: { rotate: 45, fontSize: 8 },
+        },
+        yAxis: {
+          type: "value",
+          max: 100,
+          axisLabel: { formatter: "{value}%", fontSize: 8 },
+        },
+        series: [
+          {
+            name: "Avance",
+            type: "bar",
+            data: chartData,
+            itemStyle: { color: "#5070dd" },
+            label: {
+              show: true,
+              position: "top",
+              formatter: function (params) {
+                return params.data.numerator;
+              },
+              fontSize: 8,
+              color: "black",
+              fontWeight: "bold",
+            },
+            markLine: {
+              symbol: "none",
+              lineStyle: { type: "dashed", color: "red" },
+              data: [{ yAxis: 75, name: "M" }],
+              label: {
+                show: true,
+                formatter: `M: 75%`,
+                position: "end",
+                offset: [0, -14],
+                textStyle: { fontSize: 8 },
+              },
+            },
+          },
+        ],
+      };
+      chartInstance.setOption(option);
+    }
+
+    try {
+      console.log("📊 Datos recibidos en renderChartAvanceVariables:", data);
+
+      // Logs detallados de los datos recibidos
+      console.log("🔍 Valores brutos recibidos:");
+      console.log(
+        "  - den_variable:",
+        data.den_variable,
+        "tipo:",
+        typeof data.den_variable,
+        "es array:",
+        Array.isArray(data.den_variable)
+      );
+      console.log(
+        "  - num_csm1:",
+        data.num_csm1,
+        "tipo:",
+        typeof data.num_csm1,
+        "es array:",
+        Array.isArray(data.num_csm1)
+      );
+      console.log(
+        "  - avance_num_csm1:",
+        data.avance_num_csm1,
+        "tipo:",
+        typeof data.avance_num_csm1,
+        "es array:",
+        Array.isArray(data.avance_num_csm1)
+      );
+      console.log(
+        "  - num_csm2:",
+        data.num_csm2,
+        "tipo:",
+        typeof data.num_csm2,
+        "es array:",
+        Array.isArray(data.num_csm2)
+      );
+      console.log(
+        "  - avance_num_csm2:",
+        data.avance_num_csm2,
+        "tipo:",
+        typeof data.avance_num_csm2,
+        "es array:",
+        Array.isArray(data.avance_num_csm2)
+      );
+      console.log(
+        "  - num_psico1:",
+        data.num_psico1,
+        "tipo:",
+        typeof data.num_psico1,
+        "es array:",
+        Array.isArray(data.num_psico1)
+      );
+      console.log(
+        "  - avance_num_psico1:",
+        data.avance_num_psico1,
+        "tipo:",
+        typeof data.avance_num_psico1,
+        "es array:",
+        Array.isArray(data.avance_num_psico1)
+      );
+      console.log(
+        "  - num_psico2:",
+        data.num_psico2,
+        "tipo:",
+        typeof data.num_psico2,
+        "es array:",
+        Array.isArray(data.num_psico2)
+      );
+      console.log(
+        "  - avance_num_psico2:",
+        data.avance_num_psico2,
+        "tipo:",
+        typeof data.avance_num_psico2,
+        "es array:",
+        Array.isArray(data.avance_num_psico2)
+      );
+      console.log(
+        "  - num_psico3:",
+        data.num_psico3,
+        "tipo:",
+        typeof data.num_psico3,
+        "es array:",
+        Array.isArray(data.num_psico3)
+      );
+      console.log(
+        "  - avance_num_psico3:",
+        data.avance_num_psico3,
+        "tipo:",
+        typeof data.avance_num_psico3,
+        "es array:",
+        Array.isArray(data.avance_num_psico3)
+      );
+      console.log(
+        "  - num_psico4:",
+        data.num_psico4,
+        "tipo:",
+        typeof data.num_psico4,
+        "es array:",
+        Array.isArray(data.num_psico4)
+      );
+      console.log(
+        "  - avance_num_psico4:",
+        data.avance_num_psico4,
+        "tipo:",
+        typeof data.avance_num_psico4,
+        "es array:",
+        Array.isArray(data.avance_num_psico4)
+      );
+      console.log(
+        "  - num_psico5:",
+        data.num_psico5,
+        "tipo:",
+        typeof data.num_psico5,
+        "es array:",
+        Array.isArray(data.num_psico5)
+      );
+      console.log(
+        "  - avance_num_psico5:",
+        data.avance_num_psico5,
+        "tipo:",
+        typeof data.avance_num_psico5,
+        "es array:",
+        Array.isArray(data.avance_num_psico5)
+      );
+      console.log(
+        "  - num_psico6:",
+        data.num_psico6,
+        "tipo:",
+        typeof data.num_psico6,
+        "es array:",
+        Array.isArray(data.num_psico6)
+      );
+      console.log(
+        "  - avance_num_psico6:",
+        data.avance_num_psico6,
+        "tipo:",
+        typeof data.avance_num_psico6,
+        "es array:",
+        Array.isArray(data.avance_num_psico6)
+      );
+
+      const extractValue = (rawValue) => {
+        if (rawValue == null) return 0;
+        // Si es un array, tomar el primer elemento
+        const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+        const numValue = parseFloat(value) || 0;
+        return numValue;
+      };
+
+      const indicatorGroups = {
+        trimestre: [
+          {
+            title: "CSM 1",
+            avance_key: "avance_num_csm1",
+            num_key: "num_csm1",
+          },
+          {
+            title: "CSM 2",
+            avance_key: "avance_num_csm2",
+            num_key: "num_csm2",
+          },
+          {
+            title: "PSICO 1",
+            avance_key: "avance_num_psico1",
+            num_key: "num_psico1",
+          },
+          {
+            title: "PSICO 2",
+            avance_key: "avance_num_psico2",
+            num_key: "num_psico2",
+          },
+          {
+            title: "PSICO 3",
+            avance_key: "avance_num_psico3",
+            num_key: "num_psico3",
+          },
+          {
+            title: "PSICO 4",
+            avance_key: "avance_num_psico4",
+            num_key: "num_psico4",
+          },
+          {
+            title: "PSICO 5",
+            avance_key: "avance_num_psico5",
+            num_key: "num_psico5",
+          },
+          {
+            title: "PSICO 6",
+            avance_key: "avance_num_psico6",
+            num_key: "num_psico6",
+          },
+        ],
+      };
+
+      // Colores para las barras: entregas (azul) y dosajes (tonos verdes/turquesa/violeta/naranja)
+      const barColors = {
+        entrega: "#5070dd", // Azul para entregas
+        dosaje1: "#06b6d4", // Verde esmeralda para 1° dosaje
+      };
+
+      for (const group in indicatorGroups) {
+        const labels = indicatorGroups[group].map((item) => item.title);
+        const chartData = indicatorGroups[group].map((item, index) => {
+          const value = extractValue(data[item.avance_key]);
+          const numerator = extractValue(data[item.num_key]);
+
+          const dataItem = { value: value, numerator: numerator };
+          // Asignar colores según el tipo de barra
+          if (index <= 1) {
+            // Entregas (índices 0, 1)
+            dataItem.itemStyle = { color: barColors.entrega };
+          }
+          return dataItem;
+        });
+
+        console.log("✅ Datos del gráfico procesados:", chartData);
+        createOrUpdateChart(group, labels, chartData);
+      }
+    } catch (error) {
+      console.error("❌ Error al renderizar los gráficos de variables:", error);
+    }
+
+    window.addEventListener("resize", function () {
+      for (const key in charts) {
+        if (charts[key]) {
+          charts[key].resize();
+        }
+      }
+    });
+  };
+</script>
