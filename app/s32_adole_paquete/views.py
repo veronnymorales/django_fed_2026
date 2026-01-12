@@ -1654,7 +1654,6 @@ def _format_indicator_cell(cell, value, style_mgr):
         cell.font = style_mgr.get_font(size=8, bold=True)
 
 
-def _format_check_cell(cell, value, check_mark, x_mark, style_mgr):
     """Formatea celdas con check/x marks."""
     if value == 1:
         cell.value = check_mark
