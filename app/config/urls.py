@@ -17,6 +17,7 @@ urlpatterns = [
     path('', include('s32_adole_paquete.urls')),
     path('', include('v11_tamizaje_gestante.urls')),    
     path('', include('v12_paquete_terapeutico.urls')),
+    path('', include('mc11_paquete_gestante.urls')),
     # path('', include('discapacidad.padron_urls')),
 ]
 

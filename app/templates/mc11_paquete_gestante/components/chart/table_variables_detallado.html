@@ -1,0 +1,818 @@
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     ESTILOS PRINCIPALES DE LA TABLA
+     ═══════════════════════════════════════════════════════════════ */
+
+  #tabla-variables-detallado {
+    width: 100% !important;
+    font-size: 11px;
+  }
+
+  .dataTables_wrapper {
+    padding: 0;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Estilos de filas alternadas
+     ───────────────────────────────────────────────────────────────── */
+
+  .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  #tabla-variables-detallado tbody tr:not(.dtrg-group) {
+    background-color: transparent !important;
+  }
+
+  .table-striped tbody tr:nth-of-type(odd):not(.dtrg-group) {
+    background-color: rgba(0, 0, 0, 0.01) !important;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Estilos de grupos (RowGroup)
+     ───────────────────────────────────────────────────────────────── */
+
+  .dtrg-group {
+    background-color: #ffffff !important;
+    color: #343a40 !important;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .dtrg-group:hover {
+    background-color: #f8f9fa !important;
+    transform: translateX(2px);
+  }
+
+  .dtrg-level-0 {
+    background-color: #ffffff !important;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Estilos de celdas numéricas
+     ───────────────────────────────────────────────────────────────── */
+
+  .number-cell {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .percent-cell {
+    text-align: right;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 6px 10px !important;
+    border-radius: 4px;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Colores para porcentajes CON FONDO (1T %)
+     ───────────────────────────────────────────────────────────────── */
+
+  .percent-bg-low {
+    background-color: #ff6b6b !important;
+    color: white !important;
+  }
+
+  .percent-bg-medium {
+    background-color: #ffd93d !important;
+    color: #333 !important;
+  }
+
+  .percent-bg-high {
+    background-color: #6bcf7f !important;
+    color: white !important;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Colores para porcentajes SOLO TEXTO (2T % y 3T %)
+     ───────────────────────────────────────────────────────────────── */
+
+  .percent-text-low {
+    color: #ff6b6b !important;
+    font-weight: 700;
+  }
+
+  .percent-text-medium {
+    color: #ff8c00 !important;
+    font-weight: 700;
+  }
+
+  .percent-text-high {
+    color: #28a745 !important;
+    font-weight: 700;
+  }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     ESTRUCTURA HTML DE LA TARJETA
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-layer-group mr-2"></i>
+      RANKING POR RED / MICRORED / ESTABLECIMIENTO
+    </h3>
+
+    <div class="card-tools">
+      <button
+        type="button"
+        class="btn btn-tool btn-sm"
+        id="btn-expandir-todo-dt"
+        data-toggle="tooltip"
+        title="Expandir todos los grupos"
+      >
+        <i class="fas fa-expand-arrows-alt"></i> Expandir
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-tool btn-sm ml-1"
+        id="btn-colapsar-todo-dt"
+        data-toggle="tooltip"
+        title="Colapsar todos los grupos"
+      >
+        <i class="fas fa-compress-arrows-alt"></i> Colapsar
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table
+        id="tabla-variables-detallado"
+        class="table table-sm table-hover table-head-fixed text-nowrap"
+        style="width: 100%"
+      >
+        <thead>
+          <tr>
+            <th>Red</th>
+            <th>MicroRed</th>
+            <th>Establecimiento</th>
+            <th>Den</th>
+            <th class="text-center">Num</th>
+            <th class="text-center">Avance %</th>
+            <th>EXA</th>
+            <th>EXA %</th>
+            <th>APN</th>
+            <th>APN %</th>
+            <th>SULFATO</th>
+            <th>SULFATO %</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    "use strict";
+
+    /* ═══════════════════════════════════════════════════════════════
+       CONFIGURACIÓN Y CONSTANTES
+       ═══════════════════════════════════════════════════════════════ */
+
+    const CONFIG = {
+      // Umbrales para colores con fondo (1T %) - valores en porcentaje (0-100)
+      THRESHOLD_BG: {
+        LOW: 70, // < 70% = Rojo
+        HIGH: 82, // >= 82% = Verde, entre 70-82 = Amarillo
+      },
+      // Umbrales para colores de texto (2T % y 3T %) - Lógica inversa
+      THRESHOLD_TEXT: {
+        LOW: 20, // < 20% = Verde (mejor)
+        HIGH: 50, // >= 50% = Rojo, entre 20-50 = Naranja
+      },
+      // Índices de columnas (Avance + 5 Suplementos + 2 HB)
+      COLUMNS: {
+        RED: 0,
+        MICRORED: 1,
+        ESTABLECIMIENTO: 2,
+        DENOMINADOR: 3,
+        NUMERADOR: 4,
+        AVANCE_PCT: 5, // Avance % (visible con colores)
+        EXA: 6,
+        AVANCE_EXA: 7,
+        APN: 8,
+        AVANCE_APN: 9,
+        SULFATO: 10,
+        AVANCE_SULFATO: 11,
+        PCT_AVANCE_HIDDEN: 22, // Oculto (antiguo duplicado)
+        AVANCE_NUM: 23, // Valor numérico para ordenar por porcentaje
+        RED_AVG_NUM: 24, // Promedio de RED para ordenamiento
+        DEN_RAW: 3,
+        NUM_RAW: 4,
+      },
+    };
+
+    // Instancia global de la tabla
+    let tablaInstance = null;
+
+    /* ═══════════════════════════════════════════════════════════════
+       FUNCIONES DE UTILIDAD
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Obtiene un valor seguro de un array
+     * @param {Array} arr - Array fuente
+     * @param {number} index - Índice a obtener
+     * @param {*} defaultValue - Valor por defecto
+     * @returns {*} - Valor obtenido o valor por defecto
+     */
+    function safeGet(arr, index, defaultValue = "") {
+      return arr?.[index] ?? defaultValue;
+    }
+
+    /**
+     * Convierte un valor a número de forma segura
+     * @param {*} value - Valor a convertir
+     * @param {number} defaultValue - Valor por defecto si no es válido
+     * @returns {number} - Valor numérico
+     */
+    function toNumber(value, defaultValue = 0) {
+      const num = parseFloat(value);
+      return isNaN(num) ? defaultValue : num;
+    }
+
+    /**
+     * Calcula el porcentaje: (numerador / denominador) * 100
+     * @param {number} numerador - Valor del numerador
+     * @param {number} denominador - Valor del denominador
+     * @returns {number} - Porcentaje calculado (0-100)
+     */
+    function calcularPorcentaje(numerador, denominador) {
+      if (denominador === 0 || isNaN(denominador)) return 0;
+      return (numerador / denominador) * 100;
+    }
+
+    /**
+     * Formatea un número como porcentaje
+     * @param {number} value - Valor numérico (ya en 0-100)
+     * @param {number} decimals - Número de decimales
+     * @returns {string} - Porcentaje formateado
+     */
+    function formatPercent(value, decimals = 1) {
+      if (value == null || isNaN(value)) return "0.0%";
+      return value.toFixed(decimals) + "%";
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FUNCIONES DE COLORACIÓN
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Extrae el valor numérico de un string de porcentaje
+     * @param {string} cellData - Valor de la celda (ej: "85.5%")
+     * @returns {number|null} - Valor numérico o null
+     */
+    function extractPercentValue(cellData) {
+      if (cellData == null) return null;
+      const match = String(cellData).match(/^([\d.]+)/);
+      return match ? parseFloat(match[1]) : null;
+    }
+
+    /**
+     * Aplica colores CON FONDO según el porcentaje (para 1T %)
+     * Mayor porcentaje = Verde (mejor)
+     * @param {HTMLElement} td - Celda de la tabla
+     * @param {string} cellData - Valor de la celda
+     */
+    function applyPercentColorWithBackground(td, cellData) {
+      const percentValue = extractPercentValue(cellData);
+      if (percentValue === null) return;
+
+      const $td = $(td);
+      $td.removeClass("percent-bg-low percent-bg-medium percent-bg-high");
+
+      if (percentValue < CONFIG.THRESHOLD_BG.LOW) {
+        $td.addClass("percent-bg-low");
+      } else if (percentValue < CONFIG.THRESHOLD_BG.HIGH) {
+        $td.addClass("percent-bg-medium");
+      } else {
+        $td.addClass("percent-bg-high");
+      }
+    }
+
+    /**
+     * Aplica colores SOLO TEXTO según el porcentaje
+     * Misma lógica que fondo: Mayor porcentaje = Verde (mejor)
+     * @param {HTMLElement} td - Celda de la tabla
+     * @param {string} cellData - Valor de la celda
+     */
+    function applyPercentColorTextOnly(td, cellData) {
+      const percentValue = extractPercentValue(cellData);
+      if (percentValue === null) return;
+
+      const $td = $(td);
+      $td.removeClass("percent-text-low percent-text-medium percent-text-high");
+
+      // Misma lógica que fondo: mayor es mejor
+      if (percentValue < CONFIG.THRESHOLD_BG.LOW) {
+        $td.addClass("percent-text-low"); // Rojo
+      } else if (percentValue < CONFIG.THRESHOLD_BG.HIGH) {
+        $td.addClass("percent-text-medium"); // Naranja
+      } else {
+        $td.addClass("percent-text-high"); // Verde
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FUNCIONES DE PROCESAMIENTO DE DATOS
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Prepara los datos de la tabla a partir de los datos del backend
+     * CÁLCULO: porcentaje = (num_1trim / den_variable) * 100
+     * @param {Object} data - Datos del backend
+     * @returns {Array} - Datos formateados para DataTables
+     */
+    function prepareTableData(data) {
+      const dataLength = data.d_anio?.length || 0;
+      const tableData = [];
+
+      for (let i = 0; i < dataLength; i++) {
+        if (!data.d_anio[i]) continue;
+
+        // Filtrar solo establecimientos que tienen datos en denominador
+        const denominadorValue = toNumber(safeGet(data.d_den_variable, i, 0));
+        if (denominadorValue <= 0) {
+          continue;
+        }
+
+        // Obtener valores numéricos raw
+        const denominador = toNumber(safeGet(data.d_den_variable, i, 0));
+        const numerador = toNumber(safeGet(data.d_num_variable, i, 0));
+        const d_num_examenes1trim = toNumber(
+          safeGet(data.d_num_examenes1trim, i, 0)
+        );
+        const d_num_apn = toNumber(safeGet(data.d_num_apn, i, 0));
+        const d_num_sulfato = toNumber(safeGet(data.d_num_sulfato, i, 0));
+
+        // ═══════════════════════════════════════════════════════════
+        // CÁLCULO DE PORCENTAJES: (numerador / denominador) * 100
+        // ═══════════════════════════════════════════════════════════
+        const d_avance_numerador = calcularPorcentaje(numerador, denominador);
+        const d_avance_num_examenes1trim = calcularPorcentaje(
+          d_num_examenes1trim,
+          denominador
+        );
+        const d_avance_num_apn = calcularPorcentaje(d_num_apn, denominador);
+        const d_avance_num_sulfato = calcularPorcentaje(
+          d_num_sulfato,
+          denominador
+        );
+
+        tableData.push([
+          safeGet(data.d_red, i), // 0: Red
+          safeGet(data.d_microred, i), // 1: MicroRed
+          safeGet(data.d_nombre_establecimiento, i), // 2: Establecimiento
+          denominador, // 3: Denominador
+          numerador, // 4: Numerador
+          formatPercent(d_avance_numerador), // 5: Avance % (Visible)
+
+          d_num_examenes1trim, // 6: CSM1
+          formatPercent(d_avance_num_examenes1trim), // 7: CSM1 %
+          d_num_apn, // 8: CSM2
+          formatPercent(d_avance_num_apn), // 9: CSM2 %
+
+          d_num_sulfato, // 10: PSICO1
+          formatPercent(d_avance_num_sulfato), // 11: PSICO1 %
+
+          formatPercent(d_avance_numerador), // 22: PCT_AVANCE_HIDDEN
+          d_avance_numerador, // 23: Avance_Num (Hidden for sorting)
+          0, // 24: RedAvg_Num (Placeholder)
+        ]);
+      }
+
+      return tableData;
+    }
+
+    /**
+     * Calcula los promedios de avance por RED
+     * FÓRMULA: (Σ numerador de RED / Σ denominador de RED) * 100
+     * @param {Array} tableData - Datos de la tabla
+     * @returns {Object} - Objeto con estadísticas por RED
+     */
+    function calculateAndApplyRedAverages(tableData) {
+      const redStats = {};
+
+      // Primera pasada: sumar numeradores y denominadores por RED
+      tableData.forEach((row) => {
+        const red = row[CONFIG.COLUMNS.RED];
+        const denominador = row[CONFIG.COLUMNS.DEN_RAW];
+        const numerador = row[CONFIG.COLUMNS.NUM_RAW];
+
+        if (!redStats[red]) {
+          redStats[red] = {
+            sumNumerador: 0,
+            sumDenominador: 0,
+            count: 0,
+            avgPercent: 0,
+          };
+        }
+
+        redStats[red].sumNumerador += numerador;
+        redStats[red].sumDenominador += denominador;
+        redStats[red].count++;
+      });
+
+      // Calcular porcentaje promedio por RED
+      // FÓRMULA: (suma numeradores / suma denominadores) * 100
+      Object.keys(redStats).forEach((red) => {
+        const stats = redStats[red];
+        stats.avgPercent = calcularPorcentaje(
+          stats.sumNumerador,
+          stats.sumDenominador
+        );
+      });
+
+      // Segunda pasada: aplicar promedio a cada fila
+      tableData.forEach((row) => {
+        const red = row[CONFIG.COLUMNS.RED];
+        row[CONFIG.COLUMNS.RED_AVG_NUM] = redStats[red].avgPercent;
+      });
+
+      console.log("📊 Estadísticas por RED (Avance Num/Den):");
+      Object.keys(redStats).forEach((red) => {
+        const s = redStats[red];
+        console.log(
+          `   RED "${red}": Σnum=${s.sumNumerador}, Σden=${
+            s.sumDenominador
+          }, Avance=${s.avgPercent.toFixed(2)}%`
+        );
+      });
+
+      return redStats;
+    }
+
+    /**
+     * Ordena los datos por promedio de RED (desc) y luego por porcentaje de avance individual (desc)
+     * @param {Array} tableData - Datos de la tabla
+     * @returns {Array} - Datos ordenados
+     */
+    function sortTableData(tableData) {
+      return tableData.sort((a, b) => {
+        // Primero ordenar por promedio de RED (descendente)
+        const redAvgDiff =
+          b[CONFIG.COLUMNS.RED_AVG_NUM] - a[CONFIG.COLUMNS.RED_AVG_NUM];
+        if (Math.abs(redAvgDiff) > 0.001) {
+          return redAvgDiff;
+        }
+        // Luego ordenar por porcentaje de avance individual (descendente)
+        return b[CONFIG.COLUMNS.AVANCE_NUM] - a[CONFIG.COLUMNS.AVANCE_NUM];
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FUNCIONES DE RENDERIZADO
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Genera el HTML para el encabezado del grupo (RED)
+     * La barra de progreso muestra: (Σ num_1trim / Σ denominador) * 100
+     * @param {Object} rows - Filas del grupo
+     * @param {string} group - Nombre del grupo
+     * @returns {jQuery} - Elemento TR del grupo
+     */
+    function renderGroupHeader(rows, group) {
+      // Obtener el promedio de la RED desde la primera fila del grupo
+      const firstRowData = rows.data()[0];
+      const avgPercent = firstRowData[CONFIG.COLUMNS.RED_AVG_NUM];
+      const avgPercentFormatted = avgPercent.toFixed(1);
+      const rowCount = rows.count();
+
+      // Determinar color de la barra de progreso
+      let progressColor = "bg-danger";
+      let textColor = "white";
+
+      if (avgPercent >= CONFIG.THRESHOLD_BG.HIGH) {
+        progressColor = "bg-success";
+      } else if (avgPercent >= CONFIG.THRESHOLD_BG.LOW) {
+        progressColor = "bg-warning";
+        textColor = "#333";
+      }
+
+      // Limitar el ancho de la barra a 100%
+      const progressWidth = Math.min(avgPercent, 100);
+
+      const contentHTML = `
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <!-- Información del grupo -->
+          <div class="d-flex align-items-center">
+            <i class="fas fa-plus-circle mr-2 group-toggle-icon"></i>
+            <span class="mr-1">RED:</span>
+            <strong class="mr-2">${group}</strong>
+            <span class="badge badge-secondary">${rowCount} establecimientos</span>
+          </div>
+
+          <!-- Barra de progreso con porcentaje calculado -->
+          <div class="d-flex align-items-center" style="width: 350px;">
+            <small class="text-dark mr-2 text-nowrap"><strong>Avance Ind:</strong></small>
+            <div class="progress flex-fill mx-2" style="height: 22px; background-color: rgba(0,0,0,0.1);">
+              <div 
+                class="progress-bar ${progressColor}"
+                role="progressbar"
+                style="width: ${progressWidth}%"
+                aria-valuenow="${avgPercentFormatted}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <span style="font-size: 12px; font-weight: bold; color: ${textColor};">
+                  ${avgPercentFormatted}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      return $("<tr/>")
+        .addClass("dtrg-group dtrg-level-0")
+        .append($('<td colspan="22">').html(contentHTML))
+        .attr("data-group", group)
+        .attr("data-level", 0);
+    }
+
+    /**
+     * Configura las columnas de DataTables
+     * @returns {Array} - Configuración de columnas
+     */
+    function getColumnsConfig() {
+      return [
+        { title: "Red", visible: false }, // 0
+        { title: "MicroRed" }, // 1
+        { title: "Establecimiento" }, // 2
+        { title: "Den", className: "number-cell" }, // 3
+        { title: "Num", className: "number-cell" }, // 4
+        {
+          title: "Avance %",
+          className: "percent-cell",
+          createdCell: applyPercentColorWithBackground,
+        }, // 5 (AHORA VISIBLE)
+        { title: "EXAMENES 1TRIM", className: "number-cell" }, // 6
+        {
+          title: "EXAMENES 1TRIM %",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 7
+        { title: "APN", className: "number-cell" }, // 8
+        {
+          title: "APN %",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 9
+        { title: "SULFATO", className: "number-cell" }, // 10
+        {
+          title: "SULFATO %",
+          className: "percent-cell",
+          createdCell: applyPercentColorTextOnly,
+        }, // 11
+        {
+          title: "Avance % (Old)",
+          visible: false,
+          searchable: false,
+        }, // 22 (Oculto)
+        { title: "Avance_Num", visible: false, searchable: false }, // 23
+        { title: "RedAvg_Num", visible: false, searchable: false }, // 24
+      ];
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FUNCIONES DE EVENTOS
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Configura los eventos de la tabla
+     */
+    function setupTableEvents() {
+      const $tableBody = $("#tabla-variables-detallado tbody");
+
+      // Evento click en grupos para expandir/colapsar
+      $tableBody
+        .off("click", "tr.dtrg-group")
+        .on("click", "tr.dtrg-group", function () {
+          const $row = $(this);
+          const $icon = $row.find(".group-toggle-icon");
+          const groupName = $row.attr("data-group");
+          const isCollapsing = $icon.hasClass("fa-minus-circle");
+
+          // Alternar icono
+          $icon.toggleClass("fa-plus-circle fa-minus-circle");
+
+          // Obtener todas las filas de datos (no grupos) que pertenecen a este grupo
+          tablaInstance.rows().every(function () {
+            const rowData = this.data();
+            if (rowData && rowData[CONFIG.COLUMNS.RED] === groupName) {
+              const $node = $(this.node());
+              if (!$node.hasClass("dtrg-group")) {
+                if (isCollapsing) {
+                  $node.hide();
+                } else {
+                  $node.show();
+                }
+              }
+            }
+          });
+        });
+
+      // Botón expandir todo
+      $("#btn-expandir-todo-dt")
+        .off("click")
+        .on("click", function () {
+          $("tr.dtrg-group .group-toggle-icon")
+            .removeClass("fa-plus-circle")
+            .addClass("fa-minus-circle");
+          tablaInstance.rows().nodes().to$().show();
+        });
+
+      // Botón colapsar todo
+      $("#btn-colapsar-todo-dt")
+        .off("click")
+        .on("click", function () {
+          collapseAllGroups();
+        });
+    }
+
+    /**
+     * Colapsa todos los grupos de la tabla
+     */
+    function collapseAllGroups() {
+      $("tr.dtrg-group .group-toggle-icon")
+        .removeClass("fa-minus-circle")
+        .addClass("fa-plus-circle");
+
+      tablaInstance
+        .rows()
+        .nodes()
+        .to$()
+        .filter(function () {
+          return !$(this).hasClass("dtrg-group");
+        })
+        .hide();
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       CARGA DE DEPENDENCIAS
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Carga la extensión RowGroup de DataTables si no está disponible
+     * @returns {Promise} - Promesa que se resuelve cuando está cargado
+     */
+    function loadRowGroupExtension() {
+      return new Promise((resolve) => {
+        if ($.fn.DataTable?.RowGroup) {
+          resolve();
+          return;
+        }
+
+        // Cargar CSS
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href =
+          "https://cdn.datatables.net/rowgroup/1.4.1/css/rowGroup.bootstrap4.min.css";
+        document.head.appendChild(link);
+
+        // Cargar JS
+        const script = document.createElement("script");
+        script.src =
+          "https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js";
+        script.onload = resolve;
+        script.onerror = () => {
+          console.error("❌ Error al cargar RowGroup extension");
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FUNCIÓN PRINCIPAL DE RENDERIZADO
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Renderiza la tabla de variables detallado con agrupación
+     * @param {Object} data - Datos del backend
+     * @param {Object} params - Parámetros adicionales (opcional)
+     */
+    window.renderTablaVariablesDetallado = function (data, params) {
+      console.log("🎯 Iniciando renderizado de tabla con agrupación");
+      console.log("📊 Claves disponibles:", Object.keys(data));
+
+      const dataLength = data.d_anio?.length || 0;
+      console.log("📏 Total de registros:", dataLength);
+
+      // DEBUG: Mostrar muestra de datos para verificar formato
+      if (dataLength > 0) {
+        console.log("🔍 Muestra de datos (primer registro):", {
+          red: data.d_red?.[0],
+          denominador: data.d_den_variable?.[0],
+          num_1trim: data.d_num_variable?.[0],
+          calculo_manual: `(${data.d_num_variable?.[0]} / ${
+            data.d_den_variable?.[0]
+          }) * 100 = ${(
+            (data.d_num_variable?.[0] / data.d_den_variable?.[0]) *
+            100
+          ).toFixed(2)}%`,
+        });
+      }
+
+      // Validar datos
+      if (dataLength === 0) {
+        console.warn("⚠️ No hay datos para mostrar");
+        $("#tabla-variables-detallado tbody").html(
+          '<tr><td colspan="10" class="text-center text-muted py-4">' +
+            '<i class="fas fa-inbox fa-2x mb-2 d-block"></i>' +
+            "No hay datos para mostrar</td></tr>"
+        );
+        return;
+      }
+
+      // Destruir tabla anterior si existe
+      if (tablaInstance) {
+        tablaInstance.destroy();
+        $("#tabla-variables-detallado tbody").empty();
+      }
+
+      // PASO 1: Preparar datos (calcula porcentajes como num/den*100)
+      const tableData = prepareTableData(data);
+      console.log(
+        "📋 Datos preparados (primeras 3 filas):",
+        tableData.slice(0, 3)
+      );
+
+      // PASO 2: Calcular y aplicar promedios por RED (suma_num / suma_den * 100)
+      const redStats = calculateAndApplyRedAverages(tableData);
+
+      // PASO 3: Ordenar datos
+      const sortedData = sortTableData(tableData);
+      console.log(
+        "📊 Datos ordenados (primeras 3 filas):",
+        sortedData.slice(0, 3)
+      );
+
+      // PASO 4: Cargar dependencias e inicializar tabla
+      loadRowGroupExtension()
+        .then(() => {
+          initializeDataTable(sortedData);
+        })
+        .catch((error) => {
+          console.error("❌ Error al inicializar tabla:", error);
+        });
+    };
+
+    /**
+     * Inicializa DataTables con la configuración completa
+     * @param {Array} tableData - Datos procesados para la tabla
+     */
+    function initializeDataTable(tableData) {
+      tablaInstance = $("#tabla-variables-detallado").DataTable({
+        data: tableData,
+        columns: getColumnsConfig(),
+
+        // Deshabilitar ordenamiento automático de DataTables
+        // (ya ordenamos manualmente)
+        order: [],
+        ordering: false,
+
+        // Opciones de visualización
+        paging: false,
+        searching: false,
+        lengthChange: false,
+        info: false,
+        responsive: true,
+        autoWidth: false,
+
+        // Idioma
+        language: {
+          emptyTable: "No hay datos disponibles",
+          info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+          infoEmpty: "Mostrando 0 registros",
+          infoFiltered: "(filtrado de _MAX_ registros)",
+        },
+
+        // Configuración de grupos
+        rowGroup: {
+          dataSrc: CONFIG.COLUMNS.RED,
+          startRender: renderGroupHeader,
+        },
+      });
+
+      // Configurar eventos
+      setupTableEvents();
+
+      console.log("✅ Tabla renderizada con éxito");
+
+      // Colapsar automáticamente después de un breve delay
+      setTimeout(() => {
+        collapseAllGroups();
+        console.log("📁 Tabla colapsada automáticamente");
+      }, 100);
+    }
+  })();
+</script>
