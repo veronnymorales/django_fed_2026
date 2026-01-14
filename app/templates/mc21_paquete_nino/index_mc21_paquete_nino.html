@@ -6,7 +6,7 @@
     <div class="col-md-12">
         <!-- Apply AdminLTE card or typical header styling -->
         <h6 class="m-1 text-dark">
-            <strong>FICHA MC-01.01: PORCENTAJE DE MUJERES CON PARTO INSTITUCIONAL, PROCEDENTES DE LOS DISTRITOS DE QUINTILES 1 Y 2 DE POBREZA QUE DURANTE SU GESTACIÓN RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS</strong>
+            <strong>FICHA MC-02.01: PORCENTAJE DE NIÑAS Y NIÑOS MENORES DE 12 MESES DE EDAD PROCEDENTES DE DISTRITOS DE QUINTILES 1 Y 2 DE POBREZA DEPARTAMENTAL, QUE RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS.</strong>
         </br>
         </h6>
     </div>
@@ -90,7 +90,7 @@
                     </div>
                     <div class="card-body" style="display: block;">
                         <div class="tab-pane fade show active">
-                            {% include "mc11_paquete_gestante/establecimientos_h.html" %}
+                            {% include "mc21_paquete_nino/establecimientos_h.html" %}
                         </div>
                     </div>
                 </div>
@@ -136,35 +136,35 @@
         <div class="row">
             <!-- Card velocimetro -->
             <div class="col-md-2" id="componente-velocimetro">
-                {% include "mc11_paquete_gestante/components/chart/chart_velocimetro.html" %}
+                {% include "mc21_paquete_nino/components/chart/chart_velocimetro.html" %}
             </div>
             <!-- Card resumen -->
             <div class="col-md-2" id="detalle-avance-numden-container">
-                {% include "mc11_paquete_gestante/components/chart/chart_avance_numden.html" %}
+                {% include "mc21_paquete_nino/components/chart/chart_avance_numden.html" %}
             </div>
             <!-- Card avance mensual -->
             <div class="col-md-8" id="detalle-avance-mensual-container">
-                {% include "mc11_paquete_gestante/components/chart/chart_avance_mensual.html" %}
+                {% include "mc21_paquete_nino/components/chart/chart_avance_mensual.html" %}
             </div>
         </div>
         <!-- Card variables -->
         <div class="row">
             <!-- Card  variables  detallados-->
             <div class="col-md-4" id="detalle-avance-variables-container-1">
-                {% include "mc11_paquete_gestante/components/chart/chart_avance_variables_1examen.html" %}
+                {% include "mc21_paquete_nino/components/chart/chart_avance_variables_1vacuna.html" %}
             </div>
             <div class="col-md-4" id="detalle-avance-variables-container-2">
-                {% include "mc11_paquete_gestante/components/chart/chart_avance_variables_2apn.html" %}
+                {% include "mc21_paquete_nino/components/chart/chart_avance_variables_2suple.html" %}
             </div>
             <div class="col-md-4" id="detalle-avance-variables-container-3">
-                {% include "mc11_paquete_gestante/components/chart/chart_avance_variables_3suple.html" %}
+                {% include "mc21_paquete_nino/components/chart/chart_avance_variables_3dni.html" %}
             </div>
         </div>
 
         <div class="row">
             <!-- Card  variables  detallados-->
             <div class="col-md-12" id="detalle-avance-variables-detallado-container">
-                {% include "mc11_paquete_gestante/components/chart/table_variables_detallado.html" %}
+                {% include "mc21_paquete_nino/components/chart/table_variables_detallado.html" %}
             </div>
         </div>
         
@@ -187,7 +187,7 @@
                     <div class="card-body">
                         <div class="chart-container">
                             <div id="chart_red_ranking" style="height: 400px;">
-                                {% include 'mc11_paquete_gestante/components/chart/chart_grafico_red.html' %}
+                                {% include 'mc21_paquete_nino/components/chart/chart_grafico_red.html' %}
                             </div>
                         </div>
                     </div>
@@ -211,7 +211,7 @@
                     <div class="card-body">
                         <div class="chart-container">
                             <div id="chart_microred_ranking" style="height: 400px;">
-                                 {% include 'mc11_paquete_gestante/components/chart/chart_grafico_microred.html' %}
+                                 {% include 'mc21_paquete_nino/components/chart/chart_grafico_microred.html' %}
                             </div>
                         </div>
                     </div>
@@ -235,7 +235,7 @@
                     <div class="card-body">
                         <div class="chart-container">
                             <div id="chart_establecimiento_ranking" style="height: 400px;">
-                                 {% include 'mc11_paquete_gestante/components/chart/chart_grafico_establecimiento.html' %}
+                                 {% include 'mc21_paquete_nino/components/chart/chart_grafico_establecimiento.html' %}
                             </div>
                         </div>
                     </div>
@@ -251,13 +251,13 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title"><i class="fas fa-user-check"></i>SEGUIMIENTO NOMINAL DE GESTANTES QUE RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS</h4>
+                <h4 class="modal-title"><i class="fas fa-user-check"></i>SEGUIMIENTO NOMINAL DE MENORES DE 12 MESES QUE RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS</h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
             <div class="modal-body">
-                {% include "mc11_paquete_gestante/_seguimiento_nominal_mc11_paquete_gestante.html" %}
+                {% include "mc21_paquete_nino/_seguimiento_nominal_mc21_paquete_nino.html" %}
             </div>
             <div class="modal-footer right">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">CERRAR</button>
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('🔍 FILTROS APLICADOS:', params);
         console.log('📋 Query String:', queryString);
         
-        fetch(`{% url "index_mc11_paquete_gestante" %}?${queryString}`, {
+        fetch(`{% url "index_mc21_paquete_nino" %}?${queryString}`, {
             headers: { "X-Requested-With": "XMLHttpRequest" },
         })
         .then(response => {
@@ -304,9 +304,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (window.renderChartVelocimetro) window.renderChartVelocimetro(data, params);
             if (window.renderChartAvanceNumDen) window.renderChartAvanceNumDen(data, params);
             if (window.renderChartAvanceMensual) window.renderChartAvanceMensual(data, params);
-            if (window.renderChartAvanceVariables1examen) window.renderChartAvanceVariables1examen(data, params);
-            if (window.renderChartAvanceVariables2apn) window.renderChartAvanceVariables2apn(data, params);
-            if (window.renderChartAvanceVariables3suple) window.renderChartAvanceVariables3suple(data, params);
+            if (window.renderChartAvanceVariables1vacuna) window.renderChartAvanceVariables1vacuna(data, params);
+            if (window.renderChartAvanceVariables2suple) window.renderChartAvanceVariables2suple(data, params);
+            if (window.renderChartAvanceVariables3dni) window.renderChartAvanceVariables3dni(data, params);
             if (window.renderTablaVariablesDetallado) window.renderTablaVariablesDetallado(data, params);
             if (window.renderChartRedRanking) window.renderChartRedRanking(data, params);
             if (window.renderChartMicroredRanking) window.renderChartMicroredRanking(data, params);
