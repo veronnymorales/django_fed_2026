@@ -1,0 +1,19 @@
+{% if redes %} {% for red_nombre, red_data in redes %}
+<div class="red-group mb-2">
+  <div class="red-header" data-red="{{ red_data.codigo }}">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-chevron-down icon-toggle collapsed"></i>
+      <span class="ml-2">RED: {{ red_nombre }}</span>
+    </div>
+    <span class="badge-count">{{ red_data.count }}</span>
+  </div>
+  <div id="red-content-{{ red_data.codigo }}" style="display: none">
+    <!-- MicroRedes will be loaded here via HTMX -->
+  </div>
+</div>
+{% endfor %} {% else %}
+<div class="alert alert-info text-center">
+  <i class="fas fa-info-circle"></i> No hay datos disponibles para los filtros
+  seleccionados.
+</div>
+{% endif %}

@@ -1,0 +1,79 @@
+<main class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <section class="card card-body shadow mb-2">
+        <div class="col-md-6 offset-md-3 text-center py-1 text-primary">
+          <h4>INDICADOR DE COMPROMISO 1 - PROVINCIA</h4>
+        </div>
+        <form method="GET" enctype="multipart/form-data" action="{% url 'rpt_compromiso_indicador_provincia_xls' %}">
+          <!-- cabecera-->   
+          <div class="form row">
+            <!-- años-->
+              <div class="col-md-2 form-group">
+                <div class="form-group">
+                    <label class="text-danger" for="anio" >AÑO:</label>
+                    <select class="form-control form-select-sm" id="anio" name="anio">
+                      <option value = '2024'>2024</option>
+                      <option value = '2025' selected>2025</option>
+                      <option value = '2026'>2026</option>
+                      <option value = '2027'>2027</option>
+                    </select>
+                </div>
+              </div>
+              <!-- meses -->
+              <div class="col-md-3 form-group">
+                  <div class="form-group">
+                      <label class="text-danger" for="fecha_inicio">MES INICIO:</label>
+                      <select class="form-control" id="fecha_inicio" name="fecha_inicio">
+                          {% for m in mes_inicio %}
+                          <option value="{{ m.nro_mes }}">{{ m.Mes }} </option>
+                          {% endfor %}
+                      </select>
+                  </div>
+              </div>
+              <div class="col-md-3 form-group">
+                  <div class="form-group">
+                      <label class="text-danger" for="fecha_fin">MES FIN:</label>
+                      <select class="form-control" id="fecha_fin" name="fecha_fin">
+                          {% for m in mes_fin %}
+                          <option value="{{ m.nro_mes }}">{{ m.Mes }} </option>
+                          {% endfor %}
+                      </select>
+                  </div>
+              </div>
+              <!-- indicador cumple no cumple-->
+              <div class="col-md-3 form-group">
+                <div class="form-group">
+                    <label class="text-danger" for="cumple">ESTADO ACTUALIZACION:</label>
+                    <select class="form-control form-select-sm" id="cumple" name="cumple">
+                        <option value="">Todos</option>
+                        <option value="1">Cumplen</option>
+                        <option value="0">NO Cumplen</option>
+                    </select>
+                </div>            
+              </div>
+          </div>
+          <!-- provincia-->    
+          <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                  <label class="text-danger" for="provincia">PROVINCIA :</label>
+                  <select class="form-control" name="provincia">
+                    <option value="">--- SELECCIONAR ---</option>
+                    {% for p in provincias %}
+                    <option value="{{ p.ubigueo_filtrado }}">{{ p.Provincia }} </option>
+                    {% endfor %}
+                  </select>
+                </div>
+            </div>
+          </div>   
+          <!-- fin cabecera-->
+          <br>        
+          <div class="col-md-6 offset-md-3 text-center py-1 form-group">        
+            <button type="submit" class="btn btn-success btn-lg text-center"><i class="fa fa-file-excel"></i> PROCESAR</button>
+          </div>
+        </form>
+      </section>
+    </div> 
+  </div>
+</main>
