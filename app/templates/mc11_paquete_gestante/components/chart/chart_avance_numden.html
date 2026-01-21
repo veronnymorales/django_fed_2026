@@ -2,7 +2,7 @@
 <script>
   window.renderChartAvanceNumDen = function (data, params) {
     const container = document.getElementById(
-      "detalle-avance-numden-container"
+      "detalle-avance-numden-container",
     );
     if (!container) {
       console.error("Contenedor para num/den no encontrado");
@@ -22,11 +22,11 @@
       const avance = denominador > 0 ? (numerador / denominador) * 100 : 0;
 
       let clasificacion, colorClass, iconClass;
-      if (avance >= 82) {
+      if (avance >= 50) {
         clasificacion = "CUMPLE";
         colorClass = "success";
         iconClass = "check-circle";
-      } else if (avance >= 70) {
+      } else if (avance >= 39) {
         clasificacion = "PROCESO";
         colorClass = "warning";
         iconClass = "clock";

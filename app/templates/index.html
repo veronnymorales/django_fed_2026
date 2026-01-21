@@ -1,15 +1,210 @@
-{% extends "base.html" %}
-{% load static %}
-{% block body %}
+{% extends "base.html" %} {% load static %} {% block body %}
 
 <!-- dashboard.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>INDICADORES FED 2025-2026 | REGION JUNIN</title>
+  </head>
+  <body>
+    <h2>
+      Indicadores de Compromiso de Gestión y Cobertura Convenio FED Período
+      2025-2026
+    </h2>
 
-</body>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%">Compromisos de Gestión</th>
+            <th style="width: 45%">Indicador</th>
+            <th style="width: 15%">Meta Regional</th>
+            <th style="width: 15%">Responsable</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- SI-01 -->
+          <tr>
+            <td rowspan="3" class="bg-si01">
+              <strong>SI-01.</strong> Gestantes atendidas en establecimientos de
+              salud del Gobierno Regional, que reciben suplementación preventiva
+              o tratamiento con hierro, y dosajes de hemoglobina.
+            </td>
+            <td>
+              SI-01.01: Condición previa (CP): Porcentaje de gestantes atendidas
+              en establecimientos de salud del Gobierno Regional, que reciben su
+              primera atención prenatal en el primer trimestre de gestación.
+            </td>
+            <td class="meta-cell">75%</td>
+            <td rowspan="3" class="responsable-cell">ES.SSR</td>
+          </tr>
+          <tr>
+            <td>
+              SI-01.02: Porcentaje de gestantes con anemia atendidas en
+              establecimientos de salud del Gobierno Regional, que reciben
+              tratamiento con hierro y dosajes de hemoglobina.
+            </td>
+            <td class="meta-cell">82%</td>
+          </tr>
+          <tr>
+            <td>
+              SI-01.03: Porcentaje de mujeres con parto institucional sin anemia
+              atendidas en establecimientos de salud del Gobierno Regional, que
+              durante su gestación recibieron suplementación preventiva con
+              hierro y dosajes de hemoglobina.
+            </td>
+            <td class="meta-cell">50%</td>
+          </tr>
+
+          <!-- SI-02 -->
+          <tr>
+            <td rowspan="4" class="bg-si02">
+              <strong>SI-02.</strong> Niñas y niños de doce (12) meses de edad
+              del departamento que reciben tratamiento o suplementación
+              preventiva con hierro, y dosajes de hemoglobina.
+            </td>
+            <td>
+              SI-02.01 Condición previa (CP): Porcentaje de niñas y niños de
+              seis (06) meses de edad, del departamento, que a los cuatro (04)
+              meses de edad reciben suplementación preventiva con hierro, y
+              dosaje de hemoglobina.
+            </td>
+            <td class="meta-cell">88%</td>
+            <td rowspan="4" class="responsable-cell">ES. NUTRICION</td>
+          </tr>
+          <tr>
+            <td>
+              SI-02.02: Porcentaje de niñas y niños de seis (06) meses de edad,
+              prematuros y/o bajo peso al nacer, del dpto, sin anemia; que
+              reciben suplementación preventiva con hierro y dosajes de
+              hemoglobina.
+            </td>
+            <td class="meta-cell">75%</td>
+          </tr>
+          <tr>
+            <td>
+              SI-02.03: Porcentaje de niñas y niños de doce (12) meses de edad
+              del departamento, con anemia, que reciben tratamiento con hierro y
+              dosajes de hemoglobina.
+            </td>
+            <td class="meta-cell">75%</td>
+          </tr>
+          <tr>
+            <td>
+              SI-02.04: Porcentaje de niñas y niños de doce (12) meses de edad
+              del departamento, sin anemia, que reciben suplementación
+              preventiva con hierro y dosajes de hemoglobina.
+            </td>
+            <td class="meta-cell">82%</td>
+          </tr>
+
+          <!-- SI-03 -->
+          <tr>
+            <td rowspan="2" class="bg-si03">
+              <strong>SI-03.</strong> Adolescentes mujeres de 12 a 17 años de
+              edad, atendidas en establecimientos de salud del Gobierno
+              Regional, cuentan con dosaje de hemoglobina y otras prestaciones
+              priorizadas.
+            </td>
+            <td>
+              SI-03.01: Condición previa (CP): Porcentaje de adolescentes
+              mujeres de 12 a 17 años de edad, atendidas en establecimientos de
+              salud del Gobierno Regional, con dosaje de hemoglobina.
+            </td>
+            <td class="meta-cell">85%</td>
+            <td rowspan="2" class="responsable-cell">EV. ADOLESCENTE</td>
+          </tr>
+          <tr>
+            <td>
+              SI-03.02: Porcentaje de adolescentes mujeres de 12 a 17 años de
+              edad, sin anemia, atendidas en establecimientos de salud del
+              Gobierno Regional, que reciben prestaciones priorizadas.
+            </td>
+            <td class="meta-cell">40%</td>
+          </tr>
+
+          <!-- VI-01 -->
+          <tr>
+            <td rowspan="2" class="bg-vi01">
+              <strong>VI-01.</strong> Gestantes atendidas en establecimientos de
+              salud del Gobierno Regional, que cuentan con tamizaje positivo de
+              violencia, y reciben un paquete mínimo de intervenciones
+              terapéuticas especializadas.
+            </td>
+            <td>
+              VI-01.01: Condición previa: Porcentaje de gestantes atendidas en
+              establecimientos de salud del Gobierno Regional, que cuentan con
+              tamizaje positivo de violencia contra la mujer.
+            </td>
+            <td class="meta-cell">21%</td>
+            <td class="responsable-cell">ES.SSR</td>
+          </tr>
+          <tr>
+            <td>
+              VI-01.02: Porcentaje de gestantes atendidas en establecimientos de
+              salud del Gobierno Regional, que reciben un paquete mínimo de
+              intervenciones terapéuticas especializadas.
+            </td>
+            <td class="meta-cell">70%</td>
+            <td class="responsable-cell">ES. SALUD MENTAL</td>
+          </tr>
+
+          <!-- SECCIÓN DE COBERTURA -->
+          <tr class="header-blue">
+            <th>Meta de Cobertura</th>
+            <th>Indicador</th>
+            <th>Meta Reg</th>
+            <th>Responsable</th>
+          </tr>
+
+          <tr>
+            <td class="bg-mc01">
+              MC-01. Mujeres con parto institucional, procedentes de los
+              distritos de quintiles 1 y 2 de pobreza departamental, que durante
+              su gestación recibieron el paquete integrado de servicios.
+            </td>
+            <td>
+              MC-01.01: Porcentaje de mujeres con parto institucional,
+              procedentes de los distritos de quintiles 1 y 2 de pobreza
+              departamental que durante su gestación recibieron el paquete
+              integrado de servicios. *
+            </td>
+            <td class="meta-cell">50%</td>
+            <td class="responsable-cell">ES.SSR</td>
+          </tr>
+
+          <tr>
+            <td class="bg-mc02">
+              MC-02. Niñas y Niños menores de 12 meses de edad procedentes de
+              los quintiles 1 y 2 de pobreza departamental que reciben el
+              paquete integrado de servicios.
+            </td>
+            <td>
+              MC-02.01: Porcentaje de niñas y niños menores de 12 meses de edad
+              procedentes de distritos de quintiles 1 y 2 de pobreza
+              departamental, que recibieron el paquete integrado de servicios
+            </td>
+            <td class="meta-cell">72%</td>
+            <td class="responsable-cell">PP.DIT</td>
+          </tr>
+
+          <tr>
+            <td class="bg-mc03">
+              MC-03. Recién nacidos del departamento, reciben vacunas BCG, HvB,
+              controles CRED y tamizaje neonatal.
+            </td>
+            <td>
+              MC-03.01: Porcentaje de recién nacidos del departamento, reciben
+              vacunas BCG, HvB, controles CRED y tamizaje neonatal
+            </td>
+            <td class="meta-cell">65%</td>
+            <td class="responsable-cell">COMP. NEONATAL</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
 </html>
 
 {% endblock %}

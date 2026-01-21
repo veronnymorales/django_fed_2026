@@ -6,11 +6,11 @@
       return;
     }
     const container = document.getElementById(
-      "detalle-avance-mensual-container"
+      "detalle-avance-mensual-container",
     );
     if (!container) {
       console.error(
-        "El contenedor para el gráfico de avance mensual no fue encontrado."
+        "El contenedor para el gráfico de avance mensual no fue encontrado.",
       );
       return;
     }
@@ -35,15 +35,15 @@
 
       const monthlyNum = Array.from(
         { length: 12 },
-        (_, i) => data[`num_${i + 1}`]?.[0] ?? 0
+        (_, i) => data[`num_${i + 1}`]?.[0] ?? 0,
       );
       const monthlyDen = Array.from(
         { length: 12 },
-        (_, i) => data[`den_${i + 1}`]?.[0] ?? 0
+        (_, i) => data[`den_${i + 1}`]?.[0] ?? 0,
       );
       const monthlyCob = Array.from(
         { length: 12 },
-        (_, i) => data[`cob_${i + 1}`]?.[0] ?? 0
+        (_, i) => data[`cob_${i + 1}`]?.[0] ?? 0,
       );
 
       console.log("📊 Datos del gráfico mensual:");
@@ -66,7 +66,7 @@
         "DIC",
       ];
       const anio = params.anio || new Date().getFullYear();
-      const meta = 82;
+      const meta = 72;
       const maxValue = 100;
 
       const option = {
