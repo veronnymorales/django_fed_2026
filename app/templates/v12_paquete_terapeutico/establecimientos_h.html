@@ -10,8 +10,8 @@
           name="anio"
           style="width: 100%"
         >
-          <option value="2025" selected>2025</option>
-          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2026" selected>2026</option>
         </select>
       </div>
     </div>
@@ -26,7 +26,7 @@
           name="mes_inicio"
           style="width: 50%"
         >
-          <option value="1">ENERO</option>
+          <option value="1" selected>ENERO</option>
           <option value="2">FEBRERO</option>
           <option value="3">MARZO</option>
           <option value="4">ABRIL</option>
@@ -36,7 +36,7 @@
           <option value="8">AGOSTO</option>
           <option value="9">SETIEMBRE</option>
           <option value="10">OCTUBRE</option>
-          <option value="11" selected>NOVIEMBRE</option>
+          <option value="11">NOVIEMBRE</option>
           <option value="12">DICIEMBRE</option>
         </select>
       </div>
@@ -52,7 +52,7 @@
           name="mes_fin"
           style="width: 100%"
         >
-          <option value="1">ENERO</option>
+          <option value="1" selected>ENERO</option>
           <option value="2">FEBRERO</option>
           <option value="3">MARZO</option>
           <option value="4">ABRIL</option>
@@ -62,12 +62,11 @@
           <option value="8">AGOSTO</option>
           <option value="9">SETIEMBRE</option>
           <option value="10">OCTUBRE</option>
-          <option value="11" selected>NOVIEMBRE</option>
+          <option value="11">NOVIEMBRE</option>
           <option value="12">DICIEMBRE</option>
         </select>
       </div>
     </div>
-
     <!-- RED -->
     <div class="col-md-2">
       <div class="form-group">
@@ -151,7 +150,7 @@
       // Verificar que jQuery está disponible
       if (typeof $ === "undefined") {
         console.error(
-          "❌ jQuery no está cargado. No se puede inicializar Select2."
+          "❌ jQuery no está cargado. No se puede inicializar Select2.",
         );
         return;
       }
@@ -193,7 +192,7 @@
           htmx.trigger(this, "change");
           // Auto-submit después de que HTMX actualice los establecimientos
           setTimeout(autoSubmitForm, 300);
-        }
+        },
       );
 
       // Auto-submit cuando se selecciona un establecimiento
@@ -240,7 +239,7 @@
         // Re-aplicar eventos solo si se actualizó el contenedor de microredes
         if (targetElement.id === "container_microredes_establec_h") {
           const microredSelect = document.getElementById(
-            "p_microredes_establec_h"
+            "p_microredes_establec_h",
           );
           if (microredSelect) {
             console.log("🔗 Re-aplicando eventos a microred select");

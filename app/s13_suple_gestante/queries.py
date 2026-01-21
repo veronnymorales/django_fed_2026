@@ -27,12 +27,20 @@ DEFAULT_GRAFICO_MENSUALIZADO_DATA = {
 
 DEFAULT_VARIABLES_DATA = {
     'den_variable': 0,
-    'num_1trim': 0,
-    'avance_1trim': 0.0,
-    'num_2trim': 0,
-    'avance_2trim': 0.0,
-    'num_3trim': 0,
-    'avance_3trim': 0.0
+    'num_suple1': 0,
+    'avance_suple1': 0.0,
+    'num_suple2': 0,
+    'avance_suple2': 0.0,
+    'num_suple3': 0,
+    'avance_suple3': 0.0,
+    'num_suple4': 0,
+    'avance_suple4': 0.0,
+    'num_suple5': 0,
+    'avance_suple5': 0.0,
+    'num_hb2': 0,
+    'avance_hb2': 0.0,
+    'num_hb3': 0,
+    'avance_hb3': 0.0
 }
 
 DEFAULT_VARIABLES_DETALLADO_DATA = {
@@ -47,12 +55,21 @@ DEFAULT_VARIABLES_DETALLADO_DATA = {
     'd_nombre_establecimiento': '',
     'd_ubigueo_establecimiento': '',
     'd_den_variable': 0,
-    'd_num_1trim': 0,
-    'd_avance_1trim': 0.0,
-    'd_num_2trim': 0,
-    'd_avance_2trim': 0.0,
-    'd_num_3trim': 0,
-    'd_avance_3trim': 0.0
+    'd_num_variable': 0,
+    'd_num_suple1': 0,
+    'd_avance_suple1': 0.0,
+    'd_num_suple2': 0,
+    'd_avance_suple2': 0.0,
+    'd_num_suple3': 0,
+    'd_avance_suple3': 0.0,
+    'd_num_suple4': 0,
+    'd_avance_suple4': 0.0,
+    'd_num_suple5': 0,
+    'd_avance_suple5': 0.0,
+    'd_num_hb2': 0,
+    'd_avance_hb2': 0.0,
+    'd_num_hb3': 0,
+    'd_avance_hb3': 0.0
 }
 
 DEFAULT_VARIABLES_GRAFICO_REDES = {
@@ -311,7 +328,7 @@ def obtener_variables_s13_suple_gestante(
             # Obtener la fila resultante
             row = cursor.fetchone()
             
-            if row and len(row) >= 7:
+            if row and len(row) >= 15:
                 return [{
                     'den_variable': int(row[0]) if row[0] is not None else 0,
                     'num_suple1': int(row[1]) if row[1] is not None else 0,
@@ -332,7 +349,7 @@ def obtener_variables_s13_suple_gestante(
             else:
                 # Sin datos en la tabla o número incorrecto de columnas
                 if row:
-                    logger.warning(f"La consulta de variables retornó {len(row)} columnas en lugar de 7")
+                    logger.warning(f"La consulta de variables retornó {len(row)} columnas en lugar de 15")
                 else:
                     logger.warning("La consulta de variables no retornó datos")
                 return [DEFAULT_VARIABLES_DATA]
@@ -392,7 +409,7 @@ def obtener_variables_detallado_s13_suple_gestante(
             if rows:
                 resultados = []
                 for row in rows:
-                    if len(row) >= 25:
+                    if len(row) >= 18:
                         resultados.append({
                             'd_anio': str(row[0]) if row[0] is not None else '',
                             'd_mes': str(row[1]) if row[1] is not None else '',
@@ -419,10 +436,10 @@ def obtener_variables_detallado_s13_suple_gestante(
                             'd_num_hb2': int(row[22]) if row[22] is not None else 0,
                             'd_avance_hb2': float(row[23]) if row[23] is not None else 0.0,
                             'd_num_hb3': int(row[24]) if row[24] is not None else 0,
-                            'd_avance_hb3': float(row[25]) if row[25] is not None else 0.0,
+                            'd_avance_hb3': float(row[25]) if row[25] is not None else 0.0
                         })
                     else:
-                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 25, omitiendo...")
+                        logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 18, omitiendo...")
                 
                 if resultados:
                     logger.info(f"Se obtuvieron {len(resultados)} establecimientos para variables detallado")

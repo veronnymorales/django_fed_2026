@@ -1555,7 +1555,7 @@ def _add_titles(ws, style_mgr):
         ('B1', 'OFICINA DE TECNOLOGIAS DE LA INFORMACION', 7, True, '000000'),
         ('B2', 'DIRECCION REGIONAL DE SALUD JUNIN', 7, True, '000000'),
         ('B3', 'El usuario se compromete a mantener la confidencialidad de los datos personales que conozca como resultado del reporte realizado, cumpliendo con lo establecido en la Ley N° 29733 - Ley de Protección de Datos Personales y sus normas complementarias.', 7, True, '0000CC'),
-        ('B4', 'SEGUIMIENTO NOMINAL:SI-01.01: Porcentaje de gestantes atendidas que reciben su primera atención prenatal en el primer trimestre de gestación.', 12, True, '000000'),
+        ('B4', 'SEGUIMIENTO NOMINAL:SI-02.01 PORCENTAJE DE NIÑAS Y NIÑOS DE SEIS (06) MESES DE EDAD, QUE A LOS CUATRO (04) MESES DE EDAD RECIBEN SUPLEMENTACIÓN PREVENTIVA CON HIERRO, Y DOSAJE DE HEMOGLOBINA', 12, True, '000000'),
     ]
     
     for cell_ref, text, size, bold, color in titles:

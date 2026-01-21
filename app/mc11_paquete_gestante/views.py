@@ -1855,7 +1855,7 @@ def _add_titles(ws, style_mgr):
         ('B1', 'OFICINA DE TECNOLOGIAS DE LA INFORMACION', 7, True, '000000'),
         ('B2', 'DIRECCION REGIONAL DE SALUD JUNIN', 7, True, '000000'),
         ('B3', 'El usuario se compromete a mantener la confidencialidad de los datos personales que conozca como resultado del reporte realizado, cumpliendo con lo establecido en la Ley N° 29733 - Ley de Protección de Datos Personales y sus normas complementarias.', 7, True, '0000CC'),
-        ('B4', 'SEGUIMIENTO NOMINAL:VI-01.02:PORCENTAJE DE GESTANTES ATENDIDAS EN ESTABLECIMIENTOS DE SALUD DEL GOBIERNO REGIONAL, QUE RECIBEN UN PAQUETE MÍNIMO DE INTERVENCIONES TERAPÉUTICAS ESPECIALIZADAS', 12, True, '000000'),
+        ('B4', 'SEGUIMIENTO NOMINAL:MC-01. MUJERES CON PARTO INSTITUCIONAL, PROCEDENTES DE LOS DISTRITOS DE QUINTILES 1 Y 2 DE POBREZA DEPARTAMENTAL, QUE DURANTE SU GESTACIÓN RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS', 12, True, '000000'),
     ]
     
     for cell_ref, text, size, bold, color in titles:

@@ -123,7 +123,7 @@
             den_e,
             num_e,
             avance_e,
-            brecha_e
+            brecha_e,
           ),
           grid: this._buildGrid(),
           xAxis: this._buildXAxis(),
@@ -167,7 +167,7 @@
                   
                   <span style="color: #666;">📈 Avance:</span>
                   <span style="font-weight: 600; text-align: right; color: ${this._getBarColor(
-                    avance_e[idx]
+                    avance_e[idx],
                   )};">${avance_e[idx].toFixed(2)}%</span>
                   
                   <span style="color: #666;">📉 Brecha:</span>
@@ -417,7 +417,7 @@
           } else {
             datosFinales = DataTransformer.getTopN(
               datosOrdenados,
-              CONFIG.maxBarsToShow
+              CONFIG.maxBarsToShow,
             );
           }
 
@@ -426,10 +426,10 @@
           // Debug
           Logger.debug(
             "Establecimientos (Mayor a Menor Avance)",
-            datosFinales.slice(0, 10)
+            datosFinales.slice(0, 10),
           );
           Logger.info(
-            `Mostrando ${datosFinales.length} de ${datosOrdenados.length} establecimientos`
+            `Mostrando ${datosFinales.length} de ${datosOrdenados.length} establecimientos`,
           );
 
           // Construir opciones y renderizar
@@ -467,9 +467,54 @@
       getInstance() {
         return ChartManager.instance;
       },
+
+      /**
+       * Exporta el gráfico actual como imagen PNG
+       * @param {string} filename - Nombre del archivo (opcional)
+       */
+      exportToImage(filename) {
+        const chart = ChartManager.instance;
+        if (!chart) {
+          Logger.error("No hay gráfico disponible para exportar");
+          return;
+        }
+
+        try {
+          // Generar nombre del archivo con fecha
+          const date = new Date();
+          const dateStr = date.toISOString().split("T")[0];
+          const timeStr = date.toTimeString().split(" ")[0].replace(/:/g, "-");
+          const defaultFilename = `ranking_establecimientos_${dateStr}_${timeStr}.png`;
+
+          // Obtener la imagen del gráfico
+          const dataURL = chart.getDataURL({
+            type: "png",
+            pixelRatio: 2, // Mayor resolución
+            backgroundColor: "#fff",
+          });
+
+          // Crear enlace de descarga
+          const link = document.createElement("a");
+          link.href = dataURL;
+          link.download = filename || defaultFilename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          Logger.info(`Gráfico exportado: ${link.download}`);
+        } catch (error) {
+          Logger.error("Error al exportar imagen", error);
+          alert("Error al exportar la imagen del gráfico");
+        }
+      },
     };
   })();
 
   window.renderChartEstablecimiento =
     ChartEstablecimiento.render.bind(ChartEstablecimiento);
+
+  // Exponer función de exportar imagen globalmente
+  window.exportChartEstablecimientoImage = function (filename) {
+    ChartEstablecimiento.exportToImage(filename);
+  };
 </script>
