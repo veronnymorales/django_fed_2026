@@ -80,10 +80,10 @@
             markLine: {
               symbol: "none",
               lineStyle: { type: "dashed", color: "red" },
-              data: [{ yAxis: 75, name: "M" }],
+              data: [{ yAxis: 65, name: "M" }],
               label: {
                 show: true,
-                formatter: `M: 75%`,
+                formatter: `M: 65%`,
                 position: "end",
                 offset: [0, -14],
                 textStyle: { fontSize: 8 },
@@ -106,7 +106,7 @@
         "tipo:",
         typeof data.num_tamizaje_neo,
         "es array:",
-        Array.isArray(data.num_tamizaje_neo)
+        Array.isArray(data.num_tamizaje_neo),
       );
       console.log(
         "  - avance_num_tamizaje_neo:",
@@ -114,7 +114,7 @@
         "tipo:",
         typeof data.avance_num_tamizaje_neo,
         "es array:",
-        Array.isArray(data.avance_num_tamizaje_neo)
+        Array.isArray(data.avance_num_tamizaje_neo),
       );
       const extractValue = (rawValue) => {
         if (rawValue == null) return 0;

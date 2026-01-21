@@ -80,10 +80,10 @@
             markLine: {
               symbol: "none",
               lineStyle: { type: "dashed", color: "red" },
-              data: [{ yAxis: 75, name: "M" }],
+              data: [{ yAxis: 50, name: "M" }],
               label: {
                 show: true,
-                formatter: `M: 75%`,
+                formatter: `M: 50%`,
                 position: "end",
                 offset: [0, -14],
                 textStyle: { fontSize: 8 },
@@ -106,7 +106,7 @@
         "tipo:",
         typeof data.num_suple1,
         "es array:",
-        Array.isArray(data.num_suple1)
+        Array.isArray(data.num_suple1),
       );
       console.log(
         "  - num_suple2:",
@@ -114,7 +114,7 @@
         "tipo:",
         typeof data.num_suple2,
         "es array:",
-        Array.isArray(data.num_suple2)
+        Array.isArray(data.num_suple2),
       );
       console.log(
         "  - num_suple3:",
@@ -122,7 +122,7 @@
         "tipo:",
         typeof data.num_suple3,
         "es array:",
-        Array.isArray(data.num_suple3)
+        Array.isArray(data.num_suple3),
       );
       console.log(
         "  - num_suple4:",
@@ -130,7 +130,7 @@
         "tipo:",
         typeof data.num_suple4,
         "es array:",
-        Array.isArray(data.num_suple4)
+        Array.isArray(data.num_suple4),
       );
       console.log(
         "  - num_suple5:",
@@ -138,7 +138,7 @@
         "tipo:",
         typeof data.num_suple5,
         "es array:",
-        Array.isArray(data.num_suple5)
+        Array.isArray(data.num_suple5),
       );
       console.log(
         "  - num_hb2:",
@@ -146,7 +146,7 @@
         "tipo:",
         typeof data.num_hb2,
         "es array:",
-        Array.isArray(data.num_hb2)
+        Array.isArray(data.num_hb2),
       );
       console.log(
         "  - num_hb3:",
@@ -154,7 +154,7 @@
         "tipo:",
         typeof data.num_hb3,
         "es array:",
-        Array.isArray(data.num_hb3)
+        Array.isArray(data.num_hb3),
       );
       console.log("  - avance_suple1:", data.avance_suple1);
       console.log("  - avance_suple2:", data.avance_suple2);
@@ -221,7 +221,7 @@
           const numerator = extractValue(data[item.num_key]);
 
           console.log(
-            `📈 ${item.title}: numerador=${numerator}, avance=${value}%`
+            `📈 ${item.title}: numerador=${numerator}, avance=${value}%`,
           );
 
           const dataItem = { value: value, numerator: numerator };

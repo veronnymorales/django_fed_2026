@@ -149,21 +149,21 @@
       >
         <thead>
           <tr>
-            <th>Red</th>
-            <th>MicroRed</th>
-            <th>Establecimiento</th>
-            <th>Den</th>
-            <th class="text-center">Num</th>
-            <th class="text-center">Avance %</th>
-            <th class="text-center">1° Suple</th>
+            <th>RED</th>
+            <th>MICRORED</th>
+            <th>ESTABLECIMIENTO</th>
+            <th>DEN</th>
+            <th class="text-center">NUM</th>
+            <th class="text-center">AVANCE %</th>
+            <th class="text-center">1° SUPLE</th>
             <th class="text-center">1S</th>
-            <th class="text-center">2° Suple</th>
+            <th class="text-center">2° SUPLE</th>
             <th class="text-center">2S</th>
-            <th class="text-center">3° Suple</th>
+            <th class="text-center">3° SUPLE</th>
             <th class="text-center">3S</th>
-            <th class="text-center">4° Suple</th>
+            <th class="text-center">4° SUPLE</th>
             <th class="text-center">4S</th>
-            <th class="text-center">5° Suple</th>
+            <th class="text-center">5° SUPLE</th>
             <th class="text-center">5S</th>
             <th class="text-center">2° HB</th>
             <th class="text-center">2HB</th>
@@ -188,8 +188,8 @@
     const CONFIG = {
       // Umbrales para colores con fondo (1T %) - valores en porcentaje (0-100)
       THRESHOLD_BG: {
-        LOW: 70, // < 70% = Rojo
-        HIGH: 82, // >= 82% = Verde, entre 70-82 = Amarillo
+        LOW: 39, // < 70% = Rojo
+        HIGH: 50, // >= 82% = Verde, entre 70-82 = Amarillo
       },
       // Umbrales para colores de texto (2T % y 3T %) - Lógica inversa
       THRESHOLD_TEXT: {
@@ -446,7 +446,7 @@
         const stats = redStats[red];
         stats.avgPercent = calcularPorcentaje(
           stats.sumNumerador,
-          stats.sumDenominador
+          stats.sumDenominador,
         );
       });
 
@@ -462,7 +462,7 @@
         console.log(
           `   RED "${red}": Σnum=${s.sumNumerador}, Σden=${
             s.sumDenominador
-          }, Avance=${s.avgPercent.toFixed(2)}%`
+          }, Avance=${s.avgPercent.toFixed(2)}%`,
         );
       });
 
@@ -516,6 +516,15 @@
         textColor = "#333";
       }
 
+      // Calcular suma de Denominador y Numerador para esta RED
+      let sumDenominador = 0;
+      let sumNumerador = 0;
+      rows.every(function () {
+        const rowData = this.data();
+        sumDenominador += rowData[CONFIG.COLUMNS.DEN_RAW] || 0;
+        sumNumerador += rowData[CONFIG.COLUMNS.NUM_RAW] || 0;
+        return true;
+      });
       // Limitar el ancho de la barra a 100%
       const progressWidth = Math.min(avgPercent, 100);
 
@@ -529,10 +538,15 @@
             <span class="badge badge-secondary">${rowCount} establecimientos</span>
           </div>
 
-          <!-- Barra de progreso con porcentaje calculado -->
-          <div class="d-flex align-items-center" style="width: 350px;">
-            <small class="text-dark mr-2 text-nowrap"><strong>Avance Ind:</strong></small>
-            <div class="progress flex-fill mx-2" style="height: 22px; background-color: rgba(0,0,0,0.1);">
+          <!-- Sumas de Denominador y Numerador + Barra de progreso -->
+          <div class="d-flex align-items-center justify-content-end" style="min-width: 520px;">
+            <span class="badge badge-light mr-2 text-center" style="font-size: 11px; min-width: 180px; color: #000; border: 1px solid #dee2e6;">
+              <i class="fas fa-users mr-1" style="color: #16b0dfff;"></i>Den: ${sumDenominador.toLocaleString()}
+              <span class="mx-2">|</span>
+              <i class="fas fa-check-circle mr-1" style="color: #164cdfff;"></i>Num: ${sumNumerador.toLocaleString()}
+            </span>
+            <small class="text-dark text-nowrap text-center" style="min-width: 60px;"><strong>Avance:</strong></small>
+            <div class="progress mx-2" style="height: 22px; width: 200px; background-color: rgba(0,0,0,0.1);">
               <div 
                 class="progress-bar ${progressColor}"
                 role="progressbar"
@@ -766,7 +780,7 @@
         $("#tabla-variables-detallado tbody").html(
           '<tr><td colspan="10" class="text-center text-muted py-4">' +
             '<i class="fas fa-inbox fa-2x mb-2 d-block"></i>' +
-            "No hay datos para mostrar</td></tr>"
+            "No hay datos para mostrar</td></tr>",
         );
         return;
       }
@@ -781,7 +795,7 @@
       const tableData = prepareTableData(data);
       console.log(
         "📋 Datos preparados (primeras 3 filas):",
-        tableData.slice(0, 3)
+        tableData.slice(0, 3),
       );
 
       // PASO 2: Calcular y aplicar promedios por RED (suma_num / suma_den * 100)
@@ -791,7 +805,7 @@
       const sortedData = sortTableData(tableData);
       console.log(
         "📊 Datos ordenados (primeras 3 filas):",
-        sortedData.slice(0, 3)
+        sortedData.slice(0, 3),
       );
 
       // PASO 4: Cargar dependencias e inicializar tabla

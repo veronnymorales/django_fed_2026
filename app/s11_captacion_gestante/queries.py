@@ -47,6 +47,7 @@ DEFAULT_VARIABLES_DETALLADO_DATA = {
     'd_nombre_establecimiento': '',
     'd_ubigueo_establecimiento': '',
     'd_den_variable': 0,
+
     'd_num_1trim': 0,
     'd_avance_1trim': 0.0,
     'd_num_2trim': 0,
@@ -397,12 +398,13 @@ def obtener_variables_detallado(
                             'd_nombre_establecimiento': str(row[8]) if row[8] is not None else '',
                             'd_ubigueo_establecimiento': str(row[9]) if row[9] is not None else '',
                             'd_den_variable': int(row[10]) if row[10] is not None else 0,
-                            'd_num_1trim': int(row[11]) if row[11] is not None else 0,
-                            'd_avance_1trim': float(row[12]) if row[12] is not None else 0.0,
-                            'd_num_2trim': int(row[13]) if row[13] is not None else 0,
-                            'd_avance_2trim': float(row[14]) if row[14] is not None else 0.0,
-                            'd_num_3trim': int(row[15]) if row[15] is not None else 0,
-                            'd_avance_3trim': float(row[16]) if row[16] is not None else 0.0
+                            'd_num_variable': int(row[11]) if row[11] is not None else 0,
+                            'd_num_1trim': int(row[12]) if row[12] is not None else 0,
+                            'd_avance_1trim': float(row[13]) if row[13] is not None else 0.0,
+                            'd_num_2trim': int(row[14]) if row[14] is not None else 0,
+                            'd_avance_2trim': float(row[15]) if row[15] is not None else 0.0,
+                            'd_num_3trim': int(row[16]) if row[16] is not None else 0,
+                            'd_avance_3trim': float(row[17]) if row[17] is not None else 0.0
                         })
                     else:
                         logger.warning(f"Una fila retornó {len(row)} columnas en lugar de 17, omitiendo...")

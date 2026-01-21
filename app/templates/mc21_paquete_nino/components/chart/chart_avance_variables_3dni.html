@@ -80,10 +80,10 @@
             markLine: {
               symbol: "none",
               lineStyle: { type: "dashed", color: "red" },
-              data: [{ yAxis: 75, name: "M" }],
+              data: [{ yAxis: 72, name: "M" }],
               label: {
                 show: true,
-                formatter: `M: 75%`,
+                formatter: `M: 72%`,
                 position: "end",
                 offset: [0, -14],
                 textStyle: { fontSize: 8 },
@@ -106,7 +106,7 @@
         "tipo:",
         typeof data.num_sindni,
         "es array:",
-        Array.isArray(data.num_sindni)
+        Array.isArray(data.num_sindni),
       );
       console.log(
         "  - avance_num_sindni:",
@@ -114,7 +114,7 @@
         "tipo:",
         typeof data.avance_num_sindni,
         "es array:",
-        Array.isArray(data.avance_num_sindni)
+        Array.isArray(data.avance_num_sindni),
       );
       console.log(
         "  - num_dniemision30d:",
@@ -122,7 +122,7 @@
         "tipo:",
         typeof data.num_dniemision30d,
         "es array:",
-        Array.isArray(data.num_dniemision30d)
+        Array.isArray(data.num_dniemision30d),
       );
       console.log(
         "  - avance_num_dniemision30d:",
@@ -130,7 +130,7 @@
         "tipo:",
         typeof data.avance_num_dniemision30d,
         "es array:",
-        Array.isArray(data.avance_num_dniemision30d)
+        Array.isArray(data.avance_num_dniemision30d),
       );
       const extractValue = (rawValue) => {
         if (rawValue == null) return 0;

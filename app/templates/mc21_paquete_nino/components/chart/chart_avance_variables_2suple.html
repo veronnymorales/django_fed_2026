@@ -80,10 +80,10 @@
             markLine: {
               symbol: "none",
               lineStyle: { type: "dashed", color: "red" },
-              data: [{ yAxis: 75, name: "M" }],
+              data: [{ yAxis: 72, name: "M" }],
               label: {
                 show: true,
-                formatter: `M: 75%`,
+                formatter: `M: 72%`,
                 position: "end",
                 offset: [0, -14],
                 textStyle: { fontSize: 8 },
@@ -106,7 +106,7 @@
         "tipo:",
         typeof data.den_variable,
         "es array:",
-        Array.isArray(data.den_variable)
+        Array.isArray(data.den_variable),
       );
       console.log(
         "  - num_esq4m:",
@@ -114,7 +114,7 @@
         "tipo:",
         typeof data.num_esq4m,
         "es array:",
-        Array.isArray(data.num_esq4m)
+        Array.isArray(data.num_esq4m),
       );
       console.log(
         "  - avance_num_esq4m:",
@@ -122,7 +122,7 @@
         "tipo:",
         typeof data.avance_num_esq4m,
         "es array:",
-        Array.isArray(data.avance_num_esq4m)
+        Array.isArray(data.avance_num_esq4m),
       );
       console.log(
         "  - num_esq6m:",
@@ -130,7 +130,7 @@
         "tipo:",
         typeof data.num_esq6m,
         "es array:",
-        Array.isArray(data.num_esq6m)
+        Array.isArray(data.num_esq6m),
       );
       console.log(
         "  - avance_num_esq6m:",
@@ -138,7 +138,7 @@
         "tipo:",
         typeof data.avance_num_esq6m,
         "es array:",
-        Array.isArray(data.avance_num_esq6m)
+        Array.isArray(data.avance_num_esq6m),
       );
       console.log(
         "  - num_dosaje_hb:",
@@ -146,7 +146,7 @@
         "tipo:",
         typeof data.num_dosaje_hb,
         "es array:",
-        Array.isArray(data.num_dosaje_hb)
+        Array.isArray(data.num_dosaje_hb),
       );
       console.log(
         "  - avance_num_dosaje_hb:",
@@ -154,7 +154,7 @@
         "tipo:",
         typeof data.avance_num_dosaje_hb,
         "es array:",
-        Array.isArray(data.avance_num_dosaje_hb)
+        Array.isArray(data.avance_num_dosaje_hb),
       );
       const extractValue = (rawValue) => {
         if (rawValue == null) return 0;

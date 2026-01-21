@@ -123,7 +123,7 @@
             den_e,
             num_e,
             avance_e,
-            brecha_e
+            brecha_e,
           ),
           grid: this._buildGrid(),
           xAxis: this._buildXAxis(),
@@ -167,7 +167,7 @@
                   
                   <span style="color: #666;">📈 Avance:</span>
                   <span style="font-weight: 600; text-align: right; color: ${this._getBarColor(
-                    avance_e[idx]
+                    avance_e[idx],
                   )};">${avance_e[idx].toFixed(2)}%</span>
                   
                   <span style="color: #666;">📉 Brecha:</span>
@@ -299,9 +299,9 @@
       },
 
       _getBarColor(value) {
-        if (value < 30) return "#ee6666";
-        if (value < 60) return "#fac858";
-        if (value < 80) return "#73c0de";
+        if (value < 20) return "#ee6666";
+        if (value < 40) return "#fac858";
+        if (value < 50) return "#73c0de";
         return "#91cc75";
       },
     };
@@ -417,7 +417,7 @@
           } else {
             datosFinales = DataTransformer.getTopN(
               datosOrdenados,
-              CONFIG.maxBarsToShow
+              CONFIG.maxBarsToShow,
             );
           }
 
@@ -426,10 +426,10 @@
           // Debug
           Logger.debug(
             "Establecimientos (Mayor a Menor Avance)",
-            datosFinales.slice(0, 10)
+            datosFinales.slice(0, 10),
           );
           Logger.info(
-            `Mostrando ${datosFinales.length} de ${datosOrdenados.length} establecimientos`
+            `Mostrando ${datosFinales.length} de ${datosOrdenados.length} establecimientos`,
           );
 
           // Construir opciones y renderizar

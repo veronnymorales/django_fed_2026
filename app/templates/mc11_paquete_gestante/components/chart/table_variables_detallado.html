@@ -522,11 +522,10 @@
 
           <!-- Sumas de Denominador y Numerador + Barra de progreso -->
           <div class="d-flex align-items-center justify-content-end" style="min-width: 520px;">
-            <span class="badge badge-info mr-2 text-center" style="font-size: 11px; min-width: 95px;">
-              <i class="fas fa-users mr-1"></i>Den: ${sumDenominador.toLocaleString()}
-            </span>
-            <span class="badge badge-primary mr-2 text-center" style="font-size: 11px; min-width: 95px;">
-              <i class="fas fa-check-circle mr-1"></i>Num: ${sumNumerador.toLocaleString()}
+            <span class="badge badge-light mr-2 text-center" style="font-size: 11px; min-width: 180px; color: #000; border: 1px solid #dee2e6;">
+              <i class="fas fa-users mr-1" style="color: #16b0dfff;"></i>Den: ${sumDenominador.toLocaleString()}
+              <span class="mx-2">|</span>
+              <i class="fas fa-check-circle mr-1" style="color: #164cdfff;"></i>Num: ${sumNumerador.toLocaleString()}
             </span>
             <small class="text-dark text-nowrap text-center" style="min-width: 60px;"><strong>Avance:</strong></small>
             <div class="progress mx-2" style="height: 22px; width: 200px; background-color: rgba(0,0,0,0.1);">

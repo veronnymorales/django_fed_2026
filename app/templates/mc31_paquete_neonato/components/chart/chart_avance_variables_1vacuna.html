@@ -80,10 +80,10 @@
             markLine: {
               symbol: "none",
               lineStyle: { type: "dashed", color: "red" },
-              data: [{ yAxis: 75, name: "M" }],
+              data: [{ yAxis: 65, name: "M" }],
               label: {
                 show: true,
-                formatter: `M: 75%`,
+                formatter: `M: 65%`,
                 position: "end",
                 offset: [0, -14],
                 textStyle: { fontSize: 8 },
@@ -106,7 +106,7 @@
         "tipo:",
         typeof data.den_variable,
         "es array:",
-        Array.isArray(data.den_variable)
+        Array.isArray(data.den_variable),
       );
       // neumococo
       console.log(
@@ -115,7 +115,7 @@
         "tipo:",
         typeof data.num_vac_bcg,
         "es array:",
-        Array.isArray(data.num_vac_bcg)
+        Array.isArray(data.num_vac_bcg),
       );
       console.log(
         "  - avance_num_vac_bcg:",
@@ -123,7 +123,7 @@
         "tipo:",
         typeof data.avance_num_vac_bcg,
         "es array:",
-        Array.isArray(data.avance_num_vac_bcg)
+        Array.isArray(data.avance_num_vac_bcg),
       );
       // polio
       console.log(
@@ -132,7 +132,7 @@
         "tipo:",
         typeof data.num_vac_hvb,
         "es array:",
-        Array.isArray(data.num_vac_hvb)
+        Array.isArray(data.num_vac_hvb),
       );
       console.log(
         "  - avance_num_vac_hvb:",
@@ -140,7 +140,7 @@
         "tipo:",
         typeof data.avance_num_vac_hvb,
         "es array:",
-        Array.isArray(data.avance_num_vac_hvb)
+        Array.isArray(data.avance_num_vac_hvb),
       );
       const extractValue = (rawValue) => {
         if (rawValue == null) return 0;

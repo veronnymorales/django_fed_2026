@@ -367,6 +367,7 @@ def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> D
         'd_nombre_establecimiento': [],
         'd_ubigueo_establecimiento': [],
         'd_den_variable': [],
+        'd_num_variable': [],
         'd_num_1trim': [],
         'd_avance_1trim': [],
         'd_num_2trim': [],
@@ -377,7 +378,8 @@ def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> D
     for index, row in enumerate(resultados_variables_detallado):
         try:
             # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento','d_den_variable','d_num_1trim','d_avance_1trim','d_num_2trim','d_avance_2trim','d_num_3trim','d_avance_3trim'}
+            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento',
+            'd_den_variable','d_num_variable','d_num_1trim','d_avance_1trim','d_num_2trim','d_avance_2trim','d_num_3trim','d_avance_3trim'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
@@ -394,6 +396,7 @@ def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> D
             d_nombre_establecimiento = row['d_nombre_establecimiento']
             d_ubigueo_establecimiento = row['d_ubigueo_establecimiento']
             d_den_variable = row['d_den_variable']
+            d_num_variable = row['d_num_variable']
             d_num_1trim = row['d_num_1trim']
             d_avance_1trim = row['d_avance_1trim']
             d_num_2trim = row['d_num_2trim']
@@ -413,6 +416,7 @@ def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> D
             data['d_nombre_establecimiento'].append(d_nombre_establecimiento)
             data['d_ubigueo_establecimiento'].append(d_ubigueo_establecimiento)
             data['d_den_variable'].append(d_den_variable)
+            data['d_num_variable'].append(d_num_variable)
             data['d_num_1trim'].append(d_num_1trim)
             data['d_avance_1trim'].append(d_avance_1trim)
             data['d_num_2trim'].append(d_num_2trim)

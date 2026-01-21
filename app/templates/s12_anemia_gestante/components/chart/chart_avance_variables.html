@@ -80,10 +80,10 @@
             markLine: {
               symbol: "none",
               lineStyle: { type: "dashed", color: "red" },
-              data: [{ yAxis: 75, name: "M" }],
+              data: [{ yAxis: 82, name: "M" }],
               label: {
                 show: true,
-                formatter: `M: 75%`,
+                formatter: `M: 82%`,
                 position: "end",
                 offset: [0, -14],
                 textStyle: { fontSize: 8 },
@@ -106,7 +106,7 @@
         "tipo:",
         typeof data.num_hb2_trat2,
         "es array:",
-        Array.isArray(data.num_hb2_trat2)
+        Array.isArray(data.num_hb2_trat2),
       );
       console.log(
         "  - num_hb3_trat3:",
@@ -114,7 +114,7 @@
         "tipo:",
         typeof data.num_hb3_trat3,
         "es array:",
-        Array.isArray(data.num_hb3_trat3)
+        Array.isArray(data.num_hb3_trat3),
       );
       console.log(
         "  - num_hb3_trat4:",
@@ -122,7 +122,7 @@
         "tipo:",
         typeof data.num_hb3_trat4,
         "es array:",
-        Array.isArray(data.num_hb3_trat4)
+        Array.isArray(data.num_hb3_trat4),
       );
       console.log("  - avance_hb2_trat2:", data.avance_hb2_trat2);
       console.log("  - avance_hb3_trat3:", data.avance_hb3_trat3);
@@ -165,7 +165,7 @@
           const numerator = extractValue(data[item.num_key]);
 
           console.log(
-            `📈 ${item.title}: numerador=${numerator}, avance=${value}%`
+            `📈 ${item.title}: numerador=${numerator}, avance=${value}%`,
           );
 
           const dataItem = { value: value, numerator: numerator };

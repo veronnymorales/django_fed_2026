@@ -80,10 +80,10 @@
             markLine: {
               symbol: "none",
               lineStyle: { type: "dashed", color: "red" },
-              data: [{ yAxis: 75, name: "M" }],
+              data: [{ yAxis: 72, name: "M" }],
               label: {
                 show: true,
-                formatter: `M: 75%`,
+                formatter: `M: 72%`,
                 position: "end",
                 offset: [0, -14],
                 textStyle: { fontSize: 8 },
@@ -106,7 +106,7 @@
         "tipo:",
         typeof data.den_variable,
         "es array:",
-        Array.isArray(data.den_variable)
+        Array.isArray(data.den_variable),
       );
       // neumococo
       console.log(
@@ -115,7 +115,7 @@
         "tipo:",
         typeof data.num_vac_antineumo,
         "es array:",
-        Array.isArray(data.num_vac_antineumo)
+        Array.isArray(data.num_vac_antineumo),
       );
       console.log(
         "  - avance_num_vac_antineumo:",
@@ -123,7 +123,7 @@
         "tipo:",
         typeof data.avance_num_vac_antineumo,
         "es array:",
-        Array.isArray(data.avance_num_vac_antineumo)
+        Array.isArray(data.avance_num_vac_antineumo),
       );
       // polio
       console.log(
@@ -132,7 +132,7 @@
         "tipo:",
         typeof data.num_vac_polio,
         "es array:",
-        Array.isArray(data.num_vac_polio)
+        Array.isArray(data.num_vac_polio),
       );
       console.log(
         "  - avance_num_dosaje_hb:",
@@ -140,7 +140,7 @@
         "tipo:",
         typeof data.avance_num_vac_polio,
         "es array:",
-        Array.isArray(data.avance_num_vac_polio)
+        Array.isArray(data.avance_num_vac_polio),
       );
       // rota
       console.log(
@@ -149,7 +149,7 @@
         "tipo:",
         typeof data.num_vac_rota,
         "es array:",
-        Array.isArray(data.num_vac_rota)
+        Array.isArray(data.num_vac_rota),
       );
       console.log(
         "  - avance_num_vac_rota:",
@@ -157,7 +157,7 @@
         "tipo:",
         typeof data.avance_num_vac_rota,
         "es array:",
-        Array.isArray(data.avance_num_vac_rota)
+        Array.isArray(data.avance_num_vac_rota),
       );
       // penta
       console.log(
@@ -166,7 +166,7 @@
         "tipo:",
         typeof data.num_vac_penta,
         "es array:",
-        Array.isArray(data.num_vac_penta)
+        Array.isArray(data.num_vac_penta),
       );
       console.log(
         "  - avance_num_tamizaje_sifilis:",
@@ -174,7 +174,7 @@
         "tipo:",
         typeof data.avance_num_vac_penta,
         "es array:",
-        Array.isArray(data.avance_num_vac_penta)
+        Array.isArray(data.avance_num_vac_penta),
       );
       const extractValue = (rawValue) => {
         if (rawValue == null) return 0;
