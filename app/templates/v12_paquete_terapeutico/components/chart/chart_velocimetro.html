@@ -39,6 +39,19 @@
         myChart = echarts.init(chartDiv);
 
         const option = {
+          graphic: [
+            {
+              type: "text",
+              left: "center",
+              bottom: 5,
+              style: {
+                text: "Meta mínima: 70%",
+                fontSize: 12,
+                fontWeight: "bold",
+                fill: "#000000",
+              },
+            },
+          ],
           series: [
             {
               type: "gauge",

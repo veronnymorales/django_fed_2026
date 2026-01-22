@@ -1,210 +1,463 @@
 {% extends "base.html" %} {% load static %} {% block body %}
 
-<!-- dashboard.html -->
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>INDICADORES FED 2025-2026 | REGION JUNIN</title>
-  </head>
-  <body>
-    <h2>
-      Indicadores de Compromiso de Gestión y Cobertura Convenio FED Período
-      2025-2026
-    </h2>
+<div class="row">
+  <div class="col-md-6"></div>
+  <div class="col-md-6">
+    <!-- Card Principal -->
+    <div class="card card-primary card-outline">
+      <div class="card-header">
+        <h3 class="card-title text-center w-100">
+          <i class="fas fa-chart-bar mr-2"></i>
+          <strong
+            >INDICADORES DE COMPROMISO DE GESTIÓN Y COBERTURA CONVENIO FED
+            PERÍODO 2025-2026</strong
+          >
+        </h3>
+      </div>
+      <div class="card-body p-0">
+        <!-- Tabla de Indicadores -->
+        <div class="table-responsive">
+          <table
+            class="table table-bordered table-hover mb-0"
+            id="tablaIndicadores"
+          >
+            <thead>
+              <tr class="bg-gradient-primary text-white">
+                <th style="width: 25%; vertical-align: middle">
+                  COMPROMISOS DE GESTIÓN
+                </th>
+                <th style="width: 45%; vertical-align: middle">INDICADOR</th>
+                <th
+                  style="width: 15%; vertical-align: middle; text-align: center"
+                >
+                  META REGIONAL
+                </th>
+                <th
+                  style="width: 15%; vertical-align: middle; text-align: center"
+                >
+                  RESPONSABLE
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- SI-01: Gestantes -->
+              <tr>
+                <td rowspan="3" class="align-middle bg-si01">
+                  <strong>SI-01.</strong> Gestantes atendidas en
+                  establecimientos de salud del Gobierno Regional, que reciben
+                  suplementación preventiva o tratamiento con hierro, y dosajes
+                  de hemoglobina.
+                </td>
+                <td class="bg-light-row">
+                  <strong>SI-01.01:</strong> Condición previa (CP): Porcentaje
+                  de gestantes atendidas en establecimientos de salud del
+                  Gobierno Regional, que reciben su primera atención prenatal en
+                  el primer trimestre de gestación.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>75%</strong>
+                </td>
+                <td
+                  rowspan="3"
+                  class="responsable-cell text-center align-middle"
+                >
+                  <strong>ES.SSR</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="bg-light-row">
+                  <strong>SI-01.02:</strong> Porcentaje de gestantes con anemia
+                  atendidas en establecimientos de salud del Gobierno Regional,
+                  que reciben tratamiento con hierro y dosajes de hemoglobina.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>82%</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="bg-light-row">
+                  <strong>SI-01.03:</strong> Porcentaje de mujeres con parto
+                  institucional sin anemia atendidas en establecimientos de
+                  salud del Gobierno Regional, que durante su gestación
+                  recibieron suplementación preventiva con hierro y dosajes de
+                  hemoglobina.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>50%</strong>
+                </td>
+              </tr>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 25%">Compromisos de Gestión</th>
-            <th style="width: 45%">Indicador</th>
-            <th style="width: 15%">Meta Regional</th>
-            <th style="width: 15%">Responsable</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- SI-01 -->
-          <tr>
-            <td rowspan="3" class="bg-si01">
-              <strong>SI-01.</strong> Gestantes atendidas en establecimientos de
-              salud del Gobierno Regional, que reciben suplementación preventiva
-              o tratamiento con hierro, y dosajes de hemoglobina.
-            </td>
-            <td>
-              SI-01.01: Condición previa (CP): Porcentaje de gestantes atendidas
-              en establecimientos de salud del Gobierno Regional, que reciben su
-              primera atención prenatal en el primer trimestre de gestación.
-            </td>
-            <td class="meta-cell">75%</td>
-            <td rowspan="3" class="responsable-cell">ES.SSR</td>
-          </tr>
-          <tr>
-            <td>
-              SI-01.02: Porcentaje de gestantes con anemia atendidas en
-              establecimientos de salud del Gobierno Regional, que reciben
-              tratamiento con hierro y dosajes de hemoglobina.
-            </td>
-            <td class="meta-cell">82%</td>
-          </tr>
-          <tr>
-            <td>
-              SI-01.03: Porcentaje de mujeres con parto institucional sin anemia
-              atendidas en establecimientos de salud del Gobierno Regional, que
-              durante su gestación recibieron suplementación preventiva con
-              hierro y dosajes de hemoglobina.
-            </td>
-            <td class="meta-cell">50%</td>
-          </tr>
+              <!-- SI-02: Niños 12 meses -->
+              <tr>
+                <td rowspan="4" class="align-middle bg-si02">
+                  <strong>SI-02.</strong> Niñas y niños de doce (12) meses de
+                  edad del departamento que reciben tratamiento o suplementación
+                  preventiva con hierro, y dosajes de hemoglobina.
+                </td>
+                <td class="bg-light-row">
+                  <strong>SI-02.01:</strong> Condición previa (CP): Porcentaje
+                  de niñas y niños de seis (06) meses de edad, del departamento,
+                  que a los cuatro (04) meses de edad reciben suplementación
+                  preventiva con hierro, y dosaje de hemoglobina.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>88%</strong>
+                </td>
+                <td
+                  rowspan="4"
+                  class="responsable-cell text-center align-middle"
+                >
+                  <strong>ES. NUTRICION</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="bg-light-row">
+                  <strong>SI-02.02:</strong> Porcentaje de niñas y niños de seis
+                  (06) meses de edad, prematuros y/o bajo peso al nacer, del
+                  dpto, sin anemia; que reciben suplementación preventiva con
+                  hierro y dosajes de hemoglobina.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>75%</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="bg-light-row">
+                  <strong>SI-02.03:</strong> Porcentaje de niñas y niños de doce
+                  (12) meses de edad del departamento, con anemia, que reciben
+                  tratamiento con hierro y dosajes de hemoglobina.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>75%</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="bg-light-row">
+                  <strong>SI-02.04:</strong> Porcentaje de niñas y niños de doce
+                  (12) meses de edad del departamento, sin anemia, que reciben
+                  suplementación preventiva con hierro y dosajes de hemoglobina.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>82%</strong>
+                </td>
+              </tr>
 
-          <!-- SI-02 -->
-          <tr>
-            <td rowspan="4" class="bg-si02">
-              <strong>SI-02.</strong> Niñas y niños de doce (12) meses de edad
-              del departamento que reciben tratamiento o suplementación
-              preventiva con hierro, y dosajes de hemoglobina.
-            </td>
-            <td>
-              SI-02.01 Condición previa (CP): Porcentaje de niñas y niños de
-              seis (06) meses de edad, del departamento, que a los cuatro (04)
-              meses de edad reciben suplementación preventiva con hierro, y
-              dosaje de hemoglobina.
-            </td>
-            <td class="meta-cell">88%</td>
-            <td rowspan="4" class="responsable-cell">ES. NUTRICION</td>
-          </tr>
-          <tr>
-            <td>
-              SI-02.02: Porcentaje de niñas y niños de seis (06) meses de edad,
-              prematuros y/o bajo peso al nacer, del dpto, sin anemia; que
-              reciben suplementación preventiva con hierro y dosajes de
-              hemoglobina.
-            </td>
-            <td class="meta-cell">75%</td>
-          </tr>
-          <tr>
-            <td>
-              SI-02.03: Porcentaje de niñas y niños de doce (12) meses de edad
-              del departamento, con anemia, que reciben tratamiento con hierro y
-              dosajes de hemoglobina.
-            </td>
-            <td class="meta-cell">75%</td>
-          </tr>
-          <tr>
-            <td>
-              SI-02.04: Porcentaje de niñas y niños de doce (12) meses de edad
-              del departamento, sin anemia, que reciben suplementación
-              preventiva con hierro y dosajes de hemoglobina.
-            </td>
-            <td class="meta-cell">82%</td>
-          </tr>
+              <!-- SI-03: Adolescentes -->
+              <tr>
+                <td rowspan="2" class="align-middle bg-si03">
+                  <strong>SI-03.</strong> Adolescentes mujeres de 12 a 17 años
+                  de edad, atendidas en establecimientos de salud del Gobierno
+                  Regional, cuentan con dosaje de hemoglobina y otras
+                  prestaciones priorizadas.
+                </td>
+                <td class="bg-light-row">
+                  <strong>SI-03.01:</strong> Condición previa (CP): Porcentaje
+                  de adolescentes mujeres de 12 a 17 años de edad, atendidas en
+                  establecimientos de salud del Gobierno Regional, con dosaje de
+                  hemoglobina.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>85%</strong>
+                </td>
+                <td
+                  rowspan="2"
+                  class="responsable-cell text-center align-middle"
+                >
+                  <strong>EV. ADOLESCENTE</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="bg-light-row">
+                  <strong>SI-03.02:</strong> Porcentaje de adolescentes mujeres
+                  de 12 a 17 años de edad, sin anemia, atendidas en
+                  establecimientos de salud del Gobierno Regional, que reciben
+                  prestaciones priorizadas.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>40%</strong>
+                </td>
+              </tr>
 
-          <!-- SI-03 -->
-          <tr>
-            <td rowspan="2" class="bg-si03">
-              <strong>SI-03.</strong> Adolescentes mujeres de 12 a 17 años de
-              edad, atendidas en establecimientos de salud del Gobierno
-              Regional, cuentan con dosaje de hemoglobina y otras prestaciones
-              priorizadas.
-            </td>
-            <td>
-              SI-03.01: Condición previa (CP): Porcentaje de adolescentes
-              mujeres de 12 a 17 años de edad, atendidas en establecimientos de
-              salud del Gobierno Regional, con dosaje de hemoglobina.
-            </td>
-            <td class="meta-cell">85%</td>
-            <td rowspan="2" class="responsable-cell">EV. ADOLESCENTE</td>
-          </tr>
-          <tr>
-            <td>
-              SI-03.02: Porcentaje de adolescentes mujeres de 12 a 17 años de
-              edad, sin anemia, atendidas en establecimientos de salud del
-              Gobierno Regional, que reciben prestaciones priorizadas.
-            </td>
-            <td class="meta-cell">40%</td>
-          </tr>
+              <!-- VI-01: Violencia Gestante -->
+              <tr>
+                <td rowspan="2" class="align-middle bg-vi01">
+                  <strong>VI-01.</strong> Gestantes atendidas en
+                  establecimientos de salud del Gobierno Regional, que cuentan
+                  con tamizaje positivo de violencia, y reciben un paquete
+                  mínimo de intervenciones terapéuticas especializadas.
+                </td>
+                <td class="bg-light-row">
+                  <strong>VI-01.01:</strong> Condición previa: Porcentaje de
+                  gestantes atendidas en establecimientos de salud del Gobierno
+                  Regional, que cuentan con tamizaje positivo de violencia
+                  contra la mujer.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>21%</strong>
+                </td>
+                <td class="responsable-cell text-center align-middle">
+                  <strong>ES.SSR</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="bg-light-row">
+                  <strong>VI-01.02:</strong> Porcentaje de gestantes atendidas
+                  en establecimientos de salud del Gobierno Regional, que
+                  reciben un paquete mínimo de intervenciones terapéuticas
+                  especializadas.
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>70%</strong>
+                </td>
+                <td class="responsable-cell text-center align-middle">
+                  <strong>ES. SALUD MENTAL</strong>
+                </td>
+              </tr>
 
-          <!-- VI-01 -->
-          <tr>
-            <td rowspan="2" class="bg-vi01">
-              <strong>VI-01.</strong> Gestantes atendidas en establecimientos de
-              salud del Gobierno Regional, que cuentan con tamizaje positivo de
-              violencia, y reciben un paquete mínimo de intervenciones
-              terapéuticas especializadas.
-            </td>
-            <td>
-              VI-01.01: Condición previa: Porcentaje de gestantes atendidas en
-              establecimientos de salud del Gobierno Regional, que cuentan con
-              tamizaje positivo de violencia contra la mujer.
-            </td>
-            <td class="meta-cell">21%</td>
-            <td class="responsable-cell">ES.SSR</td>
-          </tr>
-          <tr>
-            <td>
-              VI-01.02: Porcentaje de gestantes atendidas en establecimientos de
-              salud del Gobierno Regional, que reciben un paquete mínimo de
-              intervenciones terapéuticas especializadas.
-            </td>
-            <td class="meta-cell">70%</td>
-            <td class="responsable-cell">ES. SALUD MENTAL</td>
-          </tr>
+              <!-- SECCIÓN DE COBERTURA - Header -->
+              <tr class="bg-gradient-info text-white">
+                <th style="vertical-align: middle">Meta de Cobertura</th>
+                <th style="vertical-align: middle">Indicador</th>
+                <th style="vertical-align: middle; text-align: center">
+                  Meta Reg
+                </th>
+                <th style="vertical-align: middle; text-align: center">
+                  Responsable
+                </th>
+              </tr>
 
-          <!-- SECCIÓN DE COBERTURA -->
-          <tr class="header-blue">
-            <th>Meta de Cobertura</th>
-            <th>Indicador</th>
-            <th>Meta Reg</th>
-            <th>Responsable</th>
-          </tr>
+              <!-- MC-01: Paquete Gestante -->
+              <tr>
+                <td class="align-middle bg-mc01">
+                  <strong>MC-01.</strong> Mujeres con parto institucional,
+                  procedentes de los distritos de quintiles 1 y 2 de pobreza
+                  departamental, que durante su gestación recibieron el paquete
+                  integrado de servicios.
+                </td>
+                <td class="bg-light-row">
+                  <strong>MC-01.01:</strong> Porcentaje de mujeres con parto
+                  institucional, procedentes de los distritos de quintiles 1 y 2
+                  de pobreza departamental que durante su gestación recibieron
+                  el paquete integrado de servicios. *
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>50%</strong>
+                </td>
+                <td class="responsable-cell text-center align-middle">
+                  <strong>ES.SSR</strong>
+                </td>
+              </tr>
 
-          <tr>
-            <td class="bg-mc01">
-              MC-01. Mujeres con parto institucional, procedentes de los
-              distritos de quintiles 1 y 2 de pobreza departamental, que durante
-              su gestación recibieron el paquete integrado de servicios.
-            </td>
-            <td>
-              MC-01.01: Porcentaje de mujeres con parto institucional,
-              procedentes de los distritos de quintiles 1 y 2 de pobreza
-              departamental que durante su gestación recibieron el paquete
-              integrado de servicios. *
-            </td>
-            <td class="meta-cell">50%</td>
-            <td class="responsable-cell">ES.SSR</td>
-          </tr>
+              <!-- MC-02: Paquete Niño -->
+              <tr>
+                <td class="align-middle bg-mc02">
+                  <strong>MC-02.</strong> Niñas y Niños menores de 12 meses de
+                  edad procedentes de los quintiles 1 y 2 de pobreza
+                  departamental que reciben el paquete integrado de servicios.
+                </td>
+                <td class="bg-light-row">
+                  <strong>MC-02.01:</strong> Porcentaje de niñas y niños menores
+                  de 12 meses de edad procedentes de distritos de quintiles 1 y
+                  2 de pobreza departamental, que recibieron el paquete
+                  integrado de servicios
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>72%</strong>
+                </td>
+                <td class="responsable-cell text-center align-middle">
+                  <strong>PP.DIT</strong>
+                </td>
+              </tr>
 
-          <tr>
-            <td class="bg-mc02">
-              MC-02. Niñas y Niños menores de 12 meses de edad procedentes de
-              los quintiles 1 y 2 de pobreza departamental que reciben el
-              paquete integrado de servicios.
-            </td>
-            <td>
-              MC-02.01: Porcentaje de niñas y niños menores de 12 meses de edad
-              procedentes de distritos de quintiles 1 y 2 de pobreza
-              departamental, que recibieron el paquete integrado de servicios
-            </td>
-            <td class="meta-cell">72%</td>
-            <td class="responsable-cell">PP.DIT</td>
-          </tr>
-
-          <tr>
-            <td class="bg-mc03">
-              MC-03. Recién nacidos del departamento, reciben vacunas BCG, HvB,
-              controles CRED y tamizaje neonatal.
-            </td>
-            <td>
-              MC-03.01: Porcentaje de recién nacidos del departamento, reciben
-              vacunas BCG, HvB, controles CRED y tamizaje neonatal
-            </td>
-            <td class="meta-cell">65%</td>
-            <td class="responsable-cell">COMP. NEONATAL</td>
-          </tr>
-        </tbody>
-      </table>
+              <!-- MC-03: Paquete Neonato -->
+              <tr>
+                <td class="align-middle bg-mc03">
+                  <strong>MC-03.</strong> Recién nacidos del departamento,
+                  reciben vacunas BCG, HvB, controles CRED y tamizaje neonatal.
+                </td>
+                <td class="bg-light-row">
+                  <strong>MC-03.01:</strong> Porcentaje de recién nacidos del
+                  departamento, reciben vacunas BCG, HvB, controles CRED y
+                  tamizaje neonatal
+                </td>
+                <td class="meta-cell text-center align-middle">
+                  <strong>65%</strong>
+                </td>
+                <td class="responsable-cell text-center align-middle">
+                  <strong>COMP. NEONATAL</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Card Footer con leyenda -->
+      <div class="card-footer bg-light">
+        <div class="row">
+          <div class="col-md-12">
+            <small class="text-muted">
+              <i class="fas fa-info-circle mr-1"></i>
+              * Los indicadores corresponden al periodo 2025-2026 del Convenio
+              FED - Región Junín
+            </small>
+          </div>
+        </div>
+      </div>
     </div>
-  </body>
-</html>
+  </div>
+</div>
+
+<style>
+  /* Estilos para la tabla de indicadores FED */
+  #tablaIndicadores {
+    font-size: 0.72rem;
+    border-collapse: collapse;
+  }
+
+  #tablaIndicadores th,
+  #tablaIndicadores td {
+    border: 1px solid #dee2e6;
+    padding: 0.25rem 0.4rem;
+    line-height: 1.2;
+  }
+
+  /* Header principal - Azul degradado */
+  #tablaIndicadores thead tr.bg-gradient-primary th {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.3px;
+  }
+
+  /* Filas alternadas claras */
+  .bg-light-row {
+    background-color: #fefefe;
+  }
+
+  #tablaIndicadores tbody tr:hover .bg-light-row {
+    background-color: #f8f9fa;
+  }
+
+  /* Colores para Compromisos de Gestión (SI-01 a VI-01) - Tonos naranjas/amarillos */
+  .bg-si01 {
+    background: linear-gradient(135deg, #f5deb3 0%, #ffeaa7 100%);
+    color: #5a4a28;
+    font-weight: 500;
+    border-left: 4px solid #f39c12 !important;
+  }
+
+  .bg-si02 {
+    background: linear-gradient(135deg, #f5deb3 0%, #ffeaa7 100%);
+    color: #5a4a28;
+    font-weight: 500;
+    border-left: 4px solid #f39c12 !important;
+  }
+
+  .bg-si03 {
+    background: linear-gradient(135deg, #f5deb3 0%, #ffeaa7 100%);
+    color: #5a4a28;
+    font-weight: 500;
+    border-left: 4px solid #f39c12 !important;
+  }
+
+  .bg-vi01 {
+    background: linear-gradient(135deg, #f5deb3 0%, #ffeaa7 100%);
+    color: #5a4a28;
+    font-weight: 500;
+    border-left: 4px solid #f39c12 !important;
+  }
+
+  /* Colores para Metas de Cobertura (MC-01 a MC-03) - Tonos azules/turquesa */
+  .bg-mc01 {
+    background: linear-gradient(135deg, #48c9b0 0%, #1abc9c 100%);
+    color: #0d5c4f;
+    font-weight: 500;
+    border-left: 4px solid #16a085 !important;
+  }
+
+  .bg-mc02 {
+    background: linear-gradient(135deg, #48c9b0 0%, #1abc9c 100%);
+    color: #0d5c4f;
+    font-weight: 500;
+    border-left: 4px solid #16a085 !important;
+  }
+
+  .bg-mc03 {
+    background: linear-gradient(135deg, #48c9b0 0%, #1abc9c 100%);
+    color: #0d5c4f;
+    font-weight: 500;
+    border-left: 4px solid #16a085 !important;
+  }
+
+  /* Celda de Meta Regional - Amarillo brillante */
+  .meta-cell {
+    background: linear-gradient(135deg, #fff200 0%, #ffe600 100%) !important;
+    color: #333333;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    border: 1px solid #d4af00 !important;
+  }
+
+  /* Celda de Responsable - Amarillo más suave */
+  .responsable-cell {
+    background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%) !important;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.68rem;
+  }
+
+  /* Header de sección de Cobertura - Azul info */
+  #tablaIndicadores .bg-gradient-info th {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.3px;
+  }
+
+  /* Efectos hover para las filas */
+  #tablaIndicadores tbody tr:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: scale(1.001);
+    transition: all 0.2s ease;
+  }
+
+  /* Card styling */
+  .card-primary.card-outline {
+    border-top: 3px solid #007bff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #007bff;
+  }
+
+  .card-title {
+    color: #1e3a5f;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    #tablaIndicadores {
+      font-size: 0.65rem;
+    }
+
+    #tablaIndicadores th,
+    #tablaIndicadores td {
+      padding: 0.2rem 0.3rem;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+    }
+  }
+</style>
 
 {% endblock %}
