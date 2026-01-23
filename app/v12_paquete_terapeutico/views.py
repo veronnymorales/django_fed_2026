@@ -1681,19 +1681,40 @@ def _write_data(ws, results, style_mgr):
     
     border = style_mgr.get_border()
     check_mark = '✓'
-    x_mark = '✗'
+    x_mark = ''
+    x_mark_rojo = '✗'
     
     # Columnas con alineación izquierda
     left_align_cols = {38, 40}
     # Columnas con check/x marks
     check_cols = {18,20,22,24,26,28,30,32}
-    # Columnas con check/x marks validador
+    # Columnas con check/x marks validador (1°P a 6°P son columnas 9-14)
     check_cols_validador = {9,10,11,12,13,14}
     # Columnas de sub-indicadores
     sub_indicator_cols = {16}
+    # Columna ENT (entrega)
+    col_entrega = 15
     
     for row_idx, record in enumerate(results, start=10):
-        for col_idx, value in enumerate(record.values(), start=2):
+        # Convertir el record a lista para poder acceder por índice
+        record_values = list(record.values())
+        
+        # Obtener el valor de ENT (columna 15, índice 13 en record_values porque empieza en col 2)
+        entrega_value = record_values[13] if len(record_values) > 13 else 0
+        try:
+            entrega_value = int(entrega_value) if entrega_value else 0
+        except (ValueError, TypeError):
+            entrega_value = 0
+        
+        # Calcular qué columnas deben tener fondo gris según el valor de ENT
+        # ENT=1 -> columna 9 (1°P), ENT=2 -> columnas 9-10 (1°P y 2°P), etc.
+        # Las columnas que deben pintarse de gris son las primeras N columnas según el valor de ENT
+        cols_to_gray = set()
+        if entrega_value >= 1 and entrega_value <= 6:
+            # Columnas a pintar: desde 9 hasta (9 + entrega_value - 1)
+            cols_to_gray = set(range(9, 9 + entrega_value))  # De izquierda a derecha
+        
+        for col_idx, value in enumerate(record_values, start=2):
             cell = ws.cell(row=row_idx, column=col_idx, value=value)
             cell.border = border
             
@@ -1707,13 +1728,63 @@ def _write_data(ws, results, style_mgr):
             if col_idx == 33:  # Columna INDICADOR
                 _format_indicator_cell(cell, value, style_mgr)
             elif col_idx in check_cols:
-                _format_check_cell(cell, value, check_mark, x_mark, style_mgr)
+                _format_check_psico_with_entrega(
+                    cell, value, check_mark, x_mark_rojo, style_mgr, 
+                    col_idx, entrega_value
+                )
             elif col_idx in check_cols_validador:
-                _format_check_cell_validador(cell, value, check_mark, x_mark, style_mgr)
+                # Aplicar lógica de pintado basada en ENT
+                _format_check_cell_validador_with_entrega(
+                    cell, value, check_mark, x_mark, style_mgr, 
+                    col_idx, cols_to_gray
+                )
             elif col_idx in sub_indicator_cols:
                 _format_sub_indicator_cell(cell, value, style_mgr)
             else:
                 cell.font = style_mgr.get_font(size=8)
+
+
+def _format_check_psico_with_entrega(cell, value, check_mark, x_mark_rojo, style_mgr, col_idx, entrega_value):
+    """
+    Formatea las celdas de PSICO y CSM aplicando lógica de entrega.
+    
+    Reglas:
+    - 1° CSM (18), 2° CSM (20) y 1° PSICO (22) -> Requeridos si ENT >= 1
+    - 2° PSICO (24) -> Requerido si ENT >= 2
+    - 3° PSICO (26) -> Requerido si ENT >= 3
+    - 4° PSICO (28) -> Requerido si ENT >= 4
+    - 5° PSICO (30) -> Requerido si ENT >= 5
+    - 6° PSICO (32) -> Requerido si ENT >= 6
+    """
+    if col_idx in {18, 20, 22}:
+        required_ent = 1
+    elif col_idx == 24:
+        required_ent = 2
+    elif col_idx == 26:
+        required_ent = 3
+    elif col_idx == 28:
+        required_ent = 4
+    elif col_idx == 30:
+        required_ent = 5
+    elif col_idx == 32:
+        required_ent = 6
+    else:
+        required_ent = 99
+
+    if value == 1:
+        cell.value = check_mark
+        cell.font = style_mgr.get_font(size=10, color='00B050')
+    elif value == 0:
+        if entrega_value >= required_ent:
+            cell.value = x_mark_rojo
+            cell.font = style_mgr.get_font(size=10, color='FF0000')
+        else:
+            cell.value = ''
+    else:
+        cell.value = ''
+    
+    if not cell.value:
+        cell.font = style_mgr.get_font(size=8)
 
 
 def _format_indicator_cell(cell, value, style_mgr):
@@ -1750,6 +1821,34 @@ def _format_check_cell_validador(cell, value, check_mark, x_mark, style_mgr):
     elif value == 0:
         cell.value = x_mark
         cell.font = style_mgr.get_font(size=10, color='FF0000')
+    else:
+        cell.font = style_mgr.get_font(size=8)
+
+
+def _format_check_cell_validador_with_entrega(cell, value, check_mark, x_mark, style_mgr, col_idx, cols_to_gray):
+    """
+    Formatea celdas con check/x marks aplicando lógica de entrega.
+    
+    Lógica:
+    - Si value == 1 (check): siempre fondo verde con ✓
+    - Si value == 0 (X) y la columna está en cols_to_gray: fondo gris, sin X
+    - Si value == 0 (X) y la columna NO está en cols_to_gray: muestra X roja sin fondo
+    """
+    if value == 1:
+        # Check: siempre fondo verde
+        cell.value = check_mark
+        cell.font = style_mgr.get_font(size=10, color='00B050')
+        cell.fill = style_mgr.get_fill('green')
+    elif value == 0:
+        if col_idx in cols_to_gray:
+            # X dentro del rango de entrega: fondo gris, celda vacía (sin X)
+            cell.value = ''
+            cell.font = style_mgr.get_font(size=10)
+            cell.fill = style_mgr.get_fill('gray')
+        else:
+            # X fuera del rango de entrega: muestra X roja sin fondo especial
+            cell.value = x_mark
+            cell.font = style_mgr.get_font(size=10, color='FF0000')
     else:
         cell.font = style_mgr.get_font(size=8)
 
