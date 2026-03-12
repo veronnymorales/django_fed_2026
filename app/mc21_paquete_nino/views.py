@@ -641,6 +641,9 @@ def index_mc21_paquete_nino(request):
     microred_seleccionada = request.GET.get('p_microredes_establec_h')
     establecimiento_seleccionado = request.GET.get('p_establecimiento_h')
     
+    # Debug: mostrar todos los parámetros recibidos
+    print(f"[mc21_paquete_nino] Parámetros recibidos: anio={anio}, mes_inicio={mes_seleccionado_inicio}, mes_fin={mes_seleccionado_fin}, red={red_seleccionada}, microred={microred_seleccionada}, establecimiento={establecimiento_seleccionado}, provincia={provincia_seleccionada}, distrito={distrito_seleccionado}")
+    
     # Manejar peticiones AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         try:

@@ -32,10 +32,9 @@ from django.views.generic.base import TemplateView
 import getpass
 
 # Local imports
+import json
 from base.models import MAESTRO_HIS_ESTABLECIMIENTO, DimPeriodo, Actualizacion
-from .queries import obtener_velocimetro, obtener_grafico_mensual, obtener_variables, obtener_variables_detallado, obtener_grafico_por_redes
-from .queries import obtener_grafico_por_microredes, obtener_grafico_por_establecimientos
-from .queries import obtener_seguimiento_s11_captacion_gestante
+from .queries import obtener_velocimetro_dashboard, DEFAULT_VELOCIMETRO_DATA
 
 # Initialize logger and user model
 logger = logging.getLogger(__name__)
@@ -43,7 +42,8 @@ User = get_user_model()
 
 # Constants
 VALID_YEARS = ['2024', '2025', '2026']
-DEFAULT_YEAR = '2025'
+DEFAULT_YEAR = '2026'
+DEFAULT_MES = '1'  # Enero
 GOBIERNO_REGIONAL = 'GOBIERNO REGIONAL'
 DISA_JUNIN = 'JUNIN'
 
@@ -105,442 +105,87 @@ def _get_provincias_queryset():
 ## PROCESOS DE COMPONENTES Y GRAFICOS 
 ######################################
 ## VELOCIMETRO
-def process_velocimetro(resultados_velocimetro: List[Dict]) -> Dict[str, List]:
-    """
-    Procesa los resultados del velocímetro para el formato del frontend.
-    Args:
-        resultados_velocimetro: Lista con un diccionario conteniendo NUM, DEN, AVANCE
-    Returns:
-        Diccionario con listas de numerador, denominador y avance
-    """
-    # Validar entrada
-    if not resultados_velocimetro or len(resultados_velocimetro) == 0:
-        logger.warning("Sin datos de velocímetro, usando valores por defecto")
-        return _get_default_velocimetro_data()
-    
-    # Procesar el primer (y único) registro
-    row = resultados_velocimetro[0]
-    
-    try:
-        numerador, denominador, avance = _extract_velocimetro_values(row)
-        
-        logger.debug(f"Velocímetro procesado: Num={numerador}, Den={denominador}, Avance={avance}%")
-        
-        return {
-            'numerador': [numerador],
-            'denominador': [denominador],
-            'avance': [avance]
-        }
-        
-    except (KeyError, ValueError, TypeError) as e:
-        logger.error(f"Error procesando datos del velocímetro: {e}, Row: {row}")
-        return _get_default_velocimetro_data()
 
-## RESUMEN NUMERADOR Y DENOMINADOR 
-def obtener_resumen_indicador(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia=None, distrito=None):
-    """
-    Obtiene un resumen detallado del indicador 
-    """
-    datos_base = obtener_velocimetro(anio, mes_inicio, mes_fin, red, microred, establecimiento, provincia, distrito)
-    
-    if not datos_base:
-        return None
-    
-    resultado = datos_base[0]
-    num = resultado.get('NUM', 0)
-    den = resultado.get('DEN', 0)
-    avance = resultado.get('AVANCE', 0.0)
-    
-    # Calcular métricas adicionales
-    brecha = den - num
-    porcentaje_brecha = (brecha / den * 100) if den > 0 else 0
-    
-    # Determinar clasificación
-    if avance >= 82:
-        clasificacion = "CUMPLE"
-        color = "success"
-        icono = "check-circle"
-    elif avance >= 70:
-        clasificacion = "EN PROCESO"
-        color = "warning"
-        icono = "clock"
-    else:
-        clasificacion = "EN RIESGO"
-        color = "danger"
-        icono = "exclamation-triangle"
-    
-    resumen = {
-        'numerador': num,
-        'denominador': den,
-        'avance': round(avance, 2),
-        'brecha': brecha,
-        'porcentaje_brecha': round(porcentaje_brecha, 2),
-        'clasificacion': clasificacion,
-        'color': color,
-        'icono': icono
-    }
-    
-    return resumen
-
-## GRAFICO MENSUALIZADO 
-def process_avance_mensual(resultados_avance_mensual: List[Dict]) -> Dict[str, List]:
-    """Procesa los resultados del graficos"""
+def process_velocimetro_dashboard(resultados_velocimetro_dashboard: List[Dict]) -> Dict[str, List]:
+    """Procesa los resultados del velocímetro para el formato del frontend."""
     data = {
-        'num_1': [],
-        'den_1': [],
-        'cob_1': [],
-        'num_2': [],
-        'den_2': [],
-        'cob_2': [],
-        'num_3': [],
-        'den_3': [],
-        'cob_3': [],
-        'num_4': [],
-        'den_4': [],
-        'cob_4': [],
-        'num_5': [],
-        'den_5': [],
-        'cob_5': [],
-        'num_6': [],
-        'den_6': [],
-        'cob_6': [],
-        'num_7': [],
-        'den_7': [],
-        'cob_7': [],
-        'num_8': [],
-        'den_8': [],
-        'cob_8': [],                
-        'num_9': [],
-        'den_9': [],
-        'cob_9': [],
-        'num_10': [],
-        'den_10': [],
-        'cob_10': [],
-        'num_11': [],
-        'den_11': [],
-        'cob_11': [],
-        'num_12': [],
-        'den_12': [],
-        'cob_12': [],
+        'orden': [],
+        'codigo': [],
+        'codigo_red': [],
+        'codigo_microred': [],
+        'id_establecimiento': [],
+        'red': [],
+        'microred': [],
+        'nombre_establecimiento': [],
+        'den': [],
+        'num': [],
+        'avance': []
     }
-    for index, row in enumerate(resultados_avance_mensual):
+
+    for index, row in enumerate(resultados_velocimetro_dashboard):
         try:
             # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'num_1','den_1','cob_1','num_2','den_2','cob_2','num_3','den_3','cob_3','num_4','den_4','cob_4','num_5','den_5','cob_5','num_6','den_6','cob_6','num_7','den_7','cob_7','num_8','den_8','cob_8','num_9','den_9','cob_9','num_10','den_10','cob_10','num_11','den_11','cob_11','num_12','den_12','cob_12'}
-            
-            if not required_keys.issubset(row.keys()):
-                raise ValueError(f"La fila {index} no tiene las claves necesarias: {row}")
-            # Extraer cada valor, convirtiendo a float
-            num_1_value = float(row.get('num_1', 0.0))
-            den_1_value = float(row.get('den_1', 0.0))
-            cob_1_value = float(row.get('cob_1', 0.0))
-            num_2_value = float(row.get('num_2', 0.0))
-            den_2_value = float(row.get('den_2', 0.0))
-            cob_2_value = float(row.get('cob_2', 0.0))
-            num_3_value = float(row.get('num_3', 0.0))
-            den_3_value = float(row.get('den_3', 0.0))
-            cob_3_value = float(row.get('cob_3', 0.0))
-            num_4_value = float(row.get('num_4', 0.0))
-            den_4_value = float(row.get('den_4', 0.0))
-            cob_4_value = float(row.get('cob_4', 0.0))
-            num_5_value = float(row.get('num_5', 0.0))
-            den_5_value = float(row.get('den_5', 0.0))
-            cob_5_value = float(row.get('cob_5', 0.0))
-            num_6_value = float(row.get('num_6', 0.0))
-            den_6_value = float(row.get('den_6', 0.0))
-            cob_6_value = float(row.get('cob_6', 0.0))
-            num_7_value = float(row.get('num_7', 0.0))
-            den_7_value = float(row.get('den_7', 0.0))
-            cob_7_value = float(row.get('cob_7', 0.0))
-            num_8_value = float(row.get('num_8', 0.0))
-            den_8_value = float(row.get('den_8', 0.0))
-            cob_8_value = float(row.get('cob_8', 0.0))
-            num_9_value = float(row.get('num_9', 0.0))
-            den_9_value = float(row.get('den_9', 0.0))
-            cob_9_value = float(row.get('cob_9', 0.0))
-            num_10_value = float(row.get('num_10', 0.0))
-            den_10_value = float(row.get('den_10', 0.0))
-            cob_10_value = float(row.get('cob_10', 0.0))
-            num_11_value = float(row.get('num_11', 0.0))
-            den_11_value = float(row.get('den_11', 0.0))
-            cob_11_value = float(row.get('cob_11', 0.0))
-            num_12_value = float(row.get('num_12', 0.0))
-            den_12_value = float(row.get('den_12', 0.0))
-            cob_12_value = float(row.get('cob_12', 0.0))
-            
-            data['num_1'].append(num_1_value)
-            data['den_1'].append(den_1_value)
-            data['cob_1'].append(cob_1_value)
-            data['num_2'].append(num_2_value)
-            data['den_2'].append(den_2_value)
-            data['cob_2'].append(cob_2_value)
-            data['num_3'].append(num_3_value)
-            data['den_3'].append(den_3_value)
-            data['cob_3'].append(cob_3_value)
-            data['num_4'].append(num_4_value)
-            data['den_4'].append(den_4_value)
-            data['cob_4'].append(cob_4_value)
-            data['num_5'].append(num_5_value)
-            data['den_5'].append(den_5_value)
-            data['cob_5'].append(cob_5_value)
-            data['num_6'].append(num_6_value)
-            data['den_6'].append(den_6_value)
-            data['cob_6'].append(cob_6_value)
-            data['num_7'].append(num_7_value)
-            data['den_7'].append(den_7_value)
-            data['cob_7'].append(cob_7_value)
-            data['num_8'].append(num_8_value)
-            data['den_8'].append(den_8_value)
-            data['cob_8'].append(cob_8_value)
-            data['num_9'].append(num_9_value)
-            data['den_9'].append(den_9_value)
-            data['cob_9'].append(cob_9_value)
-            data['num_10'].append(num_10_value)
-            data['den_10'].append(den_10_value)
-            data['cob_10'].append(cob_10_value)
-            data['num_11'].append(num_11_value)
-            data['den_11'].append(den_11_value)
-            data['cob_11'].append(cob_11_value)
-            data['num_12'].append(num_12_value)
-            data['den_12'].append(den_12_value)
-            data['cob_12'].append(cob_12_value)
-
-        except Exception as e:
-            logger.error(f"Error procesando la fila {index}: {str(e)}")
-    return data
-
-## GRAFICO VARIABLES 
-def process_variables(resultados_variables: List[Dict]) -> Dict[str, List]:
-    """Procesa los resultados de las variables"""
-    data = {
-        'den_variable': [],
-        'num_1trim': [],
-        'avance_1trim': [],
-        'num_2trim': [],
-        'avance_2trim': [],
-        'num_3trim': [],
-        'avance_3trim': []
-    }
-    for index, row in enumerate(resultados_variables):
-        try:
-            # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'den_variable','num_1trim','avance_1trim','num_2trim','avance_2trim','num_3trim','avance_3trim'}
-            
-            if not required_keys.issubset(row.keys()):
-                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
-            
-            # Extrae los valores
-            den_variable = row['den_variable']
-            num_1trim = row['num_1trim']
-            avance_1trim = row['avance_1trim']
-            num_2trim = row['num_2trim']
-            avance_2trim = row['avance_2trim']
-            num_3trim = row['num_3trim']
-            avance_3trim = row['avance_3trim']
-            
-            # Agrega los valores a la lista
-            data['den_variable'].append(den_variable)
-            data['num_1trim'].append(num_1trim)
-            data['avance_1trim'].append(avance_1trim)
-            data['num_2trim'].append(num_2trim)
-            data['avance_2trim'].append(avance_2trim)
-            data['num_3trim'].append(num_3trim)
-            data['avance_3trim'].append(avance_3trim)
-            
-        except KeyError as e:
-            logger.error(f"Error procesando la fila {index}: {str(e)}")
-    return data
-
-## TABLLA VARIABLES DETALLADOS
-def process_variables_detallado(resultados_variables_detallado: List[Dict]) -> Dict[str, List]:
-    """Procesa los resultados de las variables detalladas
-    NOTA: Usa prefijo 'detallado_' para las claves para NO sobrescribir los datos agregados"""
-    data = {
-        'd_anio': [],
-        'd_mes': [],
-        'd_codigo_red': [],
-        'd_red': [],
-        'd_codigo_microred': [],
-        'd_microred': [],
-        'd_codigo_unico': [],
-        'd_id_establecimiento': [],
-        'd_nombre_establecimiento': [],
-        'd_ubigueo_establecimiento': [],
-        'd_den_variable': [],
-        'd_num_variable': [],
-        'd_num_1trim': [],
-        'd_avance_1trim': [],
-        'd_num_2trim': [],
-        'd_avance_2trim': [],
-        'd_num_3trim': [],
-        'd_avance_3trim': []
-    }
-    for index, row in enumerate(resultados_variables_detallado):
-        try:
-            # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'d_anio','d_mes','d_codigo_red','d_red','d_codigo_microred','d_microred','d_codigo_unico','d_id_establecimiento','d_nombre_establecimiento','d_ubigueo_establecimiento',
-            'd_den_variable','d_num_variable','d_num_1trim','d_avance_1trim','d_num_2trim','d_avance_2trim','d_num_3trim','d_avance_3trim'}
+            required_keys = {'orden','codigo','codigo_red','codigo_microred', 'id_establecimiento', 'red', 'microred', 'nombre_establecimiento', 'den', 'num', 'avance'}
             
             if not required_keys.issubset(row.keys()):
                 raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
             
             # Extrae los valores (las claves NO tienen el prefijo 'detallado_' en los datos)
-            d_anio = row['d_anio']
-            d_mes = row['d_mes']
-            d_codigo_red = row['d_codigo_red']
-            d_red = row['d_red']
-            d_codigo_microred = row['d_codigo_microred']
-            d_microred = row['d_microred']
-            d_codigo_unico = row['d_codigo_unico']
-            d_id_establecimiento = row['d_id_establecimiento']
-            d_nombre_establecimiento = row['d_nombre_establecimiento']
-            d_ubigueo_establecimiento = row['d_ubigueo_establecimiento']
-            d_den_variable = row['d_den_variable']
-            d_num_variable = row['d_num_variable']
-            d_num_1trim = row['d_num_1trim']
-            d_avance_1trim = row['d_avance_1trim']
-            d_num_2trim = row['d_num_2trim']
-            d_avance_2trim = row['d_avance_2trim']
-            d_num_3trim = row['d_num_3trim']
-            d_avance_3trim = row['d_avance_3trim']
+            orden = row['orden']
+            codigo = row['codigo']
+            codigo_red = row['codigo_red']
+            codigo_microred = row['codigo_microred']
+            id_establecimiento = row['id_establecimiento']
+            red = row['red']
+            microred = row['microred']
+            nombre_establecimiento = row['nombre_establecimiento']
+            den = row['den']
+            num = row['num']
+            avance = row['avance']
             
             # Agrega los valores a la lista CON PREFIJO
-            data['d_anio'].append(d_anio)
-            data['d_mes'].append(d_mes)
-            data['d_codigo_red'].append(d_codigo_red)
-            data['d_red'].append(d_red)
-            data['d_codigo_microred'].append(d_codigo_microred)
-            data['d_microred'].append(d_microred)
-            data['d_codigo_unico'].append(d_codigo_unico)
-            data['d_id_establecimiento'].append(d_id_establecimiento)
-            data['d_nombre_establecimiento'].append(d_nombre_establecimiento)
-            data['d_ubigueo_establecimiento'].append(d_ubigueo_establecimiento)
-            data['d_den_variable'].append(d_den_variable)
-            data['d_num_variable'].append(d_num_variable)
-            data['d_num_1trim'].append(d_num_1trim)
-            data['d_avance_1trim'].append(d_avance_1trim)
-            data['d_num_2trim'].append(d_num_2trim)
-            data['d_avance_2trim'].append(d_avance_2trim)
-            data['d_num_3trim'].append(d_num_3trim)
-            data['d_avance_3trim'].append(d_avance_3trim)
+            data['orden'].append(orden)
+            data['codigo'].append(codigo)
+            data['codigo_red'].append(codigo_red)
+            data['codigo_microred'].append(codigo_microred)
+            data['id_establecimiento'].append(id_establecimiento)
+            data['red'].append(red)
+            data['microred'].append(microred)
+            data['nombre_establecimiento'].append(nombre_establecimiento)
+            data['den'].append(den)
+            data['num'].append(num)
+            data['avance'].append(avance)
             
         except KeyError as e:
             logger.error(f"Error procesando la fila {index}: {str(e)}")
     return data
 
-## GRAFICO DE RANKING POR REDES
-def process_grafico_por_redes(resultados_grafico_por_redes: List[Dict]) -> Dict[str, List]:
-    """Procesa los resultados del graficos por redes"""
-    data = {
-            'red_r': [],
-            'den_r': [],
-            'num_r': [],
-            'avance_r': [],
-            'brecha_r': [],
-    }   
-    for index, row in enumerate(resultados_grafico_por_redes):
-        try:
-            # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'red_r','den_r','num_r','avance_r','brecha_r'}
-            
-            if not required_keys.issubset(row.keys()):
-                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
-            
-            # Extrae los valores
-            red_r = row['red_r']
-            den_r = row['den_r']
-            num_r = row['num_r']
-            avance_r = row['avance_r']
-            brecha_r = row['brecha_r']
-            
-            # Agrega los valores a la lista
-            data['red_r'].append(red_r)
-            data['den_r'].append(den_r)
-            data['num_r'].append(num_r)
-            data['avance_r'].append(avance_r)
-            data['brecha_r'].append(brecha_r)
 
-        except KeyError as e:
-            logger.warning(f"Fila con estructura inválida (clave faltante: {e}): {row}")
-    return data
+def _obtener_datos_dashboard(anio, mes_inicio, mes_fin, red, microred, establecimiento):
+    """
+    Función auxiliar que obtiene y procesa los datos del dashboard.
+    Retorna el diccionario procesado con las listas de datos.
+    """
+    try:
+        resultados = obtener_velocimetro_dashboard(
+            anio=anio,
+            mes_inicio=mes_inicio,
+            mes_fin=mes_fin,
+            red=red,
+            microred=microred,
+            establecimiento=establecimiento
+        )
+        return process_velocimetro_dashboard(resultados)
+    except Exception as e:
+        logger.error(f"Error al obtener datos del dashboard: {e}", exc_info=True)
+        return process_velocimetro_dashboard([DEFAULT_VELOCIMETRO_DATA])
 
-## GRAFICO DE RANKING POR MICROREDES
-def process_grafico_por_microredes(resultados_grafico_por_microredes: List[Dict]) -> Dict[str, List]:
-    """Procesa los resultados del graficos por microredes"""
-    data = {
-            'microred_mr': [],
-            'den_mr': [],
-            'num_mr': [],
-            'avance_mr': [],
-            'brecha_mr': [],
-    }   
-    for index, row in enumerate(resultados_grafico_por_microredes):
-        try:
-            # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'microred_mr','den_mr','num_mr','avance_mr','brecha_mr'}
-            
-            if not required_keys.issubset(row.keys()):
-                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
-            
-            # Extrae los valores
-            microred_mr = row['microred_mr']
-            den_mr = row['den_mr']
-            num_mr = row['num_mr']
-            avance_mr = row['avance_mr']
-            brecha_mr = row['brecha_mr']
-            
-            # Agrega los valores a la lista
-            data['microred_mr'].append(microred_mr)
-            data['den_mr'].append(den_mr)
-            data['num_mr'].append(num_mr)
-            data['avance_mr'].append(avance_mr)
-            data['brecha_mr'].append(brecha_mr)
-
-        except KeyError as e:
-            logger.warning(f"Fila con estructura inválida (clave faltante: {e}): {row}")
-    return data
-
-## GRAFICO DE RANKING POR ESTABLECIMIENTOS
-def process_grafico_por_establecimientos(resultados_grafico_por_establecimientos: List[Dict]) -> Dict[str, List]:
-    """Procesa los resultados del graficos por establecimientos"""
-    data = {
-            'establecimiento_e': [],
-            'den_e': [],
-            'num_e': [],
-            'avance_e': [],
-            'brecha_e': [],
-    }   
-    for index, row in enumerate(resultados_grafico_por_establecimientos):
-        try:
-            # Verifica que el diccionario tenga las claves necesarias
-            required_keys = {'establecimiento_e','den_e','num_e','avance_e','brecha_e'}
-            
-            if not required_keys.issubset(row.keys()):
-                raise KeyError(f"Falta una o más claves en la fila {index}: {required_keys - row.keys()}")
-            
-            # Extrae los valores
-            establecimiento_e = row['establecimiento_e']
-            den_e = row['den_e']
-            num_e = row['num_e']
-            avance_e = row['avance_e']
-            brecha_e = row['brecha_e']
-            
-            # Agrega los valores a la lista
-            data['establecimiento_e'].append(establecimiento_e)
-            data['den_e'].append(den_e)
-            data['num_e'].append(num_e)
-            data['avance_e'].append(avance_e)
-            data['brecha_e'].append(brecha_e)
-
-        except KeyError as e:
-            logger.warning(f"Fila con estructura inválida (clave faltante: {e}): {row}")
-    return data
 
 #######################
 ## PANTALLA PRINCIPAL
 #######################
 
-def index_s11_captacion_gestante(request):
+def index_dashboard(request):
     """
     Vista principal para la pantalla de captación de gestantes.
 
@@ -555,145 +200,30 @@ def index_s11_captacion_gestante(request):
     if anio not in VALID_YEARS:
         anio = DEFAULT_YEAR
     
-    # Obtener parámetros de filtro
-    mes_seleccionado_inicio = request.GET.get('mes_inicio')
-    mes_seleccionado_fin = request.GET.get('mes_fin')
+    # Obtener parámetros de filtro (con defaults para carga inicial)
+    mes_seleccionado_inicio = request.GET.get('mes_inicio', DEFAULT_MES)
+    mes_seleccionado_fin = request.GET.get('mes_fin', DEFAULT_MES)
     provincia_seleccionada = request.GET.get('provincia_h')
     distrito_seleccionado = request.GET.get('distrito_h')
-    red_seleccionada = request.GET.get('red_h')
-    microred_seleccionada = request.GET.get('p_microredes_establec_h')
-    establecimiento_seleccionado = request.GET.get('p_establecimiento_h')
+    red_seleccionada = request.GET.get('red_h', '')
+    microred_seleccionada = request.GET.get('p_microredes_establec_h', '')
+    establecimiento_seleccionado = request.GET.get('p_establecimiento_h', '')
     
-    # Debug: mostrar todos los parámetros recibidos
-    print(f"[s11_captacion_gestante] Parámetros recibidos: anio={anio}, mes_inicio={mes_seleccionado_inicio}, mes_fin={mes_seleccionado_fin}, red={red_seleccionada}, microred={microred_seleccionada}, establecimiento={establecimiento_seleccionado}, provincia={provincia_seleccionada}, distrito={distrito_seleccionado}")
+    # Obtener datos del dashboard (usado tanto para AJAX como para carga inicial)
+    data = _obtener_datos_dashboard(
+        anio=anio,
+        mes_inicio=mes_seleccionado_inicio,
+        mes_fin=mes_seleccionado_fin,
+        red=red_seleccionada,
+        microred=microred_seleccionada,
+        establecimiento=establecimiento_seleccionado
+    )
     
     # Manejar peticiones AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        try:
-            # Obtener datos del velocímetro con los filtros aplicados
-            resultados_velocimetro = obtener_velocimetro(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,
-                mes_fin=mes_seleccionado_fin,
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-
-            # Obtener resumen del indicador
-            resumen = obtener_resumen_indicador(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,
-                mes_fin=mes_seleccionado_fin,
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-
-            resultados_grafico_mensual = obtener_grafico_mensual(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,  # Siempre desde Enero,  # Usa el mes de inicio seleccionado
-                mes_fin=mes_seleccionado_fin,      # Usa el mes de fin seleccionado
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-            
-            # Obtener datos del grafico mensualizado - SIEMPRE todos los meses del año
-            # Los filtros de mes NO afectan el gráfico mensual, solo el velocímetro y resumen
-            resultados_variables = obtener_variables(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,
-                mes_fin=mes_seleccionado_fin, # Siempre hasta Diciembre
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-
-            # Obtener datos de variables por trimestre - RESPETA los filtros de mes
-            resultados_variables_detallado = obtener_variables_detallado(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
-                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-            
-            resultados_grafico_por_redes = obtener_grafico_por_redes(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
-                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-            
-            resultados_grafico_por_microredes = obtener_grafico_por_microredes(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
-                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-            
-            resultados_grafico_por_establecimientos = obtener_grafico_por_establecimientos(
-                anio=anio,
-                mes_inicio=mes_seleccionado_inicio,  # Usa el mes de inicio seleccionado
-                mes_fin=mes_seleccionado_fin,        # Usa el mes de fin seleccionado
-                red=red_seleccionada,
-                microred=microred_seleccionada,
-                establecimiento=establecimiento_seleccionado,
-                provincia=provincia_seleccionada,
-                distrito=distrito_seleccionado
-            )
-
-            # Procesar datos del velocímetro
-            data = {
-               **process_velocimetro(resultados_velocimetro),
-               **process_avance_mensual(resultados_grafico_mensual),
-               **process_variables(resultados_variables),
-               **process_variables_detallado(resultados_variables_detallado),
-               **process_grafico_por_redes(resultados_grafico_por_redes),
-               **process_grafico_por_microredes(resultados_grafico_por_microredes),
-               **process_grafico_por_establecimientos(resultados_grafico_por_establecimientos)
-            }
-
-                        # Agregar datos del resumen a la respuesta
-            if resumen:
-                data['r_numerador_resumen'] = resumen['numerador']
-                data['r_denominador_resumen'] = resumen['denominador']
-                data['r_avance_resumen'] = resumen['avance']
-                data['r_brecha'] = resumen['brecha']
-                data['r_clasificacion'] = resumen['clasificacion']
-                data['r_color'] = resumen['color']
-                data['r_icono'] = resumen['icono']
-            
-            return JsonResponse(data)
-            
-        except Exception as e:
-            logger.error(f"Error al obtener datos de captación de gestantes: {e}", exc_info=True)
-            return JsonResponse(
-                {'error': 'Error al obtener datos. Por favor, intente nuevamente.'},
-                status=500
-            )
+        return JsonResponse(data)
     
-    # Renderizado inicial de la página
+    # Renderizado inicial de la página con datos precargados
     context = {
         'mes_seleccionado_inicio': mes_seleccionado_inicio,
         'mes_seleccionado_fin': mes_seleccionado_fin,
@@ -702,16 +232,20 @@ def index_s11_captacion_gestante(request):
         'distrito_seleccionado': distrito_seleccionado,
         'provincias_h': _get_provincias_queryset(),
         'redes_h': _get_redes_queryset(),
+        'anio': anio,
+        # Datos iniciales del dashboard para renderizar en el template
+        'data_inicial': data,
+        'data_inicial_json': json.dumps(data),
     }
     
-    return render(request, 's11_captacion_gestante/index_s11_captacion_gestante.html', context)
+    return render(request, 'dashboard/index_dashboard.html', context)
 
 
 ############################
 ## FILTROS HORIZONTAL
 ############################
 
-def get_establecimientos_s11_captacion_gestante_h(request, establecimiento_id):
+def get_establecimientos_dashboard_h(request, establecimiento_id):
     """
     Vista para renderizar la página de establecimientos con filtros horizontales.
     
@@ -728,10 +262,10 @@ def get_establecimientos_s11_captacion_gestante_h(request, establecimiento_id):
     # Obtener el contexto completo de filtros usando la función reutilizable
     context = build_filtro_context(anio='2024')
     
-    return render(request, 's11_captacion_gestante/establecimientos_h.html', context)
+    return render(request, 'dashboard/establecimientos_h.html', context)
 
 
-def p_microredes_establec_s11_captacion_gestante_h(request):
+def p_microredes_establec_dashboard_h(request):
     """
     Vista parcial HTMX para cargar microredes según la red seleccionada.
     
@@ -753,10 +287,10 @@ def p_microredes_establec_s11_captacion_gestante_h(request):
         'is_htmx': True
     }
     
-    return render(request, 's11_captacion_gestante/partials/p_microredes_establec_h.html', context)
+    return render(request, 'dashboard/partials/p_microredes_establec_h.html', context)
 
 
-def p_establecimientos_s11_captacion_gestante_h(request):
+def p_establecimientos_dashboard_h(request):
     """
     Vista parcial HTMX para cargar establecimientos según microred o red seleccionada.
     Args:
@@ -784,10 +318,10 @@ def p_establecimientos_s11_captacion_gestante_h(request):
         'establec': establecimientos_list
     }
     
-    return render(request, 's11_captacion_gestante/partials/p_establecimientos_h.html', context)
+    return render(request, 'dashboard/partials/p_establecimientos_h.html', context)
 
 
-def p_distritos_s11_captacion_gestante_h(request):
+def p_distritos_dashboard_h(request):
     """
     Vista parcial HTMX para cargar distritos según la provincia seleccionada.
     
@@ -812,7 +346,7 @@ def p_distritos_s11_captacion_gestante_h(request):
         'provincias_h': provincias
     }
     
-    return render(request, 's11_captacion_gestante/partials/p_distritos.html', context)
+    return render(request, 'dashboard/partials/p_distritos.html', context)
 
 
 ###########################################
@@ -953,37 +487,37 @@ def _get_context_base_con_filtros(include_meses=True, anio_meses=None):
 # VISTAS PRINCIPALES - FORMULARIOS
 # ============================================
 
-def get_redes_s11_captacion_gestante(request, redes_id):
+def get_redes_dashboard(request, redes_id):
     """
     Renderiza el formulario de reportes por REDES.
     """
     context = _get_context_base_con_filtros(include_meses=True)
-    return render(request, 's11_captacion_gestante/components/salud/redes.html', context)
+    return render(request, 'dashboard/components/salud/redes.html', context)
 
 
-def get_microredes_s11_captacion_gestante(request, microredes_id):
+def get_microredes_dashboard(request, microredes_id):
     """
     Renderiza el formulario de reportes por MICROREDES.
     """
     context = _get_context_base_con_filtros(include_meses=True, anio_meses='2024')
-    return render(request, 's11_captacion_gestante/components/salud/microredes.html', context)
+    return render(request, 'dashboard/components/salud/microredes.html', context)
 
 
-def get_establecimientos_s11_captacion_gestante(request, establecimiento_id):
+def get_establecimientos_dashboard(request, establecimiento_id):
     """Renderiza el formulario de reportes por ESTABLECIMIENTO."""
     context = {
         'redes': _get_redes_queryset(),
         'mes_inicio': _get_meses_queryset(),
         'mes_fin': _get_meses_queryset(),
     }
-    return render(request, 's11_captacion_gestante/components/salud/establecimientos.html', context)
+    return render(request, 'dashboard/components/salud/establecimientos.html', context)
 
 
 # ============================================
 # VISTAS PARTIALS - HTMX
 # ============================================
 
-def p_microredes_s11_captacion_gestante(request):
+def p_microredes_dashboard(request):
     """
     Partial HTMX: Carga microredes según la red seleccionada.
     Usado en el formulario de MICROREDES (sin encadenamiento).
@@ -999,10 +533,10 @@ def p_microredes_s11_captacion_gestante(request):
         'red': red,
     }
     
-    return render(request, 's11_captacion_gestante/partials/p_microredes.html', context)
+    return render(request, 'dashboard/partials/p_microredes.html', context)
 
 
-def p_microredes_establec_s11_captacion_gestante(request):
+def p_microredes_establec_dashboard(request):
     """
     HTMX Partial: Carga microredes según la red seleccionada.
     Se encadena con el select de establecimientos.
@@ -1023,7 +557,7 @@ def p_microredes_establec_s11_captacion_gestante(request):
         )
         print(f"[p_microredes_establec] Microredes encontradas: {len(microredes)}")
     
-    return render(request, 's11_captacion_gestante/partials/p_microredes_establec.html', {
+    return render(request, 'dashboard/partials/p_microredes_establec.html', {
         'microredes': microredes,
         'red': red,
     })
@@ -1031,7 +565,7 @@ def p_microredes_establec_s11_captacion_gestante(request):
 # ============================================
 # PARTIAL: ESTABLECIMIENTOS
 # ============================================
-def p_establecimientos_s11_captacion_gestante(request):
+def p_establecimientos_dashboard(request):
     """
     HTMX Partial: Carga establecimientos según la microred seleccionada.
     """
@@ -1056,7 +590,7 @@ def p_establecimientos_s11_captacion_gestante(request):
         )
         print(f"[p_establecimientos] Establecimientos encontrados: {len(establecimientos)}")
     
-    return render(request, 's11_captacion_gestante/partials/p_establecimientos.html', {
+    return render(request, 'dashboard/partials/p_establecimientos.html', {
         'establecimientos': establecimientos,
     })
 ######################---------------------------
@@ -1064,7 +598,7 @@ def p_establecimientos_s11_captacion_gestante(request):
 ######################-------------------------------
 
 ## SEGUIMIENTO POR PROVINCIA
-def get_provincias_s11_captacion_gestante(request, provincia_id):
+def get_provincias_dashboard(request, provincia_id):
     provincias = (
                 MAESTRO_HIS_ESTABLECIMIENTO
                 .objects.filter(Descripcion_Sector='GOBIERNO REGIONAL')
@@ -1095,10 +629,10 @@ def get_provincias_s11_captacion_gestante(request, provincia_id):
                 'mes_fin':mes_fin,
             }
     
-    return render(request, 's11_captacion_gestante/components/municipio/provincias.html', context)
+    return render(request, 'dashboard/components/municipio/provincias.html', context)
 
 ## SEGUIMIENTO POR DISTRITOS
-def get_distritos_s11_captacion_gestante(request, distrito_id):
+def get_distritos_dashboard(request, distrito_id):
     provincias = (
                 MAESTRO_HIS_ESTABLECIMIENTO
                 .objects.filter(Descripcion_Sector='GOBIERNO REGIONAL')
@@ -1128,10 +662,10 @@ def get_distritos_s11_captacion_gestante(request, distrito_id):
                 'mes_inicio':mes_inicio,
                 'mes_fin':mes_fin,
     }
-    return render(request, 's11_captacion_gestante/components/municipio/distritos.html', context)
+    return render(request, 'dashboard/components/municipio/distritos.html', context)
 
 
-def p_distrito_s11_captacion_gestante(request):
+def p_distrito_dashboard(request):
     provincia_param = request.GET.get('provincia', '')
 
     # Filtra los establecimientos por sector "GOBIERNO REGIONAL"
@@ -1147,7 +681,7 @@ def p_distrito_s11_captacion_gestante(request):
         'provincia': provincia_param,
         'distritos': distritos
     }
-    return render(request, 's11_captacion_gestante/partials/p_distritos.html', context)
+    return render(request, 'dashboard/partials/p_distritos.html', context)
 
 
 ########################################
@@ -1164,7 +698,7 @@ COLORS = {
     'orange': 'FFE0A960',
     'gray': 'FFD3D3D3',
     'green': 'FF60E0B3',
-    'yellow': 'FFE0DE60',
+    'yellow': 'FFFFEB3B',
     'blue': 'FF60A2E0',
     'green_2': 'FF60E07E',
     'celeste': 'FF87CEEB',
@@ -1177,47 +711,97 @@ COLORS = {
     'red': 'FF0000',
     'green_font': '00B050',
     'black': '000000',
+    'dark_green': 'FF2E7D32',
 }
 
 # Anchos de columnas
 COLUMN_WIDTHS = {
-    'A': 1, 'B': 9, 'C': 20, 'D': 9, 'E': 10, 'F': 10, 'G': 10, 'H': 10,
-    'I': 10, 'J': 5, 'K': 20, 'L': 5, 'M':25, 'N': 9, 'O': 28,
+    'A': 1, 'B': 9, 'C': 9, 'D': 9, 'E': 8, 'F': 9, 'G': 9, 'H': 9,'I':9, 'J':9, 'K':9,
+    'L':9, 'M':9, 'N':5, 'O':9, 'P':5,'Q':9, 'R':5, 'S':9, 'T':5, 'U':9, 'V':5, 
+    'W':9, 'X':9, 'Y':5, 'Z':9,'AA':5,'AB':9,'AC':5,'AD':9,'AE':5,'AF':9,'AG':5,'AH':5,'AI':5,
+    'AJ':9,'AK':9,'AL':5,'AM':9,'AN':5,'AO':9,'AP':5,'AQ':9,'AR':5,'AS':9,'AT':5,
+    'AU':12,'AV':5,'AW':9,'AX':20,'AY':9,'AZ':25,'BA':9,'BB':25
 }
 
 # Alturas de filas
-ROW_HEIGHTS = {1: 14, 2: 14, 3: 12, 4: 25, 5: 18, 6: 12, 7: 30, 8: 30}
+ROW_HEIGHTS = {1: 14, 2: 14, 3: 12, 4: 25, 5: 27, 6: 39, 7: 36, 8: 30}
 
 # Configuración de cabeceras
 HEADERS_CONFIG = [
-    ('B9', 'NUM DOC', 'cyan'),
-    ('C9', 'NOMBRE', 'cyan'),
-    ('D9', '1° APN', 'cyan'),
-    ('E9', '1 TRIM', 'green'),
-    ('F9', '2 TRIM', 'green_2'),
-    ('G9', '3 TRIM', 'yellow'),
-    ('H9', 'IND','blue'),
-    ('I9', 'MES','blue'),
-    ('J9', 'COD RED', 'orange'),
-    ('K9', 'RED', 'orange'),
-    ('L9', 'COD MICRO', 'orange'),
-    ('M9', 'MICRORED',  'orange'),
-    ('N9', 'COD EESS', 'orange'),
-    ('O9', 'ESTABLECIMIENTO', 'orange')
+    ('B9', 'UBIGUEO', 'cyan'),
+    ('C9', 'DNI', 'cyan'),
+    ('D9', 'SEM GEST', 'cyan'),
+    ('E9', 'INICIO GEST', 'cyan'),
+    ('F9', 'SEM 14', 'cyan'),
+    ('G9', 'SEM 28', 'cyan'),
+    ('H9', 'SEM 33', 'cyan'),
+    ('I9', 'SEM 37','cyan'),
+    ('J9', 'PARTO','cyan'),
+    ('K9', 'DEN','cyan'),
+    ('L9', 'NUM EXAM','yellow'),
+    ('M9', 'DOSAJE HB','yellow'),
+    ('N9', 'HB','yellow'),
+    ('O9', 'SIFILIS','yellow'),
+    ('P9', 'S','yellow'),
+    ('Q9', 'VIH','yellow'),
+    ('R9', 'V','yellow'),
+    ('S9', 'BACT','yellow'),
+    ('T9', 'B','yellow'),
+    ('U9', 'PERFIL OBS','yellow'),
+    ('V9', 'PO','yellow'),
+    ('W9', 'APN','green'),
+    ('X9', '1° APN','green'),
+    ('Y9', '1°','green'),
+    ('Z9', '1° APN','green_2'),
+    ('AA9', '1°','green_2'),
+    ('AB9', '2° APN','green_2'),
+    ('AC9', '2°','green_2'),
+    ('AD9', '1° APN','green'),
+    ('AE9', '1°','green'),
+    ('AF9', '2° APN','green'),   
+    ('AG9', '2°','green'),
+    ('AH9', '3° APN','green'),
+    ('AI9', '3°','green'),
+    ('AJ9', 'ENTREGA','morado_claro'),
+    ('AK9', '1° ENT','morado_claro'),
+    ('AL9','1°','morado_claro'),
+    ('AM9','2° ENT','morado_claro'),
+    ('AN9','2°','morado_claro'),
+    ('AO9','3° ENT','morado_claro'),
+    ('AP9','3°','morado_claro'),
+    ('AQ9','4° ENT','morado_claro'),
+    ('AR9','4°','morado_claro'),
+    ('AS9','5° ENT','morado_claro'),
+    ('AT9','5°','morado_claro'), 
+    ('AU9', 'IND','blue'),
+    ('AV9', 'MES','blue'),
+    ('AW9', 'COD RED','orange'),
+    ('AX9', 'RED','orange'),
+    ('AY9', 'COD MICRO','orange'),
+    ('AZ9', 'MICRORED','orange'),
+    ('BA9', 'COD EESS','orange'),
+    ('BB9', 'ESTABLECIMIENTO', 'orange')
 ]
 
 # Celdas combinadas
+# NOTA: Solo se puede asignar valor a la celda top-left de cada rango combinado
+# Las demás celdas del rango son read-only en openpyxl
 MERGE_CELLS_CONFIG = [
-    # Fila 5
-    ('B5', 'D5'), ('E5', 'O5'),
-    # Fila 6
-    ('B6', 'O6'), 
-    # Fila 7
-    ('B7', 'D7'),('H7','O7'),
-    # Fila 8
-    ('C8','D8'),('H8','O8')
-]
+    # Fila 5: B5-G5 para META, H5-K5 para título numerador (L5 queda libre para otro contenido)
+    ('B5', 'K5'),('L5','AT5'),
+    # Fila 6: B6-G6 para descripción denominador, H6-K6 para descripción numerador
+    ('B6', 'K6'),('L6','V6'),('X6','Y6'),('Z6','AC6'),('AD6','AI6'),('AJ6','AT6'),
+    # Fila 7: B7-C7 para descripción adolescentes, E7-F7 para descripción anemia
+    ('B7','C7'),('M7','N7'),('O7','P7'),('Q7','R7'),('S7','T7'),('U7','V7'),
+    ('X7','Y7'),('Z7','AA7'),('AB7','AC7'),('AD7','AE7'),('AF7','AG7'),('AH7','AI7'),
+    ('AK7','AL7'),('AM7','AN7'),('AO7','AP7'),('AQ7','AR7'),('AS7','AT7'),
+    # Fila 8: B8-C8 para descripción adolescentes, E8-F8 para descripción anemia
+    ('B8','C8'),('M8','N8'),('O8','P8'),('Q8','R8'),('S8','T8'),('U8','V8'),
+    ('X8','Y8'),('Z8','AA8'),('AB8','AC8'),('AD8','AE8'),('AF8','AG8'),('AH8','AI8'),
+    ('AK8','AL8'),('AM8','AN8'),('AO8','AP8'),('AQ8','AR8'),('AS8','AT8'),
 
+    ('K7','K8'),('L7','L8'),('W7','W8'),('AJ7','AJ8')
+]
 # ============================================================================
 # CLASES DE UTILIDAD PARA ESTILOS
 # ============================================================================
@@ -1310,10 +894,10 @@ class BaseExcelReportView(LoginRequiredMixin, View):
 # VISTAS DE REPORTES
 # ============================================================================
 
-class RptCaptacionGestante(BaseExcelReportView):
+class RptPaqueteGestante(BaseExcelReportView):
     """Reporte de captación de gestantes."""
     
-    filename = "rpt_s11_captacion_gestante.xlsx"
+    filename = "rpt_dashboard.xlsx"
     sheet_name = "Seguimiento"
     
     def get_query_params(self, request):
@@ -1330,17 +914,17 @@ class RptCaptacionGestante(BaseExcelReportView):
         }
     
     def get_data(self, params):
-        return obtener_seguimiento_s11_captacion_gestante(
+        return obtener_seguimiento_dashboard(
             params['anio'], params['mes_inicio'], params['mes_fin'],
             params['provincia'], params['distrito'], params['red'],
             params['microredes'], params['establecimiento'], params['cumple']
         )
 
 
-class RptCaptacionGestanteMicroRed(BaseExcelReportView):
+class RptPaqueteGestanteMicroRed(BaseExcelReportView):
     """Reporte de población por microred."""
     
-    filename = "rpt_s11_captacion_gestante_microred.xlsx"
+    filename = "rpt_dashboard_microred.xlsx"
     sheet_name = "Seguimiento"
     
     def get_query_params(self, request):
@@ -1357,7 +941,7 @@ class RptCaptacionGestanteMicroRed(BaseExcelReportView):
         }
     
     def get_data(self, params):
-        return obtener_seguimiento_s11_captacion_gestante(
+        return obtener_seguimiento_dashboard(
             params['anio'], params['mes_inicio'], params['mes_fin'],
             '',  # provincia (vacío para microred)
             '',  # distrito (vacío para microred)
@@ -1367,10 +951,10 @@ class RptCaptacionGestanteMicroRed(BaseExcelReportView):
         )
 
 
-class RptCaptacionGestanteEstablec(BaseExcelReportView):
+class RptPaqueteGestanteEstablec(BaseExcelReportView):
     """Reporte de población por establecimiento."""
     
-    filename = "rpt_s11_captacion_gestante_establecimiento.xlsx"
+    filename = "rpt_dashboard_establecimiento.xlsx"
     sheet_name = "Seguimiento"
     
     def get_query_params(self, request):
@@ -1387,7 +971,7 @@ class RptCaptacionGestanteEstablec(BaseExcelReportView):
         }
     
     def get_data(self, params):
-        return obtener_seguimiento_s11_captacion_gestante(
+        return obtener_seguimiento_dashboard(
             params['anio'], params['mes_inicio'], params['mes_fin'],
             params['provincia'], params['distrito'], params['red'],
             params['microredes'], params['establecimiento'], params['cumple']
@@ -1462,20 +1046,81 @@ def _style_header_sections(ws, style_mgr):
     border_negro = style_mgr.get_border('000000')
     
     # Configuración de secciones con sus textos y estilos
+    # NOTA: Solo incluir la celda INICIAL de cada rango combinado (MergedCell)
+    # Las celdas dentro de un rango combinado que no son la inicial son read-only
     sections_config = {
+        # Fila 5: B5:G5 y H5:K5 son rangos combinados, L5 es celda individual
         'B5': ('META (DENOMINADOR)', 'gray', 10, True),
-        'E5': ('AVANCE (NUMERADOR)', 'naranja_claro', 10, True),
-        'B6': ('INFORMACION DEL SISTEMA HIS MINSA', 'gray', 10, True),
-        'B7': ('1° APN en cualquier momento de la gestación, en el mes de medición', 'plomo_claro', 7, True),
-        'E7': ('1° APN en el primer trimestre', 'plomo_claro', 7, False),
-        'F7': ('1° APN en el segundo trimestre', 'plomo_claro', 7, False),
-        'G7': ('1° APN en el tercer trimestre', 'plomo_claro', 7, False),
-        'H7': ('INFORMACION TERRITORIAL', 'plomo_claro', 7, False),
-        'B8': ('COD HIS', 'azul_claro', 7, True),
-        'C8': ('DX = Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
-        'E8': ('DX = Z3491 ó Z3591 + LAB=1', 'azul_claro', 7, False),      
-        'F8': ('DX = Z3492 ó Z3592 + LAB=1', 'azul_claro', 7, False),
-        'G8': ('DX = Z3493 ó Z3593 + LAB=1', 'azul_claro', 7, False),
+        'L5': ('NUMERADOR (N° de mujeres del denominador que durante su gestación,recibieron el paquete integrado de servicios)', 'naranja_claro', 10, True),
+        # Fila 6: B6:G6, H6:K6 son rangos combinados, L6 es celda individual
+        'B6': ('N° de mujeres procedentes de los distritos de quintiles 1 y 2 de pobreza departamental con parto institucional, según la base de datos del CNV en línea', 'gray', 10, True),
+        'L6': ('Recibieron en el primer trimestre: 4 examenes auxiliares o Perfil Obstetrico', 'gray', 8, True),
+        'W6': ('Atencion Prenatal', 'gray', 8, True),
+        'X6': ('APN en el PRIMER TRIMESTRE', 'gray', 8, True),
+        'Z6': ('APN en el SEGUNDO TRIMESTRE', 'gray', 8, True),
+        'AD6': ('APN en el TERCER TRIMESTRE', 'gray', 8, True),
+        'AJ6': ('Entrega de sulfato ferroso + acido folico', 'gray', 8, True),
+        # Fila 7: B7:D7, E7:H7, I7:J7, N7:P7, Q7:R7, T7:V7, W7:X7 son rangos combinados
+        # NOTA: K7, L7 NO están combinadas (son celdas individuales)
+        'B7': ('INTEVALOS', 'plomo_claro', 7, True),
+        'D7': ('CNV EN LINEA', 'plomo_claro', 7, False),
+        'E7': ('FUR Calculado', 'plomo_claro', 7, False),
+        'F7': ('98 dias desde el FUR', 'plomo_claro', 7, False),
+        'G7': ('196 dias desde el FUR', 'plomo_claro', 7, False),
+        'H7': ('231 dias desde el FUR', 'plomo_claro', 7, False),
+        'I7': ('259 dias desde el FUR', 'plomo_claro', 7, False),
+        'J7': ('Nacimiento del CNV en Linea', 'plomo_claro', 7, False),
+        'K7': ('DENOMINADOR', 'plomo_claro', 7, False),
+        'L7': ('NUMERADOR PARCIAL', 'plomo_claro', 7, False),
+        'M7': ('Tamizaje de hemoglobina', 'plomo_claro', 7, False),
+        'O7': ('Tamizaje de sifilis con prueba rapida', 'plomo_claro', 7, False),
+        'Q7': ('Tamizaje de VIH con prueba rapida', 'plomo_claro', 7, False),
+        'S7': ('Tamizaje de bacteriuria asintomática', 'plomo_claro', 7, False),
+        'U7': ('Un examen de perfil obstetrico', 'plomo_claro', 7, False),
+        'W7': ('NUMERADOR PARCIAL', 'plomo_claro', 7, False),
+        'X7': ('Al menos 1 APN (< semana 14)', 'plomo_claro', 7, False),
+        'Z7': ('Al menos 1 APN (semana 14 a < 28), Intervalo Minimo 25 dias des APN anterior', 'plomo_claro', 7, False),
+        'AB7': ('Al menos 2 APN (semana 14 < 28 ), Intervalo Minimo 25 dias des APN anterior', 'plomo_claro', 7, False),
+        'AD7': ('Al menos 1° APN (semana 28 a parto)', 'plomo_claro', 7, False),
+        'AF7': ('Al menos 2° APN (semana 28 a parto)', 'plomo_claro', 7, False),
+        'AH7': ('Al menos 3° APN (semana 28 a parto)', 'plomo_claro', 7, False),
+        'AJ7': ('NUMERADOR PARCIAL', 'plomo_claro', 7, False),
+        'AK7': ('Al menos 1 entrega de sulfato ferroso + Acido Folico', 'plomo_claro', 7, False),
+        'AM7': ('Al menos 2° Entrega (25-40 dias desde 1ra)', 'plomo_claro', 7, False),
+        'AO7': ('Al menos 3° Entrega (25-40 dias desde 2da)', 'plomo_claro', 7, False),
+        'AQ7': ('Al menos 4° Entrega (25-40 dias desde 3ra)', 'plomo_claro', 7, False),
+        'AS7': ('Al menos 5° Entrega (25-40 dias desde 4ta)', 'plomo_claro', 7, False),
+
+
+
+
+
+        # Fila 8: B8:D8, E8:H8, I8:J8, N8:P8, Q8:R8, T8:V8, W8:X8 son rangos combinados
+        # NOTA: K8, L8, M8, S8, Y8, Z8, AA8 NO están combinadas
+        'B8': ('CODIGO HIS MINSA', 'azul_claro', 7, True),
+        'D8': ('>= 37 sem', 'azul_claro', 7, False),
+        'E8': ('PARTO - (SG*7) = -273 dias', 'azul_claro', 7, False),
+        'F8': ('Limite 1° TRIM', 'azul_claro', 7, False),
+        'G8': ('Limite 2° TRIM', 'azul_claro', 7, False),
+        'H8': ('APN (25 a 13 dias)', 'azul_claro', 7, False),
+        'I8': ('APN (13 a 7)', 'azul_claro', 7, False),
+        'J8': ('Delimita periodo gestacional', 'azul_claro', 7, False),
+        'M8': ('DX=85018 ó 85018.01 ó 85031', 'azul_claro', 7, False),
+        'O8': ('DX=86780 ó 86592 ó 86593 ó 86318.01 ó 86780.01', 'azul_claro', 7, False),
+        'Q8': ('DX=86703 ó 86703.02 ó 87389 ó 86318.01 ó 86703.01', 'azul_claro', 7, False),
+        'S8': ('DX = 81007 ó 81002 ó 81000.02', 'azul_claro', 7, False),
+        'U8': ('DX= 80055.01', 'azul_claro', 7, False),
+        'X8': ('DX=Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
+        'Z8': ('DX=Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
+        'AB8': ('DX=Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
+        'AD8': ('DX=Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
+        'AF8': ('DX=Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
+        'AH8': ('DX=Z3491 ó Z3492 ó Z3493 ó Z3591 ó Z3592 ó Z3593', 'azul_claro', 7, False),
+        'AK8': ('DX= 99199.26 ó (DX= 99199.26 + DX = O990 ó D509)', 'azul_claro', 7, False),
+        'AM8': ('DX= 99199.26 ó (DX= 99199.26 + DX = O990 ó D509)', 'azul_claro', 7, False),
+        'AO8': ('DX= 99199.26 ó (DX= 99199.26 + DX = O990 ó D509)', 'azul_claro', 7, False),
+        'AQ8': ('DX= 99199.26 ó (DX= 99199.26 + DX = O990 ó D509)', 'azul_claro', 7, False),
+        'AS8': ('DX= 99199.26 ó (DX= 99199.26 + DX = O990 ó D509)', 'azul_claro', 7, False),
     }
     
     for cell_ref, (text, fill_color, font_size, bold) in sections_config.items():
@@ -1487,7 +1132,7 @@ def _style_header_sections(ws, style_mgr):
         cell.border = border_negro
     
     # Aplicar bordes a las filas de cabecera
-    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'O', border_negro)
+    _apply_row_borders(ws, [5, 6, 7, 8], 'B', 'AT', border_negro)
 
 
 def _apply_row_borders(ws, rows, start_col, end_col, border):
@@ -1544,7 +1189,7 @@ def _add_titles(ws, style_mgr):
         ('B1', 'OFICINA DE TECNOLOGIAS DE LA INFORMACION', 7, True, '000000'),
         ('B2', 'DIRECCION REGIONAL DE SALUD JUNIN', 7, True, '000000'),
         ('B3', 'El usuario se compromete a mantener la confidencialidad de los datos personales que conozca como resultado del reporte realizado, cumpliendo con lo establecido en la Ley N° 29733 - Ley de Protección de Datos Personales y sus normas complementarias.', 7, True, '0000CC'),
-        ('B4', 'SEGUIMIENTO NOMINAL: SI-01.01: PORCENTAJE DE GESTANTES ATENDIDAS QUE RECIBEN SU PRIMERA ATENCIÓN PRENATAL EN EL PRIMER TRIMESTRE DE GESTACIÓN', 12, True, '000000'),
+        ('B4', 'SEGUIMIENTO NOMINAL:MC-01. MUJERES CON PARTO INSTITUCIONAL, PROCEDENTES DE LOS DISTRITOS DE QUINTILES 1 Y 2 DE POBREZA DEPARTAMENTAL, QUE DURANTE SU GESTACIÓN RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS', 12, True, '000000'),
     ]
     
     for cell_ref, text, size, bold, color in titles:
@@ -1562,11 +1207,13 @@ def _write_data(ws, results, style_mgr):
     x_mark = '✗'
     
     # Columnas con alineación izquierda
-    left_align_cols = {3, 13, 15}
+    left_align_cols = {52, 54}
     # Columnas con check/x marks
-    check_cols = {6, 7}
+    check_cols = {14,16,18,20,22,25,27,29,31,33, 35,38,40,42,44,46}
+    # Columnas con check/x marks validador
+    check_cols_validador = {11}
     # Columnas de sub-indicadores
-    sub_indicator_cols = {5}
+    sub_indicator_cols = {12,23,36}
     
     for row_idx, record in enumerate(results, start=10):
         for col_idx, value in enumerate(record.values(), start=2):
@@ -1580,10 +1227,12 @@ def _write_data(ws, results, style_mgr):
                 cell.alignment = style_mgr.get_alignment()
             
             # Aplicar formato según columna
-            if col_idx == 8:  # Columna INDICADOR
+            if col_idx == 47:  # Columna INDICADOR
                 _format_indicator_cell(cell, value, style_mgr)
             elif col_idx in check_cols:
                 _format_check_cell(cell, value, check_mark, x_mark, style_mgr)
+            elif col_idx in check_cols_validador:
+                _format_check_cell_validador(cell, value, check_mark, x_mark, style_mgr)
             elif col_idx in sub_indicator_cols:
                 _format_sub_indicator_cell(cell, value, style_mgr)
             else:
@@ -1615,6 +1264,19 @@ def _format_check_cell(cell, value, check_mark, x_mark, style_mgr):
     else:
         cell.font = style_mgr.get_font(size=8)
 
+def _format_check_cell_validador(cell, value, check_mark, x_mark, style_mgr):
+    """Formatea celdas con check/x marks."""
+    if value == 1:
+        cell.value = check_mark
+        cell.font = style_mgr.get_font(size=10, color='00B050')
+        cell.fill = style_mgr.get_fill('green')
+    elif value == 0:
+        cell.value = x_mark
+        cell.font = style_mgr.get_font(size=10, color='FF0000')
+    else:
+        cell.font = style_mgr.get_font(size=8)
+
+
 
 def _format_sub_indicator_cell(cell, value, style_mgr):
     """Formatea celdas de sub-indicadores."""
@@ -1625,6 +1287,6 @@ def _format_sub_indicator_cell(cell, value, style_mgr):
     elif value == 1:
         cell.value = 'CUMPLE'
         cell.font = style_mgr.get_font(size=7, color='00B050')
-        cell.fill = style_mgr.get_fill('gray')
+        cell.fill = style_mgr.get_fill('gray')  
     else:
         cell.font = style_mgr.get_font(size=7)

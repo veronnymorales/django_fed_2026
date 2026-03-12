@@ -7,14 +7,13 @@
       <section class="card card-body shadow mb-2">
         <div class="col-md-6 offset-md-3 text-center py-1 text-primary">
           <h4>
-            MENORES 12 MESES QUE RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS -
-            MICRORED
+            GESTANTES RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS - MICRORED
           </h4>
         </div>
         <form
           method="GET"
           enctype="multipart/form-data"
-          action="{% url 'rpt_mc21_paquete_nino_microred_xls' %}"
+          action="{% url 'rpt_dashboard_microred_xls' %}"
         >
           <!-- cabecera-->
           <div class="row">
@@ -73,7 +72,7 @@
                   class="form-control"
                   name="red"
                   id="red"
-                  hx-get="{% url 'p_microredes_mc21_paquete_nino' %}"
+                  hx-get="{% url 'p_microredes_s11_captacion_gestante' %}"
                   hx-target="#p_microredes"
                   hx-trigger="change"
                   hx-swap="innerHTML"

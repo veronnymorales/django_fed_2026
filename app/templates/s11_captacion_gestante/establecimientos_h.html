@@ -165,10 +165,27 @@
       // Obtener el formulario
       const filterForm = document.getElementById("filter-form");
 
+      // Flag para controlar el auto-submit después de HTMX swaps
+      let pendingAutoSubmit = false;
+
+      // Función para sincronizar valores de Select2 al <select> original
+      function syncSelect2Values() {
+        $("#filter-form .select2").each(function () {
+          if ($(this).hasClass("select2-hidden-accessible")) {
+            var val = $(this).select2("val");
+            if (val !== null && val !== undefined) {
+              $(this).val(val);
+            }
+          }
+        });
+      }
+
       // Función para enviar el formulario automáticamente
       function autoSubmitForm() {
         if (filterForm) {
           console.log("📤 Auto-submit disparado");
+          // Sincronizar valores de Select2 antes de enviar
+          syncSelect2Values();
           filterForm.dispatchEvent(new Event("submit"));
         }
       }
@@ -176,11 +193,10 @@
       // Manejar eventos Select2 con HTMX para el select de red
       $("#red_h").on("select2:select", function (e) {
         console.log("🌐 Red seleccionada:", e.params.data.text);
+        // Marcar que debe auto-submit después del swap HTMX
+        pendingAutoSubmit = true;
         // Disparar manualmente el evento HTMX para asegurar que la petición se envíe
         htmx.trigger(this, "change");
-
-        // Auto-submit después de que HTMX actualice las microredes
-        setTimeout(autoSubmitForm, 300);
       });
 
       // Auto-submit cuando se selecciona una microred
@@ -188,17 +204,22 @@
         "select2:select",
         "#p_microredes_establec_h",
         function (e) {
-          console.log("� Microred seleccionada:", e.params.data.text);
+          console.log("🏥 Microred seleccionada:", e.params.data.text);
+          // Marcar que debe auto-submit después del swap HTMX
+          pendingAutoSubmit = true;
           // Disparar manualmente el evento HTMX para cargar establecimientos
           htmx.trigger(this, "change");
-          // Auto-submit después de que HTMX actualice los establecimientos
-          setTimeout(autoSubmitForm, 300);
         },
       );
 
       // Auto-submit cuando se selecciona un establecimiento
       $(document).on("select2:select", "#p_establecimiento_h", function (e) {
         console.log("🏨 Establecimiento seleccionado:", e.params.data.text);
+        // Sincronizar el valor seleccionado al <select> original
+        var selectedValue = e.params.data.id;
+        console.log("📋 Valor del establecimiento:", selectedValue);
+        $(this).val(selectedValue);
+        // Auto-submit inmediato
         autoSubmitForm();
       });
 
@@ -250,6 +271,16 @@
         }
       });
 
+      // Auto-submit DESPUÉS de que HTMX haya terminado completamente (afterSettle)
+      document.body.addEventListener("htmx:afterSettle", function (event) {
+        if (pendingAutoSubmit) {
+          pendingAutoSubmit = false;
+          console.log("✅ HTMX settle completado - ejecutando auto-submit pendiente");
+          // Pequeño delay para asegurar que Select2 esté completamente inicializado
+          setTimeout(autoSubmitForm, 100);
+        }
+      });
+
       // Limpiar formulario - verificar que clear-btn existe
       const clearBtn = document.getElementById("clear-btn");
       if (clearBtn) {
@@ -258,6 +289,7 @@
           document.getElementById("filter-form").reset();
           $(".select2").val("").trigger("change");
           // Enviar formulario con valores en blanco para resetear el dashboard
+          pendingAutoSubmit = false;
           setTimeout(autoSubmitForm, 100);
         });
       } else {

@@ -154,17 +154,20 @@ def obtener_velocimetro_mc21_paquete_nino(
     """
     try:
         with connection.cursor() as cursor:
-            # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_obtener_velocimetro_mc21_paquete_nino', [
-                anio,
-                mes_inicio,
-                mes_fin,
-                red,
-                microred,
-                establecimiento,
-                provincia,
-                distrito
-            ])
+            # Llamar a la función almacenada con SELECT * FROM
+            cursor.execute(
+                "SELECT * FROM fn_obtener_velocimetro_mc21_paquete_nino(%s, %s, %s, %s, %s, %s, %s, %s)",
+                [
+                    anio,
+                    mes_inicio,
+                    mes_fin,
+                    red,
+                    microred,
+                    establecimiento,
+                    provincia,
+                    distrito
+                ]
+            )
             
             # Obtener la fila resultante (siempre es 1 fila debido a la agregación)
             row = cursor.fetchone()
@@ -219,16 +222,19 @@ def obtener_grafico_mensual_mc21_paquete_nino(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_grafico_mensualizado_mc21_paquete_nino', [
-                anio,
-                mes_inicio,
-                mes_fin,
-                red,
-                microred,
-                establecimiento,
-                provincia,
-                distrito
-            ])
+            cursor.execute(
+                "SELECT * FROM fn_grafico_mensualizado_mc21_paquete_nino(%s, %s, %s, %s, %s, %s, %s, %s)",
+                [
+                    anio,
+                    mes_inicio,
+                    mes_fin,
+                    red,
+                    microred,
+                    establecimiento,
+                    provincia,
+                    distrito
+                ]
+            )
             
             # Obtener la fila resultante
             row = cursor.fetchone()
@@ -322,16 +328,19 @@ def obtener_variables_mc21_paquete_nino(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_obtener_variables_mc21_paquete_nino', [
-                anio,
-                mes_inicio,
-                mes_fin,
-                red,
-                microred,
-                establecimiento,
-                provincia,
-                distrito
-            ])
+            cursor.execute(
+                "SELECT * FROM fn_obtener_variables_mc21_paquete_nino(%s, %s, %s, %s, %s, %s, %s, %s)",
+                [
+                    anio,
+                    mes_inicio,
+                    mes_fin,
+                    red,
+                    microred,
+                    establecimiento,
+                    provincia,
+                    distrito
+                ]
+            )
             
             # Obtener la fila resultante
             row = cursor.fetchone()
@@ -403,8 +412,8 @@ def obtener_variables_detallado_mc21_paquete_nino(
     """
     try:
         with connection.cursor() as cursor:
-            # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_obtener_variables_detallado_mc21_paquete_nino', [
+            # Llamar a la función almacenada con SELECT * FROM
+            params = [
                 anio,
                 mes_inicio,
                 mes_fin,
@@ -413,10 +422,16 @@ def obtener_variables_detallado_mc21_paquete_nino(
                 establecimiento,
                 provincia,
                 distrito
-            ])
+            ]
+            print(f"[mc21_paquete_nino] fn_obtener_variables_detallado params: {params}")
+            cursor.execute(
+                "SELECT * FROM fn_obtener_variables_detallado_mc21_paquete_nino(%s, %s, %s, %s, %s, %s, %s, %s)",
+                params
+            )
             
             # Obtener TODAS las filas resultantes (todos los establecimientos)
             rows = cursor.fetchall()
+            print(f"[mc21_paquete_nino] fn_obtener_variables_detallado rows: {len(rows) if rows else 0}")
             
             if rows:
                 resultados = []
@@ -506,16 +521,19 @@ def obtener_grafico_por_redes_mc21_paquete_nino(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_grafico_redes_mc21_paquete_nino', [
-                anio,
-                mes_inicio,
-                mes_fin,
-                red,
-                microred,
-                establecimiento,
-                provincia,
-                distrito
-            ])
+            cursor.execute(
+                "SELECT * FROM fn_grafico_redes_mc21_paquete_nino(%s, %s, %s, %s, %s, %s, %s, %s)",
+                [
+                    anio,
+                    mes_inicio,
+                    mes_fin,
+                    red,
+                    microred,
+                    establecimiento,
+                    provincia,
+                    distrito
+                ]
+            )
             
             # Obtener TODAS las filas resultantes (todos los establecimientos)
             rows = cursor.fetchall()
@@ -583,16 +601,19 @@ def obtener_grafico_por_microredes_mc21_paquete_nino(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_grafico_microredes_mc21_paquete_nino', [
-                anio,
-                mes_inicio,
-                mes_fin,
-                red,
-                microred,
-                establecimiento,
-                provincia,
-                distrito
-            ])
+            cursor.execute(
+                "SELECT * FROM fn_grafico_microredes_mc21_paquete_nino(%s, %s, %s, %s, %s, %s, %s, %s)",
+                [
+                    anio,
+                    mes_inicio,
+                    mes_fin,
+                    red,
+                    microred,
+                    establecimiento,
+                    provincia,
+                    distrito
+                ]
+            )
             
             # Obtener TODAS las filas resultantes (todos los establecimientos)
             rows = cursor.fetchall()
@@ -660,16 +681,19 @@ def obtener_grafico_por_establecimientos_mc21_paquete_nino(
     try:
         with connection.cursor() as cursor:
             # Llamar a la función almacenada con los parámetros en orden
-            cursor.callproc('fn_grafico_establecimientos_mc21_paquete_nino', [
-                anio,
-                mes_inicio,
-                mes_fin,
-                red,
-                microred,
-                establecimiento,
-                provincia,
-                distrito
-            ])
+            cursor.execute(
+                "SELECT * FROM fn_grafico_establecimientos_mc21_paquete_nino(%s, %s, %s, %s, %s, %s, %s, %s)",
+                [
+                    anio,
+                    mes_inicio,
+                    mes_fin,
+                    red,
+                    microred,
+                    establecimiento,
+                    provincia,
+                    distrito
+                ]
+            )
             
             # Obtener TODAS las filas resultantes (todos los establecimientos)
             rows = cursor.fetchall()

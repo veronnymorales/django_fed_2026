@@ -20,6 +20,7 @@ urlpatterns = [
     path('', include('mc11_paquete_gestante.urls')),
     path('', include('mc21_paquete_nino.urls')),
     path('', include('mc31_paquete_neonato.urls')),
+    path('', include('dashboard.urls')),
     # path('', include('discapacidad.padron_urls')),
 ]
 

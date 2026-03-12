@@ -327,6 +327,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     params[key] = value;
                 }
             }
+            // Debug: mostrar todos los campos del formulario
+            console.log('📝 FormData entries:', Object.fromEntries(formData.entries()));
+            console.log('📝 Params enviados (sin vacíos):', params);
+            
+            // Debug: verificar estado del select de establecimiento
+            const estabSelect = document.getElementById('p_establecimiento_h');
+            if (estabSelect) {
+                console.log('🏨 Select establecimiento - value:', estabSelect.value, '| selectedIndex:', estabSelect.selectedIndex);
+            }
+            
             actualizarDashboard(params);
         });
 

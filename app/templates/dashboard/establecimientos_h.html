@@ -3,14 +3,13 @@
     <!-- Año -->
     <div class="col-md-1">
       <div class="form-group">
-        <label class="text-primary">AÑO:</label>
+        <label class="text-secondary">AÑO:</label>
         <select
           class="form-control form-control-sm select2"
           id="anio"
           name="anio"
           style="width: 100%"
         >
-          <option value="2025">2025</option>
           <option value="2026" selected>2026</option>
         </select>
       </div>
@@ -19,7 +18,7 @@
     <!-- Mes inicio -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary">MES INICIO:</label>
+        <label class="text-secondary">MES INICIO:</label>
         <select
           class="form-control form-control-sm select2"
           id="mes_inicio"
@@ -45,7 +44,7 @@
     <!-- Mes final -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary">MES FINAL:</label>
+        <label class="text-secondary">MES FINAL:</label>
         <select
           class="form-control form-control-sm select2"
           id="mes_fin"
@@ -71,12 +70,12 @@
     <!-- RED -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary" for="red_h">REDES:</label>
+        <label class="text-secondary" for="red_h">REDES:</label>
         <select
           class="form-control form-control-sm select2"
           id="red_h"
           name="red_h"
-          hx-get="{% url 'p_microredes_establec_mc21_paquete_nino_h' %}"
+          hx-get="{% url 'p_microredes_establec_dashboard_h' %}"
           hx-trigger="change"
           hx-target="#container_microredes_establec_h"
           hx-swap="innerHTML"
@@ -92,7 +91,7 @@
     <!-- MICRORED -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary" for="p_microredes_establec_h"
+        <label class="text-secondary" for="p_microredes_establec_h"
           >MICROREDES:</label
         >
         <div id="container_microredes_establec_h">
@@ -100,7 +99,7 @@
             class="form-control form-control-sm select2"
             id="p_microredes_establec_h"
             name="p_microredes_establec_h"
-            hx-get="{% url 'p_establecimientos_mc21_paquete_nino_h' %}"
+            hx-get="{% url 'p_establecimientos_dashboard_h' %}"
             hx-trigger="change"
             hx-target="#container_establecimientos_h"
             hx-swap="innerHTML"
@@ -116,7 +115,7 @@
     <!-- ESTABLECIMIENTO -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary" for="p_establecimiento_h"
+        <label class="text-secondary" for="p_establecimiento_h"
           >ESTABLECIMIENTOS:</label
         >
         <div id="container_establecimientos_h">
@@ -135,7 +134,7 @@
     <!-- Botones -->
     <div class="col-md-1">
       <div class="form-group">
-        <button type="submit" class="btn btn-primary btn-sm" id="filter-btn">
+        <button type="submit" class="btn btn-secondary btn-sm" id="filter-btn">
           <i class="fas fa-filter"></i> Filtrar
         </button>
       </div>
@@ -165,27 +164,10 @@
       // Obtener el formulario
       const filterForm = document.getElementById("filter-form");
 
-      // Flag para controlar el auto-submit después de HTMX swaps
-      let pendingAutoSubmit = false;
-
-      // Función para sincronizar valores de Select2 al <select> original
-      function syncSelect2Values() {
-        $("#filter-form .select2").each(function () {
-          if ($(this).hasClass("select2-hidden-accessible")) {
-            var val = $(this).select2("val");
-            if (val !== null && val !== undefined) {
-              $(this).val(val);
-            }
-          }
-        });
-      }
-
       // Función para enviar el formulario automáticamente
       function autoSubmitForm() {
         if (filterForm) {
           console.log("📤 Auto-submit disparado");
-          // Sincronizar valores de Select2 antes de enviar
-          syncSelect2Values();
           filterForm.dispatchEvent(new Event("submit"));
         }
       }
@@ -193,10 +175,11 @@
       // Manejar eventos Select2 con HTMX para el select de red
       $("#red_h").on("select2:select", function (e) {
         console.log("🌐 Red seleccionada:", e.params.data.text);
-        // Marcar que debe auto-submit después del swap HTMX
-        pendingAutoSubmit = true;
         // Disparar manualmente el evento HTMX para asegurar que la petición se envíe
         htmx.trigger(this, "change");
+
+        // Auto-submit después de que HTMX actualice las microredes
+        setTimeout(autoSubmitForm, 300);
       });
 
       // Auto-submit cuando se selecciona una microred
@@ -204,22 +187,17 @@
         "select2:select",
         "#p_microredes_establec_h",
         function (e) {
-          console.log("🏥 Microred seleccionada:", e.params.data.text);
-          // Marcar que debe auto-submit después del swap HTMX
-          pendingAutoSubmit = true;
+          console.log("� Microred seleccionada:", e.params.data.text);
           // Disparar manualmente el evento HTMX para cargar establecimientos
           htmx.trigger(this, "change");
+          // Auto-submit después de que HTMX actualice los establecimientos
+          setTimeout(autoSubmitForm, 300);
         },
       );
 
       // Auto-submit cuando se selecciona un establecimiento
       $(document).on("select2:select", "#p_establecimiento_h", function (e) {
         console.log("🏨 Establecimiento seleccionado:", e.params.data.text);
-        // Sincronizar el valor seleccionado al <select> original
-        var selectedValue = e.params.data.id;
-        console.log("📋 Valor del establecimiento:", selectedValue);
-        $(this).val(selectedValue);
-        // Auto-submit inmediato
         autoSubmitForm();
       });
 
@@ -271,16 +249,6 @@
         }
       });
 
-      // Auto-submit DESPUÉS de que HTMX haya terminado completamente (afterSettle)
-      document.body.addEventListener("htmx:afterSettle", function (event) {
-        if (pendingAutoSubmit) {
-          pendingAutoSubmit = false;
-          console.log("✅ HTMX settle completado - ejecutando auto-submit pendiente");
-          // Pequeño delay para asegurar que Select2 esté completamente inicializado
-          setTimeout(autoSubmitForm, 100);
-        }
-      });
-
       // Limpiar formulario - verificar que clear-btn existe
       const clearBtn = document.getElementById("clear-btn");
       if (clearBtn) {
@@ -289,7 +257,6 @@
           document.getElementById("filter-form").reset();
           $(".select2").val("").trigger("change");
           // Enviar formulario con valores en blanco para resetear el dashboard
-          pendingAutoSubmit = false;
           setTimeout(autoSubmitForm, 100);
         });
       } else {

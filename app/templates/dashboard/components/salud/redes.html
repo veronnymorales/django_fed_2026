@@ -1,20 +1,14 @@
-<!-- HTMX debe ir PRIMERO, en el head o al inicio del body -->
-<script src="https://unpkg.com/htmx.org@1.9.2/dist/htmx.js"></script>
-
 <main class="container">
   <div class="row">
     <div class="col-md-12">
       <section class="card card-body shadow mb-2">
         <div class="col-md-6 offset-md-3 text-center py-1 text-primary">
-          <h4>
-            MENORES 12 MESES QUE RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS -
-            MICRORED
-          </h4>
+          <h4>GESTANTES RECIBIERON EL PAQUETE INTEGRADO DE SERVICIOS - RED</h4>
         </div>
         <form
           method="GET"
           enctype="multipart/form-data"
-          action="{% url 'rpt_mc21_paquete_nino_microred_xls' %}"
+          action="{% url 'rpt_dashboard_red_xls' %}"
         >
           <!-- cabecera-->
           <div class="row">
@@ -63,54 +57,27 @@
               </select>
             </div>
           </div>
-
-          <!-- RED DE SALUD - SELECT PRINCIPAL -->
+          <!-- red de salud-->
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-10">
               <div class="form-group">
-                <label class="text-primary" for="red">REDES:</label>
-                <select
-                  class="form-control"
-                  name="red"
-                  id="red"
-                  hx-get="{% url 'p_microredes_mc21_paquete_nino' %}"
-                  hx-target="#p_microredes"
-                  hx-trigger="change"
-                  hx-swap="innerHTML"
-                >
+                <label class="text-primary" for="red">REDES :</label>
+                <select class="form-control" name="red">
                   <option value="">--- SELECCIONAR ---</option>
                   {% for p in redes %}
-                  <option value="{{ p.codigo_red_filtrado }}">
+                  <option value="{{ p.codigo_red_filtrado}}">
                     {{ p.Red }}
                   </option>
                   {% endfor %}
                 </select>
               </div>
             </div>
-
-            <!-- MICRORED - SELECT DEPENDIENTE -->
-            <div class="col-md-6">
-              <div class="form-group">
-                <label class="text-primary" for="microred">MICROREDES:</label>
-                <div id="p_microredes">
-                  <select
-                    class="form-control"
-                    name="microred"
-                    id="microred"
-                    disabled
-                  >
-                    <option value="">--- Primero seleccione una RED ---</option>
-                  </select>
-                </div>
-              </div>
-            </div>
           </div>
-
+          <!-- fin cabecera-->
           <br />
-          <!-- Button -->
           <div class="col-md-6 offset-md-3 text-center py-1 form-group">
             <button type="submit" class="btn btn-success btn-lg text-center">
-              <i class="fa fa-file-excel"></i> Procesar
+              <i class="fa fa-file-excel"></i> PROCESAR
             </button>
           </div>
         </form>
