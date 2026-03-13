@@ -17,7 +17,7 @@ from .views import (
 
 urlpatterns = [
     
-    path('dashboard/', index_dashboard, name='index_dashboard'),
+    path('inicio/', index_dashboard, name='index_dashboard'),
 
     ### BARRA HORIZONTAL - Filtros
     path('get_establecimientos_dashboard_h/<int:establecimiento_id>/', get_establecimientos_dashboard_h, name='get_establecimientos_dashboard_h'),

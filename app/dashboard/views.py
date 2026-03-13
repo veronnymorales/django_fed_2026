@@ -185,6 +185,7 @@ def _obtener_datos_dashboard(anio, mes_inicio, mes_fin, red, microred, estableci
 ## PANTALLA PRINCIPAL
 #######################
 
+@login_required(login_url='/signin/')
 def index_dashboard(request):
     """
     Vista principal para la pantalla de captación de gestantes.

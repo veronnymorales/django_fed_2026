@@ -16,8 +16,8 @@ def BASE(request):
 
 
 def inicio(request):
-    actualizacion = Actualizacion.objects.all()
-    return render(request, 'index.html', {"actualizacion": actualizacion})
+    from django.shortcuts import redirect
+    return redirect('index_dashboard')
 
 
 def home_redirect_view(request):
@@ -40,7 +40,7 @@ def signin(request):
             return render(request, 'signin.html', {"form": AuthenticationForm, "error": "Username or password is incorrect."})
 
         login(request, user)
-        return redirect('inicio')
+        return redirect('index_dashboard')
 
 def signup(request):
     if request.method == 'GET':

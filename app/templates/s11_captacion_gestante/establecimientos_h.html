@@ -4,30 +4,25 @@
     <div class="col-md-1">
       <div class="form-group">
         <label class="text-primary">AÑO:</label>
-        <select
-          class="form-control form-control-sm select2"
-          id="anio"
-          name="anio"
-          style="width: 100%"
-        >
+        <select class="form-control form-control-sm select2"
+                id="anio"
+                name="anio"
+                style="width: 100%">
           <option value="2025">2025</option>
           <option value="2026" selected>2026</option>
         </select>
       </div>
     </div>
-
     <!-- Mes inicio -->
     <div class="col-md-2">
       <div class="form-group">
         <label class="text-primary">MES INICIO:</label>
-        <select
-          class="form-control form-control-sm select2"
-          id="mes_inicio"
-          name="mes_inicio"
-          style="width: 50%"
-        >
-          <option value="1" selected>ENERO</option>
-          <option value="2">FEBRERO</option>
+        <select class="form-control form-control-sm select2"
+                id="mes_inicio"
+                name="mes_inicio"
+                style="width: 50%">
+          <option value="1">ENERO</option>
+          <option value="2" selected>FEBRERO</option>
           <option value="3">MARZO</option>
           <option value="4">ABRIL</option>
           <option value="5">MAYO</option>
@@ -41,19 +36,16 @@
         </select>
       </div>
     </div>
-
     <!-- Mes final -->
     <div class="col-md-2">
       <div class="form-group">
         <label class="text-primary">MES FINAL:</label>
-        <select
-          class="form-control form-control-sm select2"
-          id="mes_fin"
-          name="mes_fin"
-          style="width: 100%"
-        >
-          <option value="1" selected>ENERO</option>
-          <option value="2">FEBRERO</option>
+        <select class="form-control form-control-sm select2"
+                id="mes_fin"
+                name="mes_fin"
+                style="width: 100%">
+          <option value="1">ENERO</option>
+          <option value="2" selected>FEBRERO</option>
           <option value="3">MARZO</option>
           <option value="4">ABRIL</option>
           <option value="5">MAYO</option>
@@ -67,71 +59,55 @@
         </select>
       </div>
     </div>
-
     <!-- RED -->
     <div class="col-md-2">
       <div class="form-group">
         <label class="text-primary" for="red_h">REDES:</label>
-        <select
-          class="form-control form-control-sm select2"
-          id="red_h"
-          name="red_h"
-          hx-get="{% url 'p_microredes_establec_s11_captacion_gestante_h' %}"
-          hx-trigger="change"
-          hx-target="#container_microredes_establec_h"
-          hx-swap="innerHTML"
-        >
+        <select class="form-control form-control-sm select2"
+                id="red_h"
+                name="red_h"
+                hx-get="{% url 'p_microredes_establec_s11_captacion_gestante_h' %}"
+                hx-trigger="change"
+                hx-target="#container_microredes_establec_h"
+                hx-swap="innerHTML">
           <option value="">--- SELECCIONAR ---</option>
-          {% for p in redes_h %}
-          <option value="{{ p.codigo_red_filtrado }}">{{ p.Red }}</option>
-          {% endfor %}
+          {% for p in redes_h %}<option value="{{ p.codigo_red_filtrado }}">{{ p.Red }}</option>{% endfor %}
         </select>
       </div>
     </div>
-
     <!-- MICRORED -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary" for="p_microredes_establec_h"
-          >MICROREDES:</label
-        >
+        <label class="text-primary" for="p_microredes_establec_h">MICROREDES:</label>
         <div id="container_microredes_establec_h">
-          <select
-            class="form-control form-control-sm select2"
-            id="p_microredes_establec_h"
-            name="p_microredes_establec_h"
-            hx-get="{% url 'p_establecimientos_s11_captacion_gestante_h' %}"
-            hx-trigger="change"
-            hx-target="#container_establecimientos_h"
-            hx-swap="innerHTML"
-            hx-include="[name='red_h']"
-            style="width: 100%"
-          >
+          <select class="form-control form-control-sm select2"
+                  id="p_microredes_establec_h"
+                  name="p_microredes_establec_h"
+                  hx-get="{% url 'p_establecimientos_s11_captacion_gestante_h' %}"
+                  hx-trigger="change"
+                  hx-target="#container_establecimientos_h"
+                  hx-swap="innerHTML"
+                  hx-include="[name='red_h']"
+                  style="width: 100%">
             <option value="">--- SELECCIONAR ---</option>
           </select>
         </div>
       </div>
     </div>
-
     <!-- ESTABLECIMIENTO -->
     <div class="col-md-2">
       <div class="form-group">
-        <label class="text-primary" for="p_establecimiento_h"
-          >ESTABLECIMIENTOS:</label
-        >
+        <label class="text-primary" for="p_establecimiento_h">ESTABLECIMIENTOS:</label>
         <div id="container_establecimientos_h">
-          <select
-            class="form-control form-control-sm select2"
-            id="p_establecimiento_h"
-            name="p_establecimiento_h"
-            style="width: 100%"
-          >
+          <select class="form-control form-control-sm select2"
+                  id="p_establecimiento_h"
+                  name="p_establecimiento_h"
+                  style="width: 100%">
             <option value="">--- SELECCIONAR ---</option>
           </select>
         </div>
       </div>
     </div>
-
     <!-- Botones -->
     <div class="col-md-1">
       <div class="form-group">
@@ -142,7 +118,6 @@
     </div>
   </div>
 </form>
-
 <script>
   // Wait for the DOM and all scripts (including jQuery and Select2) to be loaded
   document.addEventListener("DOMContentLoaded", function () {
